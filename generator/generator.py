@@ -188,6 +188,10 @@ class PipelineGenerator:
 
     def _to_snake_case(self, text: str) -> str:
         """Convert text to snake_case"""
+
+        # Remove parentheses and their contents first
+        text = re.sub(r"\([^)]*\)", "", text)
+
         # Handle camelCase and PascalCase
         s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", text)
         s2 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1)

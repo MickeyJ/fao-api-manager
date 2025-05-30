@@ -1,0 +1,10 @@
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from db.database import Base
+
+class {{ model_name }}(Base):
+    __tablename__ = "{{ table_name }}"
+    
+    id = Column(Integer, primary_key=True)
+    {% for column in columns %}
+    {{ column.name }} = Column({{ column.sql_type }})
+    {% endfor %}
