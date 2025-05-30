@@ -53,7 +53,7 @@ class CSVAnalyzer:
             "row_count": int(len(df)),
             "column_count": int(len(df.columns)),
             "columns": df.columns.tolist(),
-            "suggested_table_columns": [
+            "suggested_db_column_names": [
                 self._suggest_db_column_name(col) for col in df.columns
             ],
             "encoding_used": encoding,
@@ -71,11 +71,11 @@ class CSVAnalyzer:
 
         # Infer SQL type
         inferred_type = self._infer_sql_type(series, column_name)
-        suggested_db_name = self._suggest_db_column_name(column_name)
+        suggested_db_column_name = self._suggest_db_column_name(column_name)
 
         return {
             "column_name": column_name,
-            "suggested_db_name": suggested_db_name,
+            "suggested_db_column_name": suggested_db_column_name,
             "sample_values": sample_values,
             "null_count": null_count,
             "non_null_count": non_null_count,
