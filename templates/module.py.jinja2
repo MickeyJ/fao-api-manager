@@ -1,0 +1,67 @@
+import pandas as pd
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from db.constants.column_names import CONST
+from db.utils import strip_quote, load_csv
+from db.database import run_with_session
+from . import get_csv_path_for
+from db.models import {{ model_name }}
+
+CSV_PATH = get_csv_path_for("{{ csv_filename }}")
+
+table_name = "{{ table_name }}"
+
+def load():
+    return load_csv(CSV_PATH)
+
+def clean(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove rows with missing or malformed data"""
+    if df.empty:
+        print(f"No {table_name} data to clean.")
+        return df
+
+    print(f"\nCleaning {table_name} data...")
+    initial_count = len(df)
+
+    # TODO: Add dataset-specific cleaning logic here
+    # Example patterns:
+    # df = df.dropna(subset=[CONST.CSV.SOME_CODE])
+    # df[CONST.CSV.SOME_CODE] = strip_quote(df, CONST.CSV.SOME_CODE)
+
+    final_count = len(df)
+    print(f"Validated {table_name}: {initial_count} → {final_count} rows")
+    return df
+
+def insert(df: pd.DataFrame, session: Session):
+    """Insert into the database."""
+    if df.empty:
+        print(f"No {table_name} data to insert.")
+        return
+
+    print(f"\nPreparing bulk {table_name} insert...")
+
+    try:
+        # TODO: Implement insertion logic
+        # {{ model_name }}.__table__.create(bind=session.bind, checkfirst=True)
+        # records = []
+        # for _, row in df.iterrows():
+        #     records.append({
+        #         # Map CSV columns to DB columns
+        #     })
+        # stmt = pg_insert({{ model_name }}).values(records)
+        # stmt = stmt.on_conflict_do_nothing(index_elements=[...])
+        # session.execute(stmt)
+        # session.commit()
+        
+        print(f"TODO: Implement {table_name} insertion")
+    except Exception as e:
+        print(f"Error inserting {table_name}: {e}")
+        session.rollback()
+
+def run(db):
+    df = load()
+    df = clean(df)
+    insert(df, db)
+
+if __name__ == "__main__":
+    run_with_session(run)

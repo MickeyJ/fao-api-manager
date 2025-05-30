@@ -1,0 +1,13 @@
+{% for module in modules %}from . import {{ module }}
+{% endfor %}from db.database import run_with_session
+
+
+def run_all(db):
+    print("Running {{ pipeline_name }} pipeline")
+    {% for module in modules %}{{ module }}.run(db)
+    {% endfor %}
+
+
+if __name__ == "__main__":
+    run_with_session(run_all)
+    print("{{ pipeline_name }} pipeline complete")
