@@ -1,8 +1,10 @@
 include .env
 export
 
-.PHONY: initialize requirements install \
-				use-sb-db use-local-db db-upgrade db-revision reset-db show-all-tables clear-all-tables
+.PHONY: \
+	initialize requirements install \
+	generator \
+	use-sb-db use-local-db db-upgrade db-revision reset-db show-all-tables clear-all-tables
 
 # =-=-=--=-=-=-=-=-=-=
 # Package Installation
@@ -19,6 +21,12 @@ requirements:
 install:
 	python -m piptools sync requirements.txt
 
+# =-=-=--=-=-=-=-=-=
+# Generator commands
+# =-=-=--=-=-=-=-=-=
+generator:
+	@echo "Generating code..."
+	python -m generator
 
 # =-=-=--=-=-=-=-=-
 # Database commands

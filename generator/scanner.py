@@ -15,13 +15,13 @@ class FAOZipScanner:
         results = []
 
         for zip_path in self.zip_dir.glob("*.zip"):
-            if self._is_fao_zip(zip_path):
+            if self._is_zip(zip_path):
                 info = self._analyze_zip(zip_path)
                 results.append(info)
 
         return results
 
-    def _is_fao_zip(self, zip_path: Path) -> bool:
+    def _is_zip(self, zip_path: Path) -> bool:
         """Check if this looks like an FAO data zip"""
         name = zip_path.name.lower()
         return "_e_all_data" in name or "_f_all_data" in name or "faostat" in name
@@ -47,7 +47,7 @@ class FAOZipScanner:
 
         # Convert CamelCase to snake_case
         name = self._to_snake_case(name)
-        return f"fao_{name}"
+        return f"{name}"
 
     def _to_snake_case(self, text: str) -> str:
         """Convert text to snake_case"""
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     print("\n=== CHECKING FAO FILTER ===")
     for zip_path in scanner.zip_dir.glob("*.zip"):
-        is_fao = scanner._is_fao_zip(zip_path)
+        is_fao = scanner._is_zip(zip_path)
         print(f"{zip_path.name} -> FAO: {is_fao}")
 
     print("\n=== FINAL RESULTS ===")

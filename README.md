@@ -27,9 +27,9 @@ fao-api-codebase-generator/
 │   ├── module.py.jinja2      # Individual module template
 │   └── __init___empty.py.jinja2  # Empty init template
 ├── db/pipelines/             # Generated pipeline modules
-│   ├── fao_core_tables/      # Core/shared tables
-│   ├── fao_prices/           # Price data pipeline
-│   ├── fao_population/       # Population data pipeline
+│   ├── core_tables/      # Core/shared tables
+│   ├── prices/           # Price data pipeline
+│   ├── population/       # Population data pipeline
 │   └── ...                   # Other generated pipelines
 ├── requirements.txt          # Python dependencies
 ├── Makefile                  # Build and setup commands
@@ -104,10 +104,10 @@ Each generated pipeline is a complete Python module:
 
 ```python
 # Run individual pipeline
-python -m db.pipelines.fao_prices
+python -m db.pipelines.prices
 
 # Run specific module
-python -m db.pipelines.fao_prices.prices
+python -m db.pipelines.prices.prices
 ```
 
 ## Generated Code Structure
@@ -116,7 +116,7 @@ Each pipeline includes:
 
 ### `__init__.py`
 - CSV directory configuration
-- Utility functions like [`get_csv_path_for`](db/pipelines/fao_prices/__init__.py)
+- Utility functions like [`get_csv_path_for`](db/pipelines/prices/__init__.py)
 - Currency standardization functions (when applicable)
 
 ### `__main__.py`
