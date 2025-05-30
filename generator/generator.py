@@ -1,15 +1,18 @@
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
-import shutil
 from typing import Dict, List
 import pandas as pd
-import zipfile
-import re
+from rich import print as rprint
+import re, json
 from . import ZIP_PATH
+from .scanner import FAOZipScanner
+from .csv_analyzer import CSVAnalyzer
 
 
 class PipelineGenerator:
 
+    analyzer = CSVAnalyzer()  # Create analyzer instance
+    exclude_modules = []
     template_file_names = {
         "init": "__init__.py.jinja2",
         "main": "__main__.py.jinja2",
@@ -40,7 +43,7 @@ class PipelineGenerator:
 
     def generate_core_pipeline(self, all_zip_info: List[Dict]) -> None:
         """Generate a single pipeline for core/shared tables"""
-        print("\n🔨 Generating core tables pipeline...")
+        # print("\n🔨 Generating core tables pipeline...") # LOG
 
         core_dir = self.output_dir / "fao_core_tables"
         core_dir.mkdir(parents=True, exist_ok=True)
@@ -50,13 +53,22 @@ class PipelineGenerator:
         for zip_info in all_zip_info:
             for csv_file in zip_info["csv_files"]:
                 if self._is_core_table(csv_file):
-                    # Use a simplified name for core tables
+                    # Store both filename and zip path
                     if "areacodes" in csv_file.lower():
-                        core_files["areas"] = csv_file
+                        core_files["areas"] = {
+                            "csv_filename": csv_file,
+                            "zip_path": zip_info["zip_path"],
+                        }
                     elif "itemcodes" in csv_file.lower():
-                        core_files["items"] = csv_file
+                        core_files["items"] = {
+                            "csv_filename": csv_file,
+                            "zip_path": zip_info["zip_path"],
+                        }
                     elif "currenc" in csv_file.lower():
-                        core_files["currencies"] = csv_file
+                        core_files["currencies"] = {
+                            "csv_filename": csv_file,
+                            "zip_path": zip_info["zip_path"],
+                        }
 
         if not core_files:
             print("  ⚠️  No core files found")
@@ -65,21 +77,36 @@ class PipelineGenerator:
         # Generate core pipeline files
         self._generate_init_file(
             core_dir,
-            {"zip_name": "core_tables", "csv_files": list(core_files.values())},
+            {
+                "zip_name": "core_tables",
+                "csv_files": [
+                    file_info["csv_filename"] for file_info in core_files.values()
+                ],
+            },
         )
         self._generate_main_file(core_dir, "fao_core_tables", core_files)
 
         # Generate module files for core tables
         template = self.jinja_env.get_template(self.template_file_names["module"])
-        for module_name, csv_filename in core_files.items():
+        for module_name, file_info in core_files.items():
+
+            # Analyze the CSV file
+            csv_analysis = self.analyzer.analyze_csv_from_zip(
+                file_info["zip_path"], file_info["csv_filename"]
+            )
             model_name = self._snake_to_pascal(self._guess_table_name(module_name))
             content = template.render(
-                csv_filename=csv_filename, model_name=model_name, table_name=module_name
+                csv_filename=file_info["csv_filename"],
+                model_name=model_name,
+                table_name=module_name,
             )
 
             module_file = core_dir / f"{module_name}.py"
             module_file.write_text(content, encoding="utf-8")
-            print(f"  📄 Generated core {module_name}.py")
+
+            json_file = core_dir / f"{module_name}.json"
+            json_file.write_text(json.dumps(csv_analysis, indent=2), encoding="utf-8")
+            # print(f"  📄 Generated core {module_name}.py") # LOG
 
         print(f"✅ Generated {len(core_files)} core modules")
 
@@ -88,7 +115,7 @@ class PipelineGenerator:
         pipeline_name = zip_info["suggested_pipeline_name"]
         pipeline_dir = self.output_dir / pipeline_name
 
-        print(f"\n🔨 Generating pipeline: {pipeline_name}")
+        # print(f"\n🔨 Generating pipeline: {pipeline_name}") # LOG
 
         # Create directory structure
         pipeline_dir.mkdir(parents=True, exist_ok=True)
@@ -198,7 +225,7 @@ class PipelineGenerator:
 
         # Exclude utility modules from main execution
         execution_modules = [
-            name for name in modules.keys() if name not in ["elements", "flags"]
+            name for name in modules.keys() if name not in self.exclude_modules
         ]
 
         content = template.render(
@@ -215,20 +242,31 @@ class PipelineGenerator:
 
         for module_name, csv_filename in modules.items():
             # Skip utility modules for now
-            if module_name in ["elements", "flags"]:
+            if module_name in self.exclude_modules:
                 continue
 
             # Determine model name and table name
-            table_name = self._guess_table_name(module_name)
+            table_name = self._guess_table_name(module_name, pipeline_dir.name)
             model_name = self._snake_to_pascal(table_name)
 
+            # Analyze the CSV file
+            csv_analysis = self.analyzer.analyze_csv_from_zip(
+                zip_info["zip_path"], csv_filename
+            )
+
             content = template.render(
-                csv_filename=csv_filename, model_name=model_name, table_name=table_name
+                csv_filename=csv_filename,
+                model_name=model_name,
+                table_name=table_name,
+                csv_analysis=csv_analysis,
             )
 
             module_file = pipeline_dir / f"{module_name}.py"
             module_file.write_text(content, encoding="utf-8")
-            print(f"  📄 Generated {module_name}.py")
+
+            json_file = pipeline_dir / f"{module_name}.json"
+            json_file.write_text(json.dumps(csv_analysis, indent=2), encoding="utf-8")
+            # print(f"  📄 Generated {module_name}.py") # LOG
 
     def _snake_to_pascal(self, snake_str):
         """Convert snake_case to PascalCase"""
@@ -254,14 +292,18 @@ class PipelineGenerator:
         # Fallback if pattern doesn't match
         return name.replace("_", "")
 
-    def _guess_table_name(self, module_name: str) -> str:
+    def _guess_table_name(self, module_name: str, pipeline_name: str = None) -> str:
         """Convert module name to likely table name"""
+        if module_name in ["elements", "flags"] and pipeline_name:
+            # Strip 'fao_' prefix from pipeline name
+            base_name = pipeline_name.replace("fao_", "")
+            return f"{base_name}_{module_name}"
+
         return module_name.lower()
 
 
 # Usage
 if __name__ == "__main__":
-    from .scanner import FAOZipScanner
 
     scanner = FAOZipScanner(ZIP_PATH)
     generator = PipelineGenerator()

@@ -11,6 +11,8 @@ A Python tool for automatically generating data pipeline code from FAO (Food and
 - **Database Integration**: Generated code includes SQLAlchemy ORM models and PostgreSQL bulk insert operations
 - **Modular Architecture**: Each dataset becomes a self-contained pipeline module
 
+*https://bulks-faostat.fao.org/production/datasets_E.json*
+
 ## Project Structure
 
 ```

@@ -12,6 +12,8 @@ click==8.2.1
     #   black
 colorama==0.4.6
     # via click
+greenlet==3.2.2
+    # via sqlalchemy
 jinja2==3.1.6
     # via -r requirements.in
 markdown-it-py==3.0.0
@@ -42,11 +44,14 @@ rich==14.0.0
     # via -r requirements.in
 six==1.17.0
     # via python-dateutil
+sqlalchemy==2.0.41
+    # via -r requirements.in
 tomli==2.2.1
     # via black
 typing-extensions==4.13.2
     # via
     #   black
     #   rich
+    #   sqlalchemy
 tzdata==2025.2
     # via pandas

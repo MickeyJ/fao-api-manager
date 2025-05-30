@@ -3,3 +3,4 @@ jinja2
 click
 rich
 black
+sqlalchemy
