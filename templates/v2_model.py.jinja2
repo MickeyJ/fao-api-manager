@@ -24,6 +24,15 @@ class {{ model_name }}(Base):
         DateTime, default=func.now(), onupdate=func.now(), nullable=False
     )
 
+    {% set fk_columns = csv_analysis.column_analysis | selectattr('is_likely_foreign_key') | list %}
+    {% if fk_columns %}
+    __table_args__ = (
+        {% for column in fk_columns %}
+        Index("ix_{{ table_name }}_{{ column.suggested_db_column_name }}", "{{ column.suggested_db_column_name }}"),
+        {% endfor %}
+    )
+    {% endif %}
+
     def __repr__(self):
         {% set repr_columns = csv_analysis.column_analysis[:3] %}
         return f"<{{ model_name }}({% for column in repr_columns %}{{ column.suggested_db_column_name }}='{self.{{ column.suggested_db_column_name }}}'{% if not loop.last %}, {% endif %}{% endfor %})>"

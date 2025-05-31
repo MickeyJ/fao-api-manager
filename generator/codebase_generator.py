@@ -20,7 +20,7 @@ class CodebaseGenerator:
 
     def generate_all(self, all_zip_info: List[Dict], csv_analyzer) -> None:
         """Generate everything: pipelines + models + future stuff"""
-        self.generate_all_pipelines(all_zip_info, csv_analyzer)
+        # self.generate_all_pipelines(all_zip_info, csv_analyzer)
         self.generate_models(all_zip_info, csv_analyzer)
 
     def generate_all_pipelines(self, all_zip_info: List[Dict], csv_analyzer) -> None:
@@ -106,7 +106,7 @@ class CodebaseGenerator:
 
             # Determine model name and table name
             table_name = self.structure.format_module_name(
-                module_name, pipeline_dir.name
+                module_name, pipeline_dir.name, csv_filename
             )
             model_name = self.structure.format_db_model_name(table_name)
 
@@ -162,7 +162,9 @@ class CodebaseGenerator:
                 zip_info["zip_path"], csv_filename
             )
 
-            table_name = self.structure.format_module_name(module_name, pipeline_name)
+            table_name = self.structure.format_module_name(
+                module_name, pipeline_name, csv_filename
+            )
             model_name = self.structure.format_db_model_name(table_name)
 
             # Render model content

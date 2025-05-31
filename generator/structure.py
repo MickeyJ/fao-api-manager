@@ -1,5 +1,6 @@
 import re
 from typing import Dict, List, Optional
+from . import to_snake_case, snake_to_pascal_case
 
 
 class Structure:
@@ -45,13 +46,13 @@ class Structure:
                     if suffix in ["Elements", "Flags", "AreaCodes", "ItemCodes"]:
                         return suffix.lower()
                     else:
-                        return self._to_snake_case(suffix)
+                        return to_snake_case(suffix)
                 else:
                     # Main data file
-                    return self._to_snake_case(base_name)
+                    return to_snake_case(base_name)
 
         # Fallback - convert entire filename
-        return self._to_snake_case(name)
+        return to_snake_case(name)
 
     def is_core_table(self, csv_filename: str) -> bool:
         """Check if this is a core/shared table"""
@@ -60,34 +61,23 @@ class Structure:
         return any(pattern in lower_file for pattern in core_patterns)
 
     def format_module_name(
-        self, module_name: str, pipeline_name: Optional[str] = None
+        self, module_name: str, pipeline_name: str, csv_filename: str
     ) -> str:
         """Convert module name to likely table name"""
-        if module_name in ["elements", "flags"] and pipeline_name:
-            # Strip '' prefix from pipeline name
-            base_name = pipeline_name.replace("", "")
-            return f"{base_name}_{module_name}"
+        if self.is_primary_module(csv_filename):
+            # Primary module - no prefix needed
+            return module_name.lower()
 
-        return module_name.lower()
+        # Secondary module - add pipeline prefix
+        base_name = pipeline_name.replace("fao_", "")
+        return f"{base_name}_{module_name}"
 
     def format_db_model_name(self, module_name: str) -> str:
         """Convert module name to SQLAlchemy model name (PascalCase)"""
-        return self._snake_to_pascal(module_name)
+        return snake_to_pascal_case(module_name)
 
-    def _to_snake_case(self, text: str) -> str:
-        """Convert text to snake_case"""
-        # Remove parentheses and their contents first
-        text = re.sub(r"\([^)]*\)", "", text)
-
-        # Handle camelCase and PascalCase
-        s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", text)
-        s2 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1)
-        # Clean up and convert to lowercase
-        result = s2.replace("_", "_").replace("-", "_").lower()
-        # Remove multiple underscores
-        result = re.sub("_+", "_", result)
-        return result.strip("_")
-
-    def _snake_to_pascal(self, snake_str: str) -> str:
-        """Convert snake_case to PascalCase"""
-        return "".join(word.capitalize() for word in snake_str.split("_"))
+    def is_primary_module(self, csv_filename: str) -> bool:
+        """Check if this is the main All_Data file"""
+        return (
+            "all_data" in csv_filename.lower() and "normalized" in csv_filename.lower()
+        )

@@ -3,7 +3,7 @@ import zipfile, re
 from pathlib import Path
 from typing import List, Dict
 import pandas as pd
-from . import ZIP_PATH
+from . import ZIP_PATH, to_snake_case
 
 
 class FAOZipScanner:
@@ -46,22 +46,8 @@ class FAOZipScanner:
         name = name.replace("_F_All_Data_(Normalized)", "")
 
         # Convert CamelCase to snake_case
-        name = self._to_snake_case(name)
+        name = to_snake_case(name)
         return f"{name}"
-
-    def _to_snake_case(self, text: str) -> str:
-        """Convert text to snake_case"""
-        # Remove parentheses and their contents
-        text = re.sub(r"\([^)]*\)", "", text)
-
-        # Handle camelCase and PascalCase
-        s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", text)
-        s2 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1)
-        # Clean up and convert to lowercase
-        result = s2.replace("-", "_").lower()
-        # Remove multiple underscores
-        result = re.sub("_+", "_", result)
-        return result.strip("_")
 
 
 if __name__ == "__main__":
