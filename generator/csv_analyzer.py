@@ -42,7 +42,7 @@ class CSVAnalyzer:
         # Analyze each column for type inference
         column_analysis = []
         for col in df.columns:
-            col_info = self._analyze_column(df[col].head(100), col)
+            col_info = self._analyze_column(df[col].head(1000), col)
             column_analysis.append(col_info)
 
         # Sample rows
@@ -139,8 +139,8 @@ class CSVAnalyzer:
 
     def _is_code_column(self, column_name: str, series) -> bool:
         """Check if this looks like an area/item/element code"""
-        code_patterns = ["code", "area code", "item code", "element code", "m49"]
-        if any(pattern in column_name.lower() for pattern in code_patterns):
+        code_columns = ["area code", "item code"]
+        if column_name.lower() in code_columns:
             return True
         return False
 

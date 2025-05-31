@@ -29,6 +29,13 @@ class TemplateRenderer:
         template = self.jinja_env.get_template("__main__.py.jinja2")
         return template.render(pipeline_name=pipeline_name, modules=modules)
 
+    def render_pipelines_main_template(
+        self, imports: List[str], calls: List[str]
+    ) -> str:
+        """Render pipelines_main__.py template"""
+        template = self.jinja_env.get_template("pipelines__main__.py.jinja2")
+        return template.render(imports=imports, calls=calls)  # Named parameters
+
     def render_module_template(
         self,
         csv_filename: str,

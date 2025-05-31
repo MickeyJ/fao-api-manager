@@ -3,9 +3,9 @@ export
 
 .PHONY: \
 	initialize requirements install \
-	generator \
+	generator pipeline \
 	use-sb-db use-local-db db-upgrade db-revision create-test-db drop-test-db reset-test-db reset-db \
-	show-all-tables clear-all-tables
+	show-all-tables clear-all-tables rm-pipelines reset-and-test pipe-reset-and-test
 
 # =-=-=--=-=-=-=-=-=-=
 # Package Installation
@@ -25,9 +25,16 @@ install:
 # =-=-=--=-=-=-=-=-=
 # Generator commands
 # =-=-=--=-=-=-=-=-=
-generator:
+generate:
 	@echo "Generating code..."
 	python -m generator
+
+# =-=-=--=-=-=-=-=-
+# Pipeline commands
+# =-=-=--=-=-=-=-=-
+pipelines:
+	@echo "Running pipeline..."
+	python -m db.pipelines
 
 # =-=-=--=-=-=-=-=-
 # Database commands
@@ -41,7 +48,7 @@ use-local-db:
 	@echo "Switched to local database"
 
 use-local-db-admin:
-	cp admin.env .env
+	cp local-admin.env .env
 	@echo "Switched to local database as admin"
 
 db-upgrade:
@@ -54,14 +61,15 @@ db-revision:
 
 create-test-db: use-local-db-admin
 	@echo "Creating test database and setting permissions..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f db/sql/create_test_db.sql
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f db/sql/create_database.sql
 	@echo "Test database 'fao' created with permissions"
 	make use-local-db
 
-drop-test-db:
+drop-test-db: use-local-db-admin
 	@echo "Dropping test database..."
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -c "DROP DATABASE IF EXISTS fao;"
 	@echo "Test database 'fao' dropped"
+	make use-local-db
 
 reset-test-db: drop-test-db create-test-db
 	@echo "Test database reset complete"
@@ -79,3 +87,9 @@ clear-all-tables:
 	@echo "Showing all tables in the database..."
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f db/sql/clear_all_tables.sql
 
+rm-pipelines:
+	@echo "Removing pipelines..."
+	rm -rf db/pipelines
+
+db-reset-and-test: clear-all-tables rm-pipelines generate pipelines
+pipe-reset-and-test: rm-pipelines generate

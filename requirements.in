@@ -6,3 +6,4 @@ black
 sqlalchemy
 alembic
 dotenv
+psycopg2

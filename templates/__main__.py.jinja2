@@ -4,7 +4,8 @@
 
 def run_all(db):
     print("Running {{ pipeline_name }} pipeline")
-    {% for module in modules %}{{ module }}.run(db)
+    {% for module in modules %}
+    {{ module }}.run(db)
     {% endfor %}
 
 

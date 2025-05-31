@@ -7,6 +7,7 @@ class CoreTableHandler:
         self.file_generator = file_generator
         self.template_renderer = template_renderer
         self.structure = structure
+        self.modules = []
 
     def collect_core_files(self, all_zip_info: List[Dict]) -> Dict[str, Dict]:
         """Collect all core CSV files from all zips"""
@@ -87,6 +88,18 @@ class CoreTableHandler:
 
             model_name = self.structure.format_db_model_name(module_name)
 
+            self.modules.append(
+                {
+                    "pipeline_name": "core_tables",
+                    "module_name": module_name,
+                    "model_name": model_name,
+                    "table_name": model_name,
+                    "file_info": file_info,
+                    "csv_filename": file_info["csv_filename"],
+                    "csv_analysis": csv_analysis,
+                }
+            )
+
             # Render module content
             module_content = self.template_renderer.render_module_template(
                 csv_filename=file_info["csv_filename"],
@@ -96,9 +109,9 @@ class CoreTableHandler:
             )
 
             # # Write module file
-            # self.file_generator.write_file(
-            #     core_dir / f"{module_name}.py", module_content
-            # )
+            self.file_generator.write_file(
+                core_dir / f"{module_name}.py", module_content
+            )
 
             # Write analysis JSON
             self.file_generator.write_json_file(

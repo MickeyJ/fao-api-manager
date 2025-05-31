@@ -9,6 +9,7 @@ class CodebaseGenerator:
     def __init__(self, output_dir: str = "./db"):
         self.output_dir = output_dir
         self.generated_models = []  # Track all generated models
+        self.modules = []
 
         # Initialize components
         self.structure = Structure()
@@ -20,8 +21,8 @@ class CodebaseGenerator:
 
     def generate_all(self, all_zip_info: List[Dict], csv_analyzer) -> None:
         """Generate everything: pipelines + models + future stuff"""
-        # self.generate_all_pipelines(all_zip_info, csv_analyzer)
-        self.generate_models(all_zip_info, csv_analyzer)
+        self.generate_all_pipelines(all_zip_info, csv_analyzer)
+        # self.generate_models(all_zip_info, csv_analyzer)
 
     def generate_all_pipelines(self, all_zip_info: List[Dict], csv_analyzer) -> None:
         """Generate core pipeline first, then individual pipelines"""
@@ -33,6 +34,8 @@ class CodebaseGenerator:
             modules = self.structure.determine_modules(zip_info["csv_files"])
             if modules:  # Only generate if there are non-core modules
                 self.generate_pipeline(zip_info, csv_analyzer)
+
+        self._generate_pipelines_main_file(all_zip_info)
 
     def generate_models(self, all_zip_info: List[Dict], csv_analyzer) -> None:
         """Generate SQLAlchemy models from CSV analysis"""
@@ -113,6 +116,18 @@ class CodebaseGenerator:
             # Analyze the CSV file
             csv_analysis = csv_analyzer.analyze_csv_from_zip(
                 zip_info["zip_path"], csv_filename
+            )
+
+            self.modules.append(
+                {
+                    "pipeline_name": "core_tables",
+                    "module_name": module_name,
+                    "model_name": model_name,
+                    "table_name": model_name,
+                    # "file_info": file_info,
+                    "csv_filename": csv_filename,
+                    "csv_analysis": csv_analysis,
+                }
             )
 
             # Render module content
@@ -221,3 +236,29 @@ class CodebaseGenerator:
             )
 
         print(f"✅ Generated {len(core_files)} core models")
+
+    def _generate_pipelines_main_file(self, all_zip_info: List[Dict]) -> None:
+        """Generate db/pipelines/__main__.py that runs all pipelines"""
+
+        # Collect all pipeline names
+        pipeline_names = [
+            zip_info["suggested_pipeline_name"]
+            for zip_info in all_zip_info
+            if zip_info["suggested_pipeline_name"] != "core_tables"
+        ]
+
+        # Generate imports and function calls
+        imports = []
+        calls = []
+
+        for name in pipeline_names:
+            imports.append(f"from .{name}.__main__ import run_all as run_{name}")
+            calls.append(f"run_{name}(db)")
+
+        pipelines_main_content = self.template_renderer.render_pipelines_main_template(
+            imports=imports, calls=calls
+        )
+
+        self.file_generator.write_file(
+            self.file_generator.pipelines_dir / "__main__.py", pipelines_main_content
+        )
