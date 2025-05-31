@@ -1,21 +1,14 @@
 from db.database import run_with_session
-from .core_tables.__main__ import run_all as run_core_tables
-{% for import_line in imports %}
-{{ import_line }}
+{% for name in pipeline_names %}
+from .{{ name }}.__main__ import run_all as run_{{ name }}
 {% endfor %}
-
 
 def run_all_pipelines(db):
-    """Run all data pipelines in sequence."""
     print("🚀 Starting all data pipelines...")
-
-    run_core_tables(db)
-{% for call_line in calls %}
-    {{ call_line }}
+{% for name in pipeline_names %}
+    run_{{ name }}(db)
 {% endfor %}
-
     print("✅ All pipelines complete!")
-
 
 if __name__ == "__main__":
     run_with_session(run_all_pipelines)

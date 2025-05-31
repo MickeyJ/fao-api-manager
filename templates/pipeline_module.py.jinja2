@@ -23,7 +23,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     initial_count = len(df)
 
     {% for column in csv_analysis.column_analysis %}
-    # Clean {{ column.column_name }} -> {{ column.suggested_db_column_name }}
+    # Clean {{ column.column_name }} -> {{ column.sql_column_name }}
     df['{{ column.column_name }}'] = df['{{ column.column_name }}'].astype(str).str.strip().str.replace("'", "")
     {% if column.inferred_sql_type == 'Integer' %}
     df['{{ column.column_name }}'] = pd.to_numeric(df['{{ column.column_name }}'], errors='coerce').astype('Int64')
@@ -56,7 +56,7 @@ def insert(df: pd.DataFrame, session: Session):
             for _, row in chunk.iterrows():
                 records.append({
                     {% for column in csv_analysis.column_analysis %}
-                    '{{ column.suggested_db_column_name }}': row['{{ column.column_name }}'],
+                    '{{ column.sql_column_name }}': row['{{ column.column_name }}'],
                     {% endfor %}
                 })
             
@@ -75,7 +75,7 @@ def insert(df: pd.DataFrame, session: Session):
         for _, row in df.iterrows():
             records.append({
                 {% for column in csv_analysis.column_analysis %}
-                '{{ column.suggested_db_column_name }}': row['{{ column.column_name }}'],
+                '{{ column.sql_column_name }}': row['{{ column.column_name }}'],
                 {% endfor %}
             })
         

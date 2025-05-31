@@ -53,9 +53,7 @@ class CSVAnalyzer:
             "row_count": int(len(df)),
             "column_count": int(len(df.columns)),
             "columns": df.columns.tolist(),
-            "suggested_db_column_names": [
-                self._suggest_db_column_name(col) for col in df.columns
-            ],
+            "sql_column_names": [self._format_column_name(col) for col in df.columns],
             "encoding_used": encoding,
             "sample_rows": sample_rows,
             "column_analysis": column_analysis,
@@ -74,11 +72,11 @@ class CSVAnalyzer:
 
         # Infer SQL type
         inferred_type = self._infer_sql_type(clean_series, column_name)
-        suggested_db_column_name = self._suggest_db_column_name(column_name)
+        sql_column_name = self._format_column_name(column_name)
 
         return {
             "column_name": column_name,
-            "suggested_db_column_name": suggested_db_column_name,
+            "sql_column_name": sql_column_name,
             "sample_values": sample_values,
             "null_count": null_count,
             "non_null_count": non_null_count,
@@ -87,7 +85,7 @@ class CSVAnalyzer:
             "is_likely_foreign_key": self._is_likely_foreign_key(column_name),
         }
 
-    def _suggest_db_column_name(self, column_name: str) -> str:
+    def _format_column_name(self, column_name: str) -> str:
         """Convert CSV column name to database-friendly name"""
         return (
             column_name.lower()
@@ -190,6 +188,11 @@ class CSVAnalyzer:
         """Check if this looks like a foreign key"""
         fk_patterns = ["area code", "item code", "element code", "area_id", "item_id"]
         return any(pattern in column_name.lower() for pattern in fk_patterns)
+
+    # def _exclude_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    #     """Exclude columns that are not useful for analysis"""
+    #     # Example: Exclude columns with too many nulls or non-informative names
+    #     threshold = 0.5
 
 
 # Test usage

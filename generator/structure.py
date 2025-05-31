@@ -8,13 +8,36 @@ class Structure:
         """Initialize the pipeline structure with optional excluded modules."""
         self.exclude_modules = exclude_modules or []
 
+    def build_module_spec(
+        self,
+        core_module_name: str,
+        file_info: Dict,
+        pipeline_name: str,
+    ) -> Dict:
+        """Build a complete module specification"""
+
+        # Format names
+        module_name = self.format_module_name(
+            core_module_name, pipeline_name, file_info["csv_filename"]
+        )
+        table_name = to_snake_case(module_name)
+        model_name = snake_to_pascal_case(table_name)
+
+        return {
+            "pipeline_name": pipeline_name,
+            "module_name": core_module_name,
+            "model_name": model_name,
+            "table_name": table_name,
+            "file_info": file_info,
+        }
+
     def determine_modules(self, csv_files: List[str]) -> Dict[str, str]:
         """Map CSV files to Python module names automatically, excluding core tables"""
         modules = {}
 
         for csv_file in csv_files:
             # Skip core tables - they go in the core pipeline
-            if self.is_core_table(csv_file):
+            if self.is_core_module(csv_file):
                 continue
 
             # Extract module name from filename automatically
@@ -26,8 +49,7 @@ class Structure:
 
     def extract_module_name(self, csv_filename: str) -> str:
         """Automatically extract module name from CSV filename - handles all FAO patterns"""
-        # Remove .csv extension
-        name = csv_filename.replace(".csv", "")
+        base_filename = csv_filename.replace(".csv", "")
 
         # Handle different language versions (_E_ or _F_) and variations
         patterns = [
@@ -37,44 +59,49 @@ class Structure:
         ]
 
         for pattern in patterns:
-            match = re.match(pattern, name)
+            match = re.match(pattern, base_filename)
             if match:
-                base_name = match.group(1)
                 if len(match.groups()) >= 3:
-                    suffix = match.group(3)
-                    # Handle specific suffixes
-                    if suffix in ["Elements", "Flags", "AreaCodes", "ItemCodes"]:
-                        return suffix.lower()
-                    else:
-                        return to_snake_case(suffix)
+                    suffix = match.group(3)  # Other data files
+                    # print(f"Match suffix: {suffix}")
+                    return to_snake_case(suffix)
                 else:
-                    # Main data file
+                    base_name = match.group(1)  # Main data file
+                    # print(f"base_name: {base_name}")
                     return to_snake_case(base_name)
 
         # Fallback - convert entire filename
-        return to_snake_case(name)
+        return to_snake_case(base_filename)
 
-    def is_core_table(self, csv_filename: str) -> bool:
+    def is_core_module(self, csv_filename: str) -> bool:
         """Check if this is a core/shared table"""
         lower_file = csv_filename.lower()
         core_patterns = ["areacodes", "itemcodes", "currencys"]
         return any(pattern in lower_file for pattern in core_patterns)
 
+    def categorize_core_file(self, csv_filename: str) -> str | None:
+        """Determine what type of core file this is"""
+        lower_file = csv_filename.lower()
+
+        if "areacodes" in lower_file:
+            return "areas"
+        elif "itemcodes" in lower_file:
+            return "items"
+        elif "currencys" in lower_file:
+            return "currencys"
+        return None
+
     def format_module_name(
         self, module_name: str, pipeline_name: str, csv_filename: str
     ) -> str:
-        """Convert module name to likely table name"""
-        if self.is_primary_module(csv_filename):
+        """Convert module name to table name"""
+        if self.is_primary_module(csv_filename) or self.is_core_module(csv_filename):
             # Primary module - no prefix needed
             return module_name.lower()
 
-        # Secondary module - add pipeline prefix
+        # Secondary module - add pipeline name prefix
         base_name = pipeline_name.replace("fao_", "")
         return f"{base_name}_{module_name}"
-
-    def format_db_model_name(self, module_name: str) -> str:
-        """Convert module name to SQLAlchemy model name (PascalCase)"""
-        return snake_to_pascal_case(module_name)
 
     def is_primary_module(self, csv_filename: str) -> bool:
         """Check if this is the main All_Data file"""
