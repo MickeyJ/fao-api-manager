@@ -1,10 +1,41 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import (
+    {% for sql_type in csv_analysis.column_analysis | map(attribute='inferred_sql_type') | unique  | reject('equalto', 'Integer')%}
+    {{ sql_type }},
+    {% endfor %}
+    Integer,
+    DateTime,
+    ForeignKey,
+    Index,
+    Column,
+    func,
+)
 from db.database import Base
 
 class {{ model_name }}(Base):
     __tablename__ = "{{ table_name }}"
     
     id = Column(Integer, primary_key=True)
-    {% for column in columns %}
-    {{ column.name }} = Column({{ column.sql_type }})
+    {% for column in csv_analysis.column_analysis %}
+    {{ column.suggested_db_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
     {% endfor %}
+
+    {% set fk_columns = csv_analysis.column_analysis | selectattr('is_likely_foreign_key') | list %}
+    {% if fk_columns %}
+
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime, default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        {% for column in fk_columns %}
+        Index("ix_{{ table_name }}_{{ column.suggested_db_column_name }}", "{{ column.suggested_db_column_name }}"),
+        {% endfor %}
+    )
+    {% endif %}
+
+    def __repr__(self):
+        {% set repr_columns = csv_analysis.column_analysis[:3] %}
+        return f"<{{ model_name }}({% for column in repr_columns %}{{ column.suggested_db_column_name }}='{self.{{ column.suggested_db_column_name }}}'{% if not loop.last %}, {% endif %}{% endfor %})>"
+
+    

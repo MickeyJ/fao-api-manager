@@ -36,8 +36,8 @@ class TemplateRenderer:
         table_name: str,
         csv_analysis: Optional[Dict] = None,
     ) -> str:
-        """Render module template (e.g., items.py, areas.py)"""
-        template = self.jinja_env.get_template("module.py.jinja2")
+        """Render pipeline_module template (e.g., items.py, areas.py)"""
+        template = self.jinja_env.get_template("pipeline_module.py.jinja2")
         return template.render(
             csv_filename=csv_filename,
             model_name=model_name,

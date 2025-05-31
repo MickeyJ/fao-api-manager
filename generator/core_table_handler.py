@@ -39,7 +39,7 @@ class CoreTableHandler:
         # Generate core pipeline files
         self._generate_core_init_file(core_dir, core_files)
         self._generate_core_main_file(core_dir, core_files)
-        self._generate_core_module_files(core_dir, core_files, csv_analyzer)
+        self._generate_core_modules(core_dir, core_files, csv_analyzer)
 
         print(f"✅ Generated {len(core_files)} core modules")
 
@@ -75,7 +75,7 @@ class CoreTableHandler:
 
         self.file_generator.write_file(core_dir / "__main__.py", content)
 
-    def _generate_core_module_files(
+    def _generate_core_modules(
         self, core_dir: Path, core_files: Dict, csv_analyzer
     ) -> None:
         """Generate individual module files for core tables"""
@@ -95,10 +95,10 @@ class CoreTableHandler:
                 csv_analysis=csv_analysis,
             )
 
-            # Write module file
-            self.file_generator.write_file(
-                core_dir / f"{module_name}.py", module_content
-            )
+            # # Write module file
+            # self.file_generator.write_file(
+            #     core_dir / f"{module_name}.py", module_content
+            # )
 
             # Write analysis JSON
             self.file_generator.write_json_file(

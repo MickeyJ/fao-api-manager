@@ -63,14 +63,17 @@ class CSVAnalyzer:
 
     def _analyze_column(self, series, column_name: str) -> Dict:
         """Analyze a single column to infer type and properties"""
-        sample_values = series.dropna().head(4).tolist()
-        non_null_count = int(series.count())  # Convert to Python int
-        total_count = len(series)
+
+        clean_series = self._clean_quoted_values(series)
+
+        sample_values = clean_series.dropna().head(4).tolist()
+        non_null_count = int(clean_series.count())  # Convert to Python int
+        total_count = len(clean_series)
         null_count = total_count - non_null_count
-        unique_count = int(series.nunique())  # Convert to Python int
+        unique_count = int(clean_series.nunique())  # Convert to Python int
 
         # Infer SQL type
-        inferred_type = self._infer_sql_type(series, column_name)
+        inferred_type = self._infer_sql_type(clean_series, column_name)
         suggested_db_column_name = self._suggest_db_column_name(column_name)
 
         return {
@@ -79,7 +82,7 @@ class CSVAnalyzer:
             "sample_values": sample_values,
             "null_count": null_count,
             "non_null_count": non_null_count,
-            "unique_count": series.nunique(),
+            "unique_count": unique_count,
             "inferred_sql_type": inferred_type,
             "is_likely_foreign_key": self._is_likely_foreign_key(column_name),
         }

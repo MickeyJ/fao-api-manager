@@ -1,0 +1,98 @@
+import pandas as pd
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from db.utils import load_csv
+from db.database import run_with_session
+from db.models import {{ model_name }}
+from . import get_csv_path_for
+
+CSV_PATH = get_csv_path_for("{{ csv_filename }}")
+
+table_name = "{{ table_name }}"
+
+def load():
+    return load_csv(CSV_PATH)
+
+def clean(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove rows with missing or malformed data"""
+    if df.empty:
+        print(f"No {table_name} data to clean.")
+        return df
+
+    print(f"\nCleaning {table_name} data...")
+    initial_count = len(df)
+
+    {% for column in csv_analysis.column_analysis %}
+    # Clean {{ column.column_name }} -> {{ column.suggested_db_column_name }}
+    df['{{ column.column_name }}'] = df['{{ column.column_name }}'].astype(str).str.strip().str.replace("'", "")
+    {% if column.inferred_sql_type == 'Integer' %}
+    df['{{ column.column_name }}'] = pd.to_numeric(df['{{ column.column_name }}'], errors='coerce').astype('Int64')
+    {% elif column.inferred_sql_type == 'Float' %}
+    df['{{ column.column_name }}'] = pd.to_numeric(df['{{ column.column_name }}'], errors='coerce')
+    {% endif %}
+    {% endfor %}
+
+    final_count = len(df)
+    print(f"Validated {table_name}: {initial_count} → {final_count} rows")
+    return df
+
+def insert(df: pd.DataFrame, session: Session):
+    """Insert into the database."""
+    if df.empty:
+        print(f"No {table_name} data to insert.")
+        return
+
+    print(f"\nPreparing bulk {table_name} insert...")
+
+    try:
+        # Determine chunk size based on row count
+        {% if csv_analysis.row_count > 10000 %}
+        CHUNK_SIZE = 5000  # Large dataset - use chunking
+        total_inserted = 0
+        
+        for i in range(0, len(df), CHUNK_SIZE):
+            chunk = df.iloc[i:i + CHUNK_SIZE]
+            records = []
+            for _, row in chunk.iterrows():
+                records.append({
+                    {% for column in csv_analysis.column_analysis %}
+                    '{{ column.suggested_db_column_name }}': row['{{ column.column_name }}'],
+                    {% endfor %}
+                })
+            
+            stmt = pg_insert({{ model_name }}).values(records)
+            stmt = stmt.on_conflict_do_nothing()
+            session.execute(stmt)
+            session.commit()
+            
+            total_inserted += len(records)
+            print(f"Processed chunk {i//CHUNK_SIZE + 1}: {total_inserted:,} rows inserted")
+        
+        print(f"✅ {table_name} insert complete: {total_inserted:,} total rows")
+        {% else %}
+        # Small dataset - single batch insert
+        records = []
+        for _, row in df.iterrows():
+            records.append({
+                {% for column in csv_analysis.column_analysis %}
+                '{{ column.suggested_db_column_name }}': row['{{ column.column_name }}'],
+                {% endfor %}
+            })
+        
+        stmt = pg_insert({{ model_name }}).values(records)
+        stmt = stmt.on_conflict_do_nothing()
+        session.execute(stmt)
+        session.commit()
+        print(f"✅ Inserted {len(df)} {table_name} rows")
+        {% endif %}
+    except Exception as e:
+        print(f"Error inserting {table_name}: {e}")
+        session.rollback()
+
+def run(db):
+    df = load()
+    df = clean(df)
+    insert(df, db)
+
+if __name__ == "__main__":
+    run_with_session(run)
