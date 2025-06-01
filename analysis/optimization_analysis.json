@@ -1,0 +1,854 @@
+{
+  "analysis_summary": {
+    "area_codes": {
+      "total_unique_codes": 27,
+      "datasets_with_area_codes": 54,
+      "area_code_sources": {
+        "asti_expenditures": [
+          {
+            "file": "ASTI_Expenditures_E_AreaCodes.csv",
+            "row_count": 121
+          }
+        ],
+        "asti_researchers": [
+          {
+            "file": "ASTI_Researchers_E_AreaCodes.csv",
+            "row_count": 121
+          }
+        ],
+        "climate_change_emissions_indicators": [
+          {
+            "file": "Climate_change_Emissions_indicators_E_AreaCodes.csv",
+            "row_count": 279
+          }
+        ],
+        "commodity_balances": [
+          {
+            "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_AreaCodes.csv",
+            "row_count": 217
+          },
+          {
+            "file": "CommodityBalances_(non-food)_(2010-)_E_AreaCodes.csv",
+            "row_count": 224
+          },
+          {
+            "file": "CommodityBalances_(non-food)_E_AreaCodes.csv",
+            "row_count": 217
+          }
+        ],
+        "consumer_price_indices": [
+          {
+            "file": "ConsumerPriceIndices_E_AreaCodes.csv",
+            "row_count": 252
+          }
+        ],
+        "cost_affordability_healthy_diet": [
+          {
+            "file": "Cost_Affordability_Healthy_Diet_(CoAHD)_E_AreaCodes.csv",
+            "row_count": 263
+          }
+        ],
+        "deflators": [
+          {
+            "file": "Deflators_E_AreaCodes.csv",
+            "row_count": 252
+          }
+        ],
+        "emissions_agriculture_energy": [
+          {
+            "file": "Emissions_Agriculture_Energy_E_AreaCodes.csv",
+            "row_count": 280
+          }
+        ],
+        "emissions_crops": [
+          {
+            "file": "Emissions_crops_E_AreaCodes.csv",
+            "row_count": 280
+          }
+        ],
+        "emissions_drained_organic_soils": [
+          {
+            "file": "Emissions_Drained_Organic_Soils_E_AreaCodes.csv",
+            "row_count": 280
+          }
+        ],
+        "emissions_land_use_fires": [
+          {
+            "file": "Emissions_Land_Use_Fires_E_AreaCodes.csv",
+            "row_count": 280
+          }
+        ],
+        "emissions_land_use_forests": [
+          {
+            "file": "Emissions_Land_Use_Forests_E_AreaCodes.csv",
+            "row_count": 285
+          }
+        ],
+        "emissions_livestock": [
+          {
+            "file": "Emissions_livestock_E_AreaCodes.csv",
+            "row_count": 279
+          }
+        ],
+        "emissions_pre_post_production": [
+          {
+            "file": "Emissions_Pre_Post_Production_E_AreaCodes.csv",
+            "row_count": 300
+          }
+        ],
+        "emissions_totals": [
+          {
+            "file": "Emissions_Totals_E_AreaCodes.csv",
+            "row_count": 280
+          }
+        ],
+        "employment_indicators_agriculture": [
+          {
+            "file": "Employment_Indicators_Agriculture_E_AreaCodes.csv",
+            "row_count": 269
+          }
+        ],
+        "employment_indicators_rural": [
+          {
+            "file": "Employment_Indicators_Rural_E_AreaCodes.csv",
+            "row_count": 267
+          }
+        ],
+        "environment_cropland_nutrient_budget": [
+          {
+            "file": "Environment_Cropland_nutrient_budget_E_AreaCodes.csv",
+            "row_count": 242
+          }
+        ],
+        "environment_emissions_by_sector": [
+          {
+            "file": "Environment_Emissions_by_Sector_E_AreaCodes.csv",
+            "row_count": 279
+          }
+        ],
+        "environment_emissions_intensities": [
+          {
+            "file": "Environment_Emissions_intensities_E_AreaCodes.csv",
+            "row_count": 289
+          }
+        ],
+        "environment_food_waste_disposal": [
+          {
+            "file": "Environment_Food_Waste_Disposal_E_AreaCodes.csv",
+            "row_count": 271
+          }
+        ],
+        "environment_land_cover": [
+          {
+            "file": "Environment_LandCover_E_AreaCodes.csv",
+            "row_count": 281
+          }
+        ],
+        "environment_land_use": [
+          {
+            "file": "Environment_LandUse_E_AreaCodes.csv",
+            "row_count": 275
+          }
+        ],
+        "environment_livestock_manure": [
+          {
+            "file": "Environment_LivestockManure_E_AreaCodes.csv",
+            "row_count": 279
+          }
+        ],
+        "environment_livestock_patterns": [
+          {
+            "file": "Environment_LivestockPatterns_E_AreaCodes.csv",
+            "row_count": 272
+          }
+        ],
+        "environment_pesticides": [
+          {
+            "file": "Environment_Pesticides_E_AreaCodes.csv",
+            "row_count": 207
+          }
+        ],
+        "environment_soil_nutrient_budget": [
+          {
+            "file": "Environment_Soil_nutrient_budget_E_AreaCodes.csv",
+            "row_count": 242
+          }
+        ],
+        "environment_temperature_change": [
+          {
+            "file": "Environment_Temperature_change_E_AreaCodes.csv",
+            "row_count": 284
+          }
+        ],
+        "exchange_rate": [
+          {
+            "file": "Exchange_rate_E_AreaCodes.csv",
+            "row_count": 266
+          }
+        ],
+        "food_balance_sheets_historic": [
+          {
+            "file": "FoodBalanceSheetsHistoric_E_AreaCodes.csv",
+            "row_count": 434
+          }
+        ],
+        "food_balance_sheets": [
+          {
+            "file": "FoodBalanceSheets_E_AreaCodes.csv",
+            "row_count": 450
+          }
+        ],
+        "food_aid_shipments_wfp": [
+          {
+            "file": "Food_Aid_Shipments_WFP_E_AreaCodes.csv",
+            "row_count": 183
+          }
+        ],
+        "forestry": [
+          {
+            "file": "Forestry_E_AreaCodes.csv",
+            "row_count": 285
+          }
+        ],
+        "forestry_pulp_paper_survey": [
+          {
+            "file": "Forestry_Pulp_Paper_Survey_E_AreaCodes.csv",
+            "row_count": 89
+          }
+        ],
+        "forestry_trade_flows": [
+          {
+            "file": "Forestry_Trade_Flows_E_AreaCodes.csv",
+            "row_count": 423
+          }
+        ],
+        "inputs_fertilizers_archive": [
+          {
+            "file": "Inputs_FertilizersArchive_E_AreaCodes.csv",
+            "row_count": 273
+          }
+        ],
+        "inputs_fertilizers_product": [
+          {
+            "file": "Inputs_FertilizersProduct_E_AreaCodes.csv",
+            "row_count": 310
+          }
+        ],
+        "inputs_pesticides_use": [
+          {
+            "file": "Inputs_Pesticides_Use_E_AreaCodes.csv",
+            "row_count": 256
+          }
+        ],
+        "investment_capital_stock": [
+          {
+            "file": "Investment_CapitalStock_E_AreaCodes.csv",
+            "row_count": 232
+          }
+        ],
+        "investment_country_investment_statistics_profile": [
+          {
+            "file": "Investment_CountryInvestmentStatisticsProfile_E_AreaCodes.csv",
+            "row_count": 258
+          }
+        ],
+        "investment_credit_agriculture": [
+          {
+            "file": "Investment_CreditAgriculture_E_AreaCodes.csv",
+            "row_count": 165
+          }
+        ],
+        "investment_foreign_direct_investment": [
+          {
+            "file": "Investment_ForeignDirectInvestment_E_AreaCodes.csv",
+            "row_count": 282
+          }
+        ],
+        "investment_government_expenditure": [
+          {
+            "file": "Investment_GovernmentExpenditure_E_AreaCodes.csv",
+            "row_count": 287
+          }
+        ],
+        "investment_machinery_archive": [
+          {
+            "file": "Investment_MachineryArchive_E_AreaCodes.csv",
+            "row_count": 277
+          }
+        ],
+        "investment_machinery": [
+          {
+            "file": "Investment_Machinery_E_AreaCodes.csv",
+            "row_count": 277
+          }
+        ],
+        "macro_statistics_key_indicators": [
+          {
+            "file": "Macro-Statistics_Key_Indicators_E_AreaCodes.csv",
+            "row_count": 253
+          }
+        ],
+        "population": [
+          {
+            "file": "Population_E_AreaCodes.csv",
+            "row_count": 282
+          }
+        ],
+        "prices_archive": [
+          {
+            "file": "PricesArchive_E_AreaCodes.csv",
+            "row_count": 185
+          }
+        ],
+        "prices": [
+          {
+            "file": "Prices_E_AreaCodes.csv",
+            "row_count": 233
+          }
+        ],
+        "production_crops_livestock": [
+          {
+            "file": "Production_Crops_Livestock_E_AreaCodes.csv",
+            "row_count": 245
+          }
+        ],
+        "production_indices": [
+          {
+            "file": "Production_Indices_E_AreaCodes.csv",
+            "row_count": 245
+          }
+        ],
+        "sdg_bulk_downloads": [
+          {
+            "file": "SDG_BulkDownloads_E_AreaCodes.csv",
+            "row_count": 311
+          }
+        ],
+        "sua_crops_livestock": [
+          {
+            "file": "SUA_Crops_Livestock_E_AreaCodes.csv",
+            "row_count": 224
+          }
+        ],
+        "supply_utilization_accounts_food_and_diet": [
+          {
+            "file": "Supply_Utilization_Accounts_Food_and_Diet_E_AreaCodes.csv",
+            "row_count": 224
+          }
+        ]
+      },
+      "name_inconsistencies": {},
+      "unification_feasible": true
+    },
+    "item_codes": {
+      "domains_found": [
+        "other",
+        "emissions",
+        "fertilizers",
+        "agriculture",
+        "prices"
+      ],
+      "items_per_domain": {
+        "other": 23,
+        "emissions": 28,
+        "fertilizers": 11,
+        "agriculture": 36,
+        "prices": 13
+      },
+      "conflicts": {},
+      "unification_feasible": true,
+      "recommendation": "unified_table"
+    },
+    "element_codes": {
+      "domains_found": [
+        "emissions",
+        "trade",
+        "other",
+        "production",
+        "economic",
+        "demographic"
+      ],
+      "elements_per_domain": {
+        "emissions": 51,
+        "trade": 12,
+        "other": 69,
+        "production": 15,
+        "economic": 40,
+        "demographic": 5
+      },
+      "conflicts": {},
+      "unification_feasible": true,
+      "recommendation": "unified_table"
+    },
+    "flags": {
+      "total_unique_flags": 12,
+      "flags_with_conflicts": 0,
+      "conflicts": {},
+      "unification_feasible": true,
+      "recommendation": "unified_table"
+    },
+    "column_redundancy": {
+      "redundant_patterns": [
+        {
+          "column_pattern": "area code",
+          "occurrences": 59,
+          "can_normalize": true,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Area Code"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Area Code"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Area Code"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Area Code"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Area Code"
+            }
+          ]
+        },
+        {
+          "column_pattern": "area code (m49)",
+          "occurrences": 59,
+          "can_normalize": true,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Area Code (M49)"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Area Code (M49)"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Area Code (M49)"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Area Code (M49)"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Area Code (M49)"
+            }
+          ]
+        },
+        {
+          "column_pattern": "area",
+          "occurrences": 59,
+          "can_normalize": false,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Area"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Area"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Area"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Area"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Area"
+            }
+          ]
+        },
+        {
+          "column_pattern": "item code",
+          "occurrences": 58,
+          "can_normalize": true,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Item Code"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Item Code"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Item Code"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Item Code"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Item Code"
+            }
+          ]
+        },
+        {
+          "column_pattern": "item",
+          "occurrences": 58,
+          "can_normalize": false,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Item"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Item"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Item"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Item"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Item"
+            }
+          ]
+        },
+        {
+          "column_pattern": "element code",
+          "occurrences": 68,
+          "can_normalize": true,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Element Code"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Element Code"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Element Code"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Element Code"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Element Code"
+            }
+          ]
+        },
+        {
+          "column_pattern": "element",
+          "occurrences": 68,
+          "can_normalize": false,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Element"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Element"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Element"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Element"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Element"
+            }
+          ]
+        },
+        {
+          "column_pattern": "flag",
+          "occurrences": 68,
+          "can_normalize": false,
+          "files": [
+            {
+              "dataset": "asti_expenditures",
+              "file": "ASTI_Expenditures_E_All_Data_(Normalized).csv",
+              "column": "Flag"
+            },
+            {
+              "dataset": "asti_researchers",
+              "file": "ASTI_Researchers_E_All_Data_(Normalized).csv",
+              "column": "Flag"
+            },
+            {
+              "dataset": "climate_change_emissions_indicators",
+              "file": "Climate_change_Emissions_indicators_E_All_Data_(Normalized).csv",
+              "column": "Flag"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Flag"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Flag"
+            }
+          ]
+        },
+        {
+          "column_pattern": "item code (cpc)",
+          "occurrences": 14,
+          "can_normalize": true,
+          "files": [
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(-2013_old_methodology)_E_All_Data_(Normalized).csv",
+              "column": "Item Code (CPC)"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_(2010-)_E_All_Data_(Normalized).csv",
+              "column": "Item Code (CPC)"
+            },
+            {
+              "dataset": "commodity_balances",
+              "file": "CommodityBalances_(non-food)_E_All_Data_(Normalized).csv",
+              "column": "Item Code (CPC)"
+            },
+            {
+              "dataset": "emissions_crops",
+              "file": "Emissions_crops_E_All_Data_(Normalized).csv",
+              "column": "Item Code (CPC)"
+            },
+            {
+              "dataset": "emissions_livestock",
+              "file": "Emissions_livestock_E_All_Data_(Normalized).csv",
+              "column": "Item Code (CPC)"
+            }
+          ]
+        }
+      ],
+      "total_patterns": 9
+    },
+    "normalization_opportunities": [
+      {
+        "type": "area_normalization",
+        "description": "Create unified areas table, remove area names from data tables",
+        "affected_tables": 54,
+        "estimated_savings": "30-50% reduction in string storage"
+      },
+      {
+        "type": "item_normalization",
+        "description": "Create unified items table, remove item names from data tables",
+        "affected_tables": 5,
+        "estimated_savings": "20-40% reduction in string storage"
+      },
+      {
+        "type": "lookup_tables",
+        "description": "Create lookup tables for flags, elements, sources",
+        "affected_tables": "Most data tables",
+        "estimated_savings": "10-20% reduction in repeated strings"
+      }
+    ]
+  },
+  "recommendations": [
+    {
+      "table_name": "areas",
+      "action": "create_unified_table",
+      "details": {
+        "source_files": [
+          "asti_expenditures",
+          "asti_researchers",
+          "climate_change_emissions_indicators",
+          "commodity_balances",
+          "consumer_price_indices",
+          "cost_affordability_healthy_diet",
+          "deflators",
+          "emissions_agriculture_energy",
+          "emissions_crops",
+          "emissions_drained_organic_soils",
+          "emissions_land_use_fires",
+          "emissions_land_use_forests",
+          "emissions_livestock",
+          "emissions_pre_post_production",
+          "emissions_totals",
+          "employment_indicators_agriculture",
+          "employment_indicators_rural",
+          "environment_cropland_nutrient_budget",
+          "environment_emissions_by_sector",
+          "environment_emissions_intensities",
+          "environment_food_waste_disposal",
+          "environment_land_cover",
+          "environment_land_use",
+          "environment_livestock_manure",
+          "environment_livestock_patterns",
+          "environment_pesticides",
+          "environment_soil_nutrient_budget",
+          "environment_temperature_change",
+          "exchange_rate",
+          "food_balance_sheets_historic",
+          "food_balance_sheets",
+          "food_aid_shipments_wfp",
+          "forestry",
+          "forestry_pulp_paper_survey",
+          "forestry_trade_flows",
+          "inputs_fertilizers_archive",
+          "inputs_fertilizers_product",
+          "inputs_pesticides_use",
+          "investment_capital_stock",
+          "investment_country_investment_statistics_profile",
+          "investment_credit_agriculture",
+          "investment_foreign_direct_investment",
+          "investment_government_expenditure",
+          "investment_machinery_archive",
+          "investment_machinery",
+          "macro_statistics_key_indicators",
+          "population",
+          "prices_archive",
+          "prices",
+          "production_crops_livestock",
+          "production_indices",
+          "sdg_bulk_downloads",
+          "sua_crops_livestock",
+          "supply_utilization_accounts_food_and_diet"
+        ],
+        "columns_to_exclude": [
+          "Area",
+          "Area Code (M49)"
+        ],
+        "foreign_key_setup": "Replace area names with area_code FK in all data tables"
+      },
+      "estimated_savings": "30-50% storage reduction in area references"
+    },
+    {
+      "table_name": "items",
+      "action": "create_unified_table",
+      "details": {
+        "strategy": "unified",
+        "columns_to_exclude": [
+          "Item",
+          "Item Code (CPC)"
+        ],
+        "foreign_key_setup": "Replace item names with item_code FK in all data tables"
+      },
+      "estimated_savings": "20-40% storage reduction in item references"
+    },
+    {
+      "table_name": "elements",
+      "action": "create_unified_table",
+      "details": {
+        "strategy": "unified",
+        "domains_unified": [
+          "emissions",
+          "trade",
+          "other",
+          "production",
+          "economic",
+          "demographic"
+        ],
+        "tables_eliminated": 191,
+        "foreign_key_setup": "Replace element names with element_code FK in all data tables"
+      },
+      "estimated_savings": "Eliminates 191 separate element tables, 15-25% storage reduction in element references"
+    },
+    {
+      "table_name": "flags",
+      "action": "create_unified_table",
+      "details": {
+        "strategy": "unified",
+        "total_unique_flags": 12,
+        "tables_eliminated": 67,
+        "foreign_key_setup": "Replace flag descriptions with flag FK in all data tables"
+      },
+      "estimated_savings": "Eliminates 67 separate flag tables, 10-15% storage reduction in flag references"
+    },
+    {
+      "table_name": "time_dimension",
+      "action": "standardize_time_handling",
+      "details": {
+        "issues": [
+          "Redundant Year Code/Year columns",
+          "Mixed monthly/annual data"
+        ],
+        "solution": "Create date dimension table, standardize to proper dates",
+        "affected_columns": [
+          "Year Code",
+          "Year",
+          "Months Code",
+          "Months"
+        ]
+      },
+      "estimated_savings": "10-15% storage reduction + better query performance"
+    },
+    {
+      "table_name": "all_data_tables",
+      "action": "exclude_redundant_columns",
+      "details": {
+        "columns_to_exclude": [
+          "area code",
+          "area code (m49)",
+          "item code",
+          "element code",
+          "item code (cpc)"
+        ],
+        "replace_with": "Foreign key references to lookup tables"
+      },
+      "estimated_savings": "20-35% storage reduction in repeated data"
+    }
+  ],
+  "implementation_priority": [
+    "Quick Wins: all_data_tables",
+    "Medium Effort: areas, items, elements, flags",
+    "Complex Changes: time_dimension"
+  ]
+}

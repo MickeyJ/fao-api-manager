@@ -55,7 +55,7 @@ class CSVAnalyzer:
             column_analysis.append(col_info)
 
         # Sample rows
-        sample_rows = df.head(2).to_dict("records")
+        sample_rows = df.head(10).to_dict("records")
 
         return {
             "file_name": csv_filename,
@@ -85,6 +85,7 @@ class CSVAnalyzer:
 
         return {
             "column_name": column_name,
+            "csv_column_name": column_name,
             "sql_column_name": sql_column_name,
             "sample_values": sample_values,
             "null_count": null_count,

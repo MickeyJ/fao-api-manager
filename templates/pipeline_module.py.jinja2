@@ -6,12 +6,16 @@ from db.database import run_with_session
 from db.models import {{ model_name }}
 from . import get_csv_path_for
 
-CSV_PATH = get_csv_path_for("{{ csv_filename }}")
+CSV = [
+    {% for csv_file in csv_files %}
+    get_csv_path_for("{{ csv_file }}"),
+    {% endfor %}
+]
 
 table_name = "{{ table_name }}"
 
 def load():
-    return load_csv(CSV_PATH)
+    return load_csv(CSV)
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     """Remove rows with missing or malformed data"""
@@ -23,14 +27,19 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     initial_count = len(df)
 
     {% for column in csv_analysis.column_analysis %}
-    # Clean {{ column.column_name }} -> {{ column.sql_column_name }}
-    df['{{ column.column_name }}'] = df['{{ column.column_name }}'].astype(str).str.strip().str.replace("'", "")
+    # Clean {{ column.csv_column_name }} -> {{ column.sql_csv_column_name }}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
     {% if column.inferred_sql_type == 'Integer' %}
-    df['{{ column.column_name }}'] = pd.to_numeric(df['{{ column.column_name }}'], errors='coerce').astype('Int64')
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce').astype('Int64')
     {% elif column.inferred_sql_type == 'Float' %}
-    df['{{ column.column_name }}'] = pd.to_numeric(df['{{ column.column_name }}'], errors='coerce')
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
     {% endif %}
     {% endfor %}
+
+    {% if csv_files.length > 1 %}
+    # Deduplicate unified data
+    df = df.drop_duplicates(subset=['{{ primary_key_column }}'], keep='first')
+    {% endif %}
 
     final_count = len(df)
     print(f"Validated {table_name}: {initial_count} → {final_count} rows")
@@ -56,7 +65,7 @@ def insert(df: pd.DataFrame, session: Session):
             for _, row in chunk.iterrows():
                 records.append({
                     {% for column in csv_analysis.column_analysis %}
-                    '{{ column.sql_column_name }}': row['{{ column.column_name }}'],
+                    '{{ column.sql_column_name }}': row['{{ column.csv_column_name }}'],
                     {% endfor %}
                 })
             
@@ -75,7 +84,7 @@ def insert(df: pd.DataFrame, session: Session):
         for _, row in df.iterrows():
             records.append({
                 {% for column in csv_analysis.column_analysis %}
-                '{{ column.sql_column_name }}': row['{{ column.column_name }}'],
+                '{{ column.sql_column_name }}': row['{{ column.csv_column_name }}'],
                 {% endfor %}
             })
         

@@ -1,7 +1,7 @@
 # FAO Data Optimization Analysis
 
 ## Executive Summary
-- **Area Codes**: 5 unique codes across 54 datasets
+- **Area Codes**: 27 unique codes across 54 datasets
 - **Item Codes**: unified_table recommended
 - **Normalization Opportunities**: 3 identified
 
@@ -15,7 +15,17 @@
 ### Item Codes Strategy  
 - **Recommendation**: unified_table
 - **Conflicts Found**: 0 item codes with cross-domain conflicts
-- **Domains**: other, emissions, agriculture, fertilizers, prices
+- **Domains**: other, emissions, fertilizers, agriculture, prices
+
+### Element Codes Strategy
+- **Recommendation**: unified_table
+- **Conflicts Found**: 0 element codes with cross-domain conflicts
+- **Domains**: emissions, trade, other, production, economic, demographic
+
+### Flags Strategy
+- **Recommendation**: unified_table
+- **Conflicts Found**: 0 flags with conflicting descriptions
+- **Total Unique Flags**: 12
 
 ## Optimization Recommendations
 
@@ -33,14 +43,28 @@
 
 ---
 
-### 3. Time_Dimension - Standardize Time Handling
+### 3. Elements - Create Unified Table
+**Expected Savings**: Eliminates 191 separate element tables, 15-25% storage reduction in element references
+
+{'strategy': 'unified', 'domains_unified': ['emissions', 'trade', 'other', 'production', 'economic', 'demographic'], 'tables_eliminated': 191, 'foreign_key_setup': 'Replace element names with element_code FK in all data tables'}
+
+---
+
+### 4. Flags - Create Unified Table
+**Expected Savings**: Eliminates 67 separate flag tables, 10-15% storage reduction in flag references
+
+{'strategy': 'unified', 'total_unique_flags': 12, 'tables_eliminated': 67, 'foreign_key_setup': 'Replace flag descriptions with flag FK in all data tables'}
+
+---
+
+### 5. Time_Dimension - Standardize Time Handling
 **Expected Savings**: 10-15% storage reduction + better query performance
 
 {'issues': ['Redundant Year Code/Year columns', 'Mixed monthly/annual data'], 'solution': 'Create date dimension table, standardize to proper dates', 'affected_columns': ['Year Code', 'Year', 'Months Code', 'Months']}
 
 ---
 
-### 4. All_Data_Tables - Exclude Redundant Columns
+### 6. All_Data_Tables - Exclude Redundant Columns
 **Expected Savings**: 20-35% storage reduction in repeated data
 
 {'columns_to_exclude': ['area code', 'area code (m49)', 'item code', 'element code', 'item code (cpc)'], 'replace_with': 'Foreign key references to lookup tables'}

@@ -1,4 +1,4 @@
-import zipfile
+import logging
 import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
@@ -6,9 +6,18 @@ import json
 from io import StringIO
 from collections import defaultdict, Counter
 from dataclasses import dataclass
+import time
 from generator.scanner import Scanner
 from generator.structure import Structure
+from generator.file_generator import FileGenerator
+from generator.csv_analyzer import CSVAnalyzer
 from . import ZIP_PATH
+
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -21,13 +30,18 @@ class OptimizationRecommendation:
 
 class DataOptimizer:
     def __init__(self, zip_path: str, output_dir: str = "./analysis"):
+        logger.info(f"🔧 Initializing DataOptimizer with zip_path: {zip_path}")
         self.zip_path = Path(zip_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
+        logger.info(f"📁 Output directory set to: {self.output_dir}")
 
-        self.scanner = Scanner(zip_path)
         self.structure = Structure()
-        self.csv_analyzer = CSVAnalyzer()
+        self.scanner = Scanner(zip_path)
+        self.file_generator = FileGenerator(output_dir)
+        self.csv_analyzer = CSVAnalyzer(
+            self.structure, self.scanner, self.file_generator
+        )
 
         # Results storage
         self.area_codes_analysis = {}
@@ -35,43 +49,289 @@ class DataOptimizer:
         self.column_redundancy_analysis = {}
         self.normalization_opportunities = []
 
+        logger.info("✅ DataOptimizer initialization complete")
+
     def run_full_analysis(self) -> Dict:
         """Run comprehensive analysis and generate optimization recommendations"""
-        print("🔍 Starting comprehensive data analysis...")
+        start_time = time.time()
+        logger.info("🔍 Starting comprehensive data analysis...")
 
         # Get all ZIP info
+        logger.info("📥 Scanning all ZIP files...")
+        scan_start = time.time()
         all_zip_info = self.scanner.scan_all_zips()
+        scan_duration = time.time() - scan_start
+        logger.info(
+            f"📁 Found {len(all_zip_info)} ZIP files to analyze (scan took {scan_duration:.2f}s)"
+        )
 
         # Run individual analyses
+        logger.info("📍 Starting area codes unification analysis...")
+        analysis_start = time.time()
         self.analyze_area_codes_unification(all_zip_info)
+        logger.info(
+            f"📍 Area codes analysis completed in {time.time() - analysis_start:.2f}s"
+        )
+
+        logger.info("📦 Starting item codes conflict analysis...")
+        analysis_start = time.time()
         self.analyze_item_codes_conflicts(all_zip_info)
+        logger.info(
+            f"📦 Item codes analysis completed in {time.time() - analysis_start:.2f}s"
+        )
+
+        logger.info("📦 Starting elements codes conflict analysis...")
+        analysis_start = time.time()
+        self.analyze_elements_conflicts(all_zip_info)
+        logger.info(
+            f"📦 Elements codes analysis completed in {time.time() - analysis_start:.2f}s"
+        )
+
+        logger.info("📦 Starting flags codes conflict analysis...")
+        analysis_start = time.time()
+        self.analyze_flags_conflicts(all_zip_info)
+        logger.info(
+            f"📦 Flags codes analysis completed in {time.time() - analysis_start:.2f}s"
+        )
+
+        logger.info("🗂️ Starting column redundancy analysis...")
+        analysis_start = time.time()
         self.analyze_column_redundancy(all_zip_info)
+        logger.info(
+            f"🗂️ Column redundancy analysis completed in {time.time() - analysis_start:.2f}s"
+        )
+
+        logger.info("🔄 Starting normalization opportunities analysis...")
+        analysis_start = time.time()
         self.analyze_normalization_opportunities(all_zip_info)
+        logger.info(
+            f"🔄 Normalization analysis completed in {time.time() - analysis_start:.2f}s"
+        )
 
         # Generate recommendations
+        logger.info("💡 Generating optimization recommendations...")
+        rec_start = time.time()
         recommendations = self.generate_recommendations()
+        logger.info(f"💡 Recommendations generated in {time.time() - rec_start:.2f}s")
 
         # Save comprehensive report
+        logger.info("📊 Saving analysis report...")
+        save_start = time.time()
         self.save_analysis_report(recommendations)
+        logger.info(f"📊 Report saved in {time.time() - save_start:.2f}s")
+
+        total_duration = time.time() - start_time
+        logger.info(
+            f"✅ Comprehensive data analysis completed successfully in {total_duration:.2f}s!"
+        )
 
         return {
             "area_codes": self.area_codes_analysis,
             "item_codes": self.item_codes_analysis,
+            "element_codes": self.element_codes_analysis,
+            "flags": self.flags_analysis,
             "column_redundancy": self.column_redundancy_analysis,
             "recommendations": [r.__dict__ for r in recommendations],
         }
 
+    def analyze_elements_conflicts(self, all_zip_info: List[Dict]):
+        """Check for element code conflicts across different domains"""
+        logger.info("📊 Analyzing element codes for conflicts...")
+
+        element_code_domains = defaultdict(dict)  # domain -> {code: element_name}
+        domain_overlaps = defaultdict(set)
+        total_files_processed = 0
+
+        for zip_idx, zip_info in enumerate(all_zip_info, 1):
+            dataset_name = zip_info["pipeline_name"]
+            logger.info(
+                f"🔍 Processing ZIP {zip_idx}/{len(all_zip_info)}: {dataset_name}"
+            )
+
+            for csv_file in zip_info["csv_files"]:
+                if "elements" in csv_file.lower():
+                    total_files_processed += 1
+                    logger.debug(f"📄 Analyzing elements file: {csv_file}")
+                    try:
+                        csv_analysis = self.csv_analyzer.analyze_csv_from_zip(
+                            zip_info["zip_path"], csv_file
+                        )
+
+                        if csv_analysis["row_count"] > 0 and csv_analysis.get(
+                            "sample_rows"
+                        ):
+                            logger.debug(
+                                f"  📊 Processing {csv_analysis['row_count']} rows"
+                            )
+                            for row in csv_analysis["sample_rows"]:
+                                if "Element Code" in row and "Element" in row:
+                                    element_code = row["Element Code"]
+                                    element_name = row["Element"]
+
+                                    # Categorize by domain (reusing your item domain logic)
+                                    domain = self.categorize_element_domain(
+                                        dataset_name, element_name
+                                    )
+
+                                    if element_code in element_code_domains[domain]:
+                                        # Check for conflicts
+                                        existing_name = element_code_domains[domain][
+                                            element_code
+                                        ]
+                                        if existing_name != element_name:
+                                            domain_overlaps[element_code].add(
+                                                (domain, existing_name)
+                                            )
+                                            domain_overlaps[element_code].add(
+                                                (domain, element_name)
+                                            )
+                                    else:
+                                        element_code_domains[domain][
+                                            element_code
+                                        ] = element_name
+
+                    except Exception as e:
+                        logger.warning(f"⚠️  Error analyzing {csv_file}: {e}")
+
+        # Analyze conflicts
+        conflicts = {}
+        for element_code, domain_elements in domain_overlaps.items():
+            if len(domain_elements) > 1:
+                conflicts[element_code] = list(domain_elements)
+
+        self.element_codes_analysis = {
+            "domains_found": list(element_code_domains.keys()),
+            "elements_per_domain": {
+                domain: len(elements)
+                for domain, elements in element_code_domains.items()
+            },
+            "conflicts": conflicts,
+            "unification_feasible": len(conflicts) == 0,
+            "recommendation": (
+                "unified_table" if len(conflicts) == 0 else "domain_specific_tables"
+            ),
+        }
+
+        logger.info(
+            f"✅ Analyzed {len(element_code_domains)} element domains from {total_files_processed} files"
+        )
+        if conflicts:
+            logger.warning(
+                f"⚠️  Found {len(conflicts)} element code conflicts across domains"
+            )
+        else:
+            logger.info("✅ No element code conflicts found - unification is safe!")
+
+    def analyze_flags_conflicts(self, all_zip_info: List[Dict]):
+        """Check for flag conflicts across different domains"""
+        logger.info("🏁 Analyzing flags for conflicts...")
+
+        flag_descriptions = defaultdict(set)  # flag -> set of descriptions
+        flag_conflicts = defaultdict(set)
+        total_files_processed = 0
+
+        for zip_idx, zip_info in enumerate(all_zip_info, 1):
+            logger.info(
+                f"🔍 Processing ZIP {zip_idx}/{len(all_zip_info)}: {zip_info['pipeline_name']}"
+            )
+
+            for csv_file in zip_info["csv_files"]:
+                if "flags" in csv_file.lower():
+                    total_files_processed += 1
+                    logger.debug(f"📄 Analyzing flags file: {csv_file}")
+                    try:
+                        csv_analysis = self.csv_analyzer.analyze_csv_from_zip(
+                            zip_info["zip_path"], csv_file
+                        )
+
+                        if csv_analysis["row_count"] > 0 and csv_analysis.get(
+                            "sample_rows"
+                        ):
+                            logger.debug(
+                                f"  📊 Processing {csv_analysis['row_count']} rows"
+                            )
+                            for row in csv_analysis["sample_rows"]:
+                                if "Flag" in row and "Description" in row:
+                                    flag = row["Flag"]
+                                    description = row["Description"]
+
+                                    flag_descriptions[flag].add(description)
+
+                    except Exception as e:
+                        logger.warning(f"⚠️  Error analyzing {csv_file}: {e}")
+
+        # Check for conflicts
+        conflicts = {}
+        for flag, descriptions in flag_descriptions.items():
+            if len(descriptions) > 1:
+                conflicts[flag] = list(descriptions)
+
+        self.flags_analysis = {
+            "total_unique_flags": len(flag_descriptions),
+            "flags_with_conflicts": len(conflicts),
+            "conflicts": conflicts,
+            "unification_feasible": len(conflicts) == 0,
+            "recommendation": (
+                "unified_table" if len(conflicts) == 0 else "investigate_conflicts"
+            ),
+        }
+
+        logger.info(
+            f"✅ Analyzed {len(flag_descriptions)} unique flags from {total_files_processed} files"
+        )
+        if conflicts:
+            logger.warning(
+                f"⚠️  Found {len(conflicts)} flags with conflicting descriptions"
+            )
+            for flag, descriptions in list(conflicts.items())[:3]:  # Show first 3
+                logger.debug(f"  Flag '{flag}': {descriptions}")
+        else:
+            logger.info("✅ No flag conflicts found - unification is safe!")
+
+    def categorize_element_domain(self, dataset_name: str, element_name: str) -> str:
+        """Categorize elements into domains based on dataset and element characteristics"""
+        dataset_lower = dataset_name.lower()
+        element_lower = element_name.lower()
+
+        if "emission" in dataset_lower or any(
+            x in element_lower for x in ["emissions", "co2", "ch4", "n2o"]
+        ):
+            return "emissions"
+        elif "production" in dataset_lower or any(
+            x in element_lower for x in ["production", "yield", "area harvested"]
+        ):
+            return "production"
+        elif "price" in dataset_lower or any(
+            x in element_lower for x in ["price", "value", "cost"]
+        ):
+            return "economic"
+        elif "trade" in dataset_lower or any(
+            x in element_lower for x in ["import", "export", "trade"]
+        ):
+            return "trade"
+        elif any(x in element_lower for x in ["population", "employment", "rural"]):
+            return "demographic"
+        else:
+            return "other"
+
     def analyze_area_codes_unification(self, all_zip_info: List[Dict]):
         """Analyze area codes across all datasets to plan unification"""
-        print("📍 Analyzing area codes for unification...")
+        logger.info("📍 Analyzing area codes for unification...")
 
         all_area_codes = set()
         area_code_sources = defaultdict(list)
         area_name_variations = defaultdict(set)
+        total_files_processed = 0
 
-        for zip_info in all_zip_info:
+        for zip_idx, zip_info in enumerate(all_zip_info, 1):
+            logger.info(
+                f"🔍 Processing ZIP {zip_idx}/{len(all_zip_info)}: {zip_info['pipeline_name']}"
+            )
+
             for csv_file in zip_info["csv_files"]:
                 if "areacodes" in csv_file.lower():
+                    total_files_processed += 1
+                    logger.debug(f"📄 Analyzing area codes file: {csv_file}")
                     try:
                         csv_analysis = self.csv_analyzer.analyze_csv_from_zip(
                             zip_info["zip_path"], csv_file
@@ -85,6 +345,9 @@ class DataOptimizer:
 
                         # If we have sample data, analyze the area codes
                         if csv_analysis.get("sample_rows"):
+                            logger.debug(
+                                f"  📊 Processing {csv_analysis['row_count']} rows"
+                            )
                             for row in csv_analysis["sample_rows"]:
                                 if "Area Code" in row and "Area" in row:
                                     area_code = row["Area Code"]
@@ -93,7 +356,7 @@ class DataOptimizer:
                                     area_name_variations[area_code].add(area_name)
 
                     except Exception as e:
-                        print(f"⚠️  Error analyzing {csv_file}: {e}")
+                        logger.warning(f"⚠️  Error analyzing {csv_file}: {e}")
 
         # Identify inconsistencies
         inconsistent_names = {
@@ -110,25 +373,34 @@ class DataOptimizer:
             "unification_feasible": len(inconsistent_names) < 10,  # Arbitrary threshold
         }
 
-        print(
-            f"✅ Found {len(all_area_codes)} unique area codes across {len(area_code_sources)} datasets"
+        logger.info(
+            f"✅ Found {len(all_area_codes)} unique area codes across {len(area_code_sources)} datasets from {total_files_processed} files"
         )
         if inconsistent_names:
-            print(f"⚠️  Found {len(inconsistent_names)} area codes with name variations")
+            logger.warning(
+                f"⚠️  Found {len(inconsistent_names)} area codes with name variations"
+            )
+        else:
+            logger.info("✅ No area code conflicts found - unification is safe!")
 
     def analyze_item_codes_conflicts(self, all_zip_info: List[Dict]):
         """Check for item code conflicts across different domains"""
-        print("📦 Analyzing item codes for conflicts...")
+        logger.info("📦 Analyzing item codes for conflicts...")
 
         item_code_domains = defaultdict(dict)  # domain -> {code: item_name}
         domain_overlaps = defaultdict(set)
+        total_files_processed = 0
 
-        for zip_info in all_zip_info:
-            print(f"Analyzing ZIP: {zip_info}")
+        for zip_idx, zip_info in enumerate(all_zip_info, 1):
+            logger.info(
+                f"🔍 Processing ZIP {zip_idx}/{len(all_zip_info)}: {zip_info['pipeline_name']}"
+            )
             dataset_name = zip_info["pipeline_name"]
 
             for csv_file in zip_info["csv_files"]:
                 if "itemcodes" in csv_file.lower():
+                    total_files_processed += 1
+                    logger.debug(f"📄 Analyzing item codes file: {csv_file}")
                     try:
                         csv_analysis = self.csv_analyzer.analyze_csv_from_zip(
                             zip_info["zip_path"], csv_file
@@ -137,6 +409,9 @@ class DataOptimizer:
                         if csv_analysis["row_count"] > 0 and csv_analysis.get(
                             "sample_rows"
                         ):
+                            logger.debug(
+                                f"  📊 Processing {csv_analysis['row_count']} rows"
+                            )
                             for row in csv_analysis["sample_rows"]:
                                 if "Item Code" in row and "Item" in row:
                                     item_code = row["Item Code"]
@@ -163,7 +438,7 @@ class DataOptimizer:
                                         item_code_domains[domain][item_code] = item_name
 
                     except Exception as e:
-                        print(f"⚠️  Error analyzing {csv_file}: {e}")
+                        logger.warning(f"⚠️  Error analyzing {csv_file}: {e}")
 
         # Analyze conflicts
         conflicts = {}
@@ -183,11 +458,15 @@ class DataOptimizer:
             ),
         }
 
-        print(f"✅ Analyzed {len(item_code_domains)} item domains")
+        logger.info(
+            f"✅ Analyzed {len(item_code_domains)} item domains from {total_files_processed} files"
+        )
         if conflicts:
-            print(f"⚠️  Found {len(conflicts)} item code conflicts across domains")
+            logger.warning(
+                f"⚠️  Found {len(conflicts)} item code conflicts across domains"
+            )
         else:
-            print("✅ No item code conflicts found - unification is safe!")
+            logger.info("✅ No item code conflicts found - unification is safe!")
 
     def categorize_item_domain(self, dataset_name: str, item_name: str) -> str:
         """Categorize items into domains based on dataset and item characteristics"""
@@ -215,27 +494,32 @@ class DataOptimizer:
 
     def analyze_column_redundancy(self, all_zip_info: List[Dict]):
         """Identify redundant columns that can be normalized"""
-        print("🗂️  Analyzing column redundancy...")
+        logger.info("🗂️  Analyzing column redundancy...")
 
         redundant_patterns = []
         common_columns = defaultdict(list)
+        total_files_processed = 0
 
-        for zip_info in all_zip_info:
+        for zip_idx, zip_info in enumerate(all_zip_info, 1):
             dataset_name = zip_info["pipeline_name"]
-            print(f"Analyzing ZIP for dataset: {dataset_name}")
+            self._log_progress(
+                zip_idx, len(all_zip_info), "Column redundancy analysis", dataset_name
+            )
 
             for csv_file in zip_info["csv_files"]:
                 if not any(
                     x in csv_file.lower()
                     for x in ["areacodes", "itemcodes", "flags", "elements"]
                 ):
+                    total_files_processed += 1
+                    logger.debug(f"📄 Analyzing data file: {csv_file}")
                     try:
                         csv_analysis = self.csv_analyzer.analyze_csv_from_zip(
                             zip_info["zip_path"], csv_file
                         )
 
                         columns = csv_analysis.get("columns", [])
-                        print(f"columns: {columns}")
+                        logger.debug(f"  📊 Found {len(columns)} columns")
 
                         # Track common column patterns
                         for col in columns:
@@ -261,7 +545,7 @@ class DataOptimizer:
                                 )
 
                     except Exception as e:
-                        print(f"⚠️  Error analyzing {csv_file}: {e}")
+                        logger.warning(f"⚠️  Error analyzing {csv_file}: {e}")
                         continue
 
         # Identify normalization opportunities
@@ -284,16 +568,19 @@ class DataOptimizer:
             "total_patterns": len(redundant_patterns),
         }
 
-        print(f"✅ Found {len(redundant_patterns)} redundant column patterns")
+        logger.info(
+            f"✅ Found {len(redundant_patterns)} redundant column patterns from {total_files_processed} data files"
+        )
 
     def analyze_normalization_opportunities(self, all_zip_info: List[Dict]):
         """Identify specific normalization opportunities"""
-        print("🔄 Analyzing normalization opportunities...")
+        logger.info("🔄 Analyzing normalization opportunities...")
 
         opportunities = []
 
         # Area normalization
         if self.area_codes_analysis.get("unification_feasible", False):
+            logger.debug("✅ Area normalization opportunity identified")
             opportunities.append(
                 {
                     "type": "area_normalization",
@@ -307,6 +594,7 @@ class DataOptimizer:
 
         # Item normalization
         if self.item_codes_analysis.get("unification_feasible", False):
+            logger.debug("✅ Item normalization opportunity identified")
             opportunities.append(
                 {
                     "type": "item_normalization",
@@ -319,6 +607,7 @@ class DataOptimizer:
             )
 
         # Flag/Element normalization
+        logger.debug("💡 Lookup tables opportunity identified")
         opportunities.append(
             {
                 "type": "lookup_tables",
@@ -329,14 +618,16 @@ class DataOptimizer:
         )
 
         self.normalization_opportunities = opportunities
-        print(f"✅ Identified {len(opportunities)} normalization opportunities")
+        logger.info(f"✅ Identified {len(opportunities)} normalization opportunities")
 
     def generate_recommendations(self) -> List[OptimizationRecommendation]:
         """Generate actionable optimization recommendations"""
+        logger.info("💡 Generating optimization recommendations...")
         recommendations = []
 
         # Area code recommendations
         if self.area_codes_analysis.get("unification_feasible"):
+            logger.debug("📍 Adding area unification recommendation")
             recommendations.append(
                 OptimizationRecommendation(
                     table_name="areas",
@@ -357,6 +648,7 @@ class DataOptimizer:
 
         # Item code recommendations
         if self.item_codes_analysis.get("unification_feasible"):
+            logger.debug("📦 Adding item unification recommendation")
             recommendations.append(
                 OptimizationRecommendation(
                     table_name="items",
@@ -373,6 +665,7 @@ class DataOptimizer:
                 )
             )
         else:
+            logger.debug("📦 Adding domain-specific item tables recommendation")
             recommendations.append(
                 OptimizationRecommendation(
                     table_name="items",
@@ -386,7 +679,93 @@ class DataOptimizer:
                 )
             )
 
+        # Element code recommendations - ADD THIS SECTION
+        if self.element_codes_analysis.get("unification_feasible"):
+            # Count how many datasets actually have elements files (this is the real table count)
+            datasets_with_elements = len(
+                self.element_codes_analysis.get("domains_found", [])
+            )
+            logger.debug(
+                f"📊 Adding element unification recommendation (saves {datasets_with_elements-1} tables)"
+            )
+            recommendations.append(
+                OptimizationRecommendation(
+                    table_name="elements",
+                    action="create_unified_table",
+                    details={
+                        "strategy": "unified",
+                        "domains_unified": self.element_codes_analysis.get(
+                            "domains_found", []
+                        ),
+                        "tables_eliminated": datasets_with_elements
+                        - 1,  # N tables become 1
+                        "foreign_key_setup": "Replace element names with element_code FK in all data tables",
+                    },
+                    estimated_savings=f"Eliminates {datasets_with_elements - 1} separate element tables, 15-25% storage reduction in element references",
+                )
+            )
+        else:
+            conflicts_count = len(self.element_codes_analysis.get("conflicts", {}))
+            logger.debug(
+                f"📊 Adding domain-specific element tables recommendation ({conflicts_count} conflicts)"
+            )
+            recommendations.append(
+                OptimizationRecommendation(
+                    table_name="elements",
+                    action="create_domain_specific_tables",
+                    details={
+                        "strategy": "domain_specific",
+                        "domains": self.element_codes_analysis.get("domains_found", []),
+                        "conflicts": self.element_codes_analysis.get("conflicts", {}),
+                        "tables_saved": "Moderate - some consolidation possible",
+                    },
+                    estimated_savings="10-15% storage reduction with domain separation",
+                )
+            )
+
+        # Flags recommendations - ADD THIS SECTION
+        if self.flags_analysis.get("unification_feasible"):
+            total_flag_tables = 68  # From your analysis - 68 flag files
+            logger.debug(
+                f"🏁 Adding flags unification recommendation (saves {total_flag_tables-1} tables)"
+            )
+            recommendations.append(
+                OptimizationRecommendation(
+                    table_name="flags",
+                    action="create_unified_table",
+                    details={
+                        "strategy": "unified",
+                        "total_unique_flags": self.flags_analysis.get(
+                            "total_unique_flags", 0
+                        ),
+                        "tables_eliminated": total_flag_tables
+                        - 1,  # 68 tables become 1
+                        "foreign_key_setup": "Replace flag descriptions with flag FK in all data tables",
+                    },
+                    estimated_savings=f"Eliminates {total_flag_tables - 1} separate flag tables, 10-15% storage reduction in flag references",
+                )
+            )
+        else:
+            conflicts_count = len(self.flags_analysis.get("conflicts", {}))
+            logger.debug(
+                f"🏁 Adding flags conflict investigation recommendation ({conflicts_count} conflicts)"
+            )
+            recommendations.append(
+                OptimizationRecommendation(
+                    table_name="flags",
+                    action="investigate_conflicts",
+                    details={
+                        "strategy": "investigate_first",
+                        "conflicts": self.flags_analysis.get("conflicts", {}),
+                        "total_conflicts": conflicts_count,
+                        "next_steps": "Resolve flag description conflicts before unification",
+                    },
+                    estimated_savings="Potential for major table reduction after conflict resolution",
+                )
+            )
+
         # Time dimension optimization
+        logger.debug("⏰ Adding time dimension standardization recommendation")
         recommendations.append(
             OptimizationRecommendation(
                 table_name="time_dimension",
@@ -410,6 +789,9 @@ class DataOptimizer:
                 redundant_columns.append(pattern["column_pattern"])
 
         if redundant_columns:
+            logger.debug(
+                f"🗂️ Adding column exclusion recommendation for {len(redundant_columns)} patterns"
+            )
             recommendations.append(
                 OptimizationRecommendation(
                     table_name="all_data_tables",
@@ -422,14 +804,19 @@ class DataOptimizer:
                 )
             )
 
+        logger.info(f"✅ Generated {len(recommendations)} optimization recommendations")
         return recommendations
 
     def save_analysis_report(self, recommendations: List[OptimizationRecommendation]):
         """Save comprehensive analysis report"""
+        logger.info("📊 Saving comprehensive analysis report...")
+
         report = {
             "analysis_summary": {
                 "area_codes": self.area_codes_analysis,
                 "item_codes": self.item_codes_analysis,
+                "element_codes": self.element_codes_analysis,
+                "flags": self.flags_analysis,
                 "column_redundancy": self.column_redundancy_analysis,
                 "normalization_opportunities": self.normalization_opportunities,
             },
@@ -441,9 +828,10 @@ class DataOptimizer:
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"📊 Comprehensive analysis saved to {report_path}")
+        logger.info(f"📊 Comprehensive analysis saved to {report_path}")
 
         # Also create a summary markdown report
+        logger.info("📝 Creating markdown summary report...")
         self.create_markdown_summary(recommendations)
 
     def prioritize_recommendations(
@@ -475,6 +863,8 @@ class DataOptimizer:
         self, recommendations: List[OptimizationRecommendation]
     ):
         """Create a readable markdown summary"""
+        logger.debug("📝 Generating markdown summary...")
+
         md_content = f"""# FAO Data Optimization Analysis
 
 ## Executive Summary
@@ -494,6 +884,16 @@ class DataOptimizer:
 - **Conflicts Found**: {len(self.item_codes_analysis.get('conflicts', {}))} item codes with cross-domain conflicts
 - **Domains**: {', '.join(self.item_codes_analysis.get('domains_found', []))}
 
+### Element Codes Strategy
+- **Recommendation**: {self.element_codes_analysis.get('recommendation', 'TBD')}
+- **Conflicts Found**: {len(self.element_codes_analysis.get('conflicts', {}))} element codes with cross-domain conflicts
+- **Domains**: {', '.join(self.element_codes_analysis.get('domains_found', []))}
+
+### Flags Strategy
+- **Recommendation**: {self.flags_analysis.get('recommendation', 'TBD')}
+- **Conflicts Found**: {len(self.flags_analysis.get('conflicts', {}))} flags with conflicting descriptions
+- **Total Unique Flags**: {self.flags_analysis.get('total_unique_flags', 'N/A')}
+
 ## Optimization Recommendations
 
 """
@@ -512,7 +912,21 @@ class DataOptimizer:
         with open(md_path, "w") as f:
             f.write(md_content)
 
-        print(f"📝 Summary report saved to {md_path}")
+        logger.info(f"📝 Summary report saved to {md_path}")
+
+    def _log_progress(
+        self, current: int, total: int, operation: str, extra_info: str = ""
+    ):
+        """Log progress for long-running operations"""
+        if total > 10:  # Only log progress for operations with many items
+            progress_percent = (current / total) * 100
+            if (
+                current % max(1, total // 10) == 0 or current == total
+            ):  # Log every 10% or at completion
+                extra = f" - {extra_info}" if extra_info else ""
+                logger.info(
+                    f"📈 {operation}: {current}/{total} ({progress_percent:.1f}%){extra}"
+                )
 
 
 class OptimizedPipelineGenerator:
@@ -654,29 +1068,29 @@ class {model_name}(Base):
 # Usage example and test functions
 def run_optimization_analysis(zip_path: str):
     """Main function to run the optimization analysis"""
+    logger.info(f"🚀 Starting optimization analysis for: {zip_path}")
 
     optimizer = DataOptimizer(zip_path)
     results = optimizer.run_full_analysis()
 
-    print("\n" + "=" * 50)
-    print("🎯 OPTIMIZATION ANALYSIS COMPLETE")
-    print("=" * 50)
+    logger.info("🎯 OPTIMIZATION ANALYSIS COMPLETE")
+    logger.info("=" * 50)
 
     # Print key insights
     area_analysis = results["area_codes"]
-    print(
+    logger.info(
         f"📍 Areas: {area_analysis.get('total_unique_codes')} codes, unification {'✅ feasible' if area_analysis.get('unification_feasible') else '❌ has conflicts'}"
     )
 
     item_analysis = results["item_codes"]
-    print(
+    logger.info(
         f"📦 Items: {item_analysis.get('recommendation', 'TBD')} strategy recommended"
     )
 
-    print(
+    logger.info(
         f"💡 Recommendations: {len(results['recommendations'])} optimization opportunities identified"
     )
-    print("\nSee ./analysis/ directory for detailed reports!")
+    logger.info("See ./analysis/ directory for detailed reports!")
 
     return results
 
@@ -685,187 +1099,3 @@ if __name__ == "__main__":
     # Test with your ZIP path
     ZIP_PATH = r"C:\Users\18057\Documents\Data\fao-test-zips"
     results = run_optimization_analysis(ZIP_PATH)
-
-
-class CSVAnalyzer:
-
-    def analyze_csv_from_zip(self, zip_path: Path, csv_filename: str) -> Dict:
-        """Analyze a CSV file directly from inside a ZIP"""
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            with zf.open(csv_filename) as csv_file:
-                # Try different encodings
-                encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
-
-                for encoding in encodings:
-                    try:
-                        csv_file.seek(0)
-                        csv_data = csv_file.read().decode(encoding)
-                        df = pd.read_csv(StringIO(csv_data), dtype=str)
-                        return self._analyze_dataframe(df, csv_filename, encoding)
-                    except UnicodeDecodeError:
-                        continue
-
-                # If all encodings fail, use errors='ignore'
-                csv_file.seek(0)
-                csv_data = csv_file.read().decode("utf-8", errors="ignore")
-                df = pd.read_csv(StringIO(csv_data), dtype=str)
-                return self._analyze_dataframe(
-                    df, csv_filename, "utf-8 (with errors ignored)"
-                )
-
-    def _analyze_dataframe(
-        self, df: pd.DataFrame, csv_filename: str, encoding: str
-    ) -> Dict:
-        """Analyze a DataFrame and return structured information"""
-        # Clean column names
-        df.columns = df.columns.str.strip()
-
-        # Analyze each column for type inference
-        column_analysis = []
-        for col in df.columns:
-            col_info = self._analyze_column(df[col].head(1000), col)
-            column_analysis.append(col_info)
-
-        # Sample rows
-        sample_rows = df.head(2).to_dict("records")
-
-        return {
-            "file_name": csv_filename,
-            "row_count": int(len(df)),
-            "column_count": int(len(df.columns)),
-            "columns": df.columns.tolist(),
-            "sql_column_names": [self._format_column_name(col) for col in df.columns],
-            "encoding_used": encoding,
-            "sample_rows": sample_rows,
-            "column_analysis": column_analysis,
-        }
-
-    def _analyze_column(self, series, column_name: str) -> Dict:
-        """Analyze a single column to infer type and properties"""
-
-        clean_series = self._clean_quoted_values(series)
-
-        sample_values = clean_series.dropna().head(4).tolist()
-        non_null_count = int(clean_series.count())  # Convert to Python int
-        total_count = len(clean_series)
-        null_count = total_count - non_null_count
-        unique_count = int(clean_series.nunique())  # Convert to Python int
-
-        # Infer SQL type
-        inferred_type = self._infer_sql_type(clean_series, column_name)
-        sql_column_name = self._format_column_name(column_name)
-
-        return {
-            "column_name": column_name,
-            "sql_column_name": sql_column_name,
-            "sample_values": sample_values,
-            "null_count": null_count,
-            "non_null_count": non_null_count,
-            "unique_count": unique_count,
-            "inferred_sql_type": inferred_type,
-            "is_likely_foreign_key": self._is_likely_foreign_key(column_name),
-        }
-
-    def _format_column_name(self, column_name: str) -> str:
-        """Convert CSV column name to database-friendly name"""
-        return (
-            column_name.lower()
-            .replace(" ", "_")
-            .replace("(", "")
-            .replace(")", "")
-            .replace("-", "_")
-        )
-
-    def _infer_sql_type(self, series, column_name: str) -> str:
-        """Infer SQLAlchemy column type from data patterns"""
-        # Drop nulls for analysis
-        clean_series = series.dropna()
-
-        if len(clean_series) == 0:
-            return "String"
-
-        # Check for specific FAO patterns first
-        if self._is_year_column(column_name, clean_series):
-            return "Integer"
-
-        if self._is_code_column(column_name, clean_series):
-            return "Integer"  # Most FAO codes are integers
-
-        if self._is_value_column(column_name, clean_series):
-            return "Float"
-
-        # General pattern matching
-        if self._is_integer_pattern(clean_series):
-            return "Integer"
-
-        if self._is_float_pattern(clean_series):
-            return "Float"
-
-        # Default to String
-        return "String"
-
-    def _is_year_column(self, column_name: str, series) -> bool:
-        """Check if this looks like a year column"""
-        if "year" in column_name.lower():
-            try:
-                clean_values = self._clean_quoted_values(series)
-                numeric_values = pd.to_numeric(clean_values, errors="coerce").dropna()
-                if len(numeric_values) > 0:
-                    return numeric_values.between(1900, 2030).all()
-            except:
-                pass
-        return False
-
-    def _is_code_column(self, column_name: str, series) -> bool:
-        """Check if this looks like an area/item/element code"""
-        code_columns = ["area code", "item code"]
-        if column_name.lower() in code_columns:
-            return True
-        return False
-
-    def _is_value_column(self, column_name: str, series) -> bool:
-        """Check if this looks like a numeric value column"""
-        value_patterns = ["value", "price", "amount", "quantity", "rate"]
-        return any(pattern in column_name.lower() for pattern in value_patterns)
-
-    def _clean_quoted_values(self, series):
-        """Remove quotes from values like '004', '123'"""
-        return (
-            series.astype(str)
-            .str.strip()
-            .str.replace("^'", "", regex=True)
-            .str.replace("'$", "", regex=True)
-        )
-
-    def _is_integer_pattern(self, series) -> bool:
-        """Check if series contains integer-like values"""
-        try:
-            # Clean quoted values like "'004'" -> "004"
-            clean_values = self._clean_quoted_values(series)
-            numeric_values = pd.to_numeric(clean_values, errors="coerce")
-
-            # If most convert to numbers and are whole numbers
-            valid_numbers = numeric_values.dropna()
-            if len(valid_numbers) / len(series) > 0.8:  # 80% are numeric
-                return (valid_numbers % 1 == 0).all()  # All are whole numbers
-        except:
-            pass
-        return False
-
-    def _is_float_pattern(self, series) -> bool:
-        """Check if series contains float-like values"""
-        try:
-            clean_values = self._clean_quoted_values(series)
-            numeric_values = pd.to_numeric(clean_values, errors="coerce")
-
-            # If most convert to numbers
-            valid_numbers = numeric_values.dropna()
-            return len(valid_numbers) / len(series) > 0.8
-        except:
-            pass
-        return False
-
-    def _is_likely_foreign_key(self, column_name: str) -> bool:
-        """Check if this looks like a foreign key"""
-        fk_patterns = ["area code", "item code", "element code", "area_id", "item_id"]
-        return any(pattern in column_name.lower() for pattern in fk_patterns)

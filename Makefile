@@ -30,9 +30,17 @@ generate:
 	@echo "Generating code..."
 	python -m generator --all
 
-analyze-csv-data:
+generate-test:
+	@echo "Generating code..."
+	python -m generator --test
+
+csv-analysis:
 	@echo "Scanning all CSV data..."
-	python -m generator --analyze
+	python -m generator --csv_analysis
+
+optimization-analysis:
+	@echo "Scanning all CSV data..."
+	python -m generator --opt_analysis
 
 # =-=-=--=-=-=-=-=-
 # Pipeline commands
