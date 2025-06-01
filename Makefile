@@ -1,7 +1,35 @@
 include .env
 export
 
+# =-=-=--=-=-=-=-=-=-=
+#   Environment Setup
+# =-=-=--=-=-=-=-=-=-=
+
+# Check for environment and set activation command
+ifdef VIRTUAL_ENV
+    # Already in a virtual environment
+    ACTIVATE = @echo "venv - $(VIRTUAL_ENV)" &&
+    PYTHON = python
+else ifdef CONDA_DEFAULT_ENV
+    # Already in conda environment  
+    ACTIVATE = @echo "conda - $(CONDA_DEFAULT_ENV)" &&
+    PYTHON = python
+else ifeq ($(wildcard venv/Scripts/activate),venv/Scripts/activate)
+    # Windows venv available
+    ACTIVATE = @venv\Scripts\activate &&
+    PYTHON = python
+else ifeq ($(wildcard venv/bin/activate),venv/bin/activate)
+    # Unix venv available
+    ACTIVATE = @source venv/bin/activate &&
+    PYTHON = python3
+else
+    # No environment found
+    ACTIVATE = @echo "❌ No environment found. Run 'make venv' or activate conda." && exit 1 &&
+    PYTHON = python
+endif
+
 .PHONY: \
+	venv env-status \
 	initialize requirements install \
 	generator generate-test csv-analysis optimizer \
 	run-all-pipelines \
@@ -9,45 +37,58 @@ export
 	show-all-tables clear-all-tables rm-pipelines reset-and-test pipe-reset-and-test
 
 # =-=-=--=-=-=-=-=-=-=
+#  Python Environment
+# =-=-=--=-=-=-=-=-=-=
+venv:
+	@$(PYTHON) -m venv venv
+	@echo "✅ Virtual environment created. Activate with:"
+	@echo "   source venv/bin/activate  (macOS/Linux)"
+	@echo "   venv\\Scripts\\activate     (Windows)"
+
+env-status:
+	@echo "=== Environment Status ==="
+	$(ACTIVATE) echo "Python: $$(which $(PYTHON))"
+
+# =-=-=--=-=-=-=-=-=-=
 # Package Installation
 # =-=-=--=-=-=-=-=-=-=
 initialize:
-	pip install pip-tools
-	python -m piptools compile requirements.in
-	python -m piptools sync requirements.txt
+	$(ACTIVATE) $(PYTHON) -m pip install pip-tools
+	$(ACTIVATE) $(PYTHON) -m piptools compile requirements.in
+	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
 requirements:
-	python -m piptools compile requirements.in
-	python -m piptools sync requirements.txt
+	$(ACTIVATE) $(PYTHON) -m piptools compile requirements.in
+	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
 install:
-	python -m piptools sync requirements.txt
+	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
 # =-=-=--=-=-=-=-=-=
 # Generator commands
 # =-=-=--=-=-=-=-=-=
 generate:
 	@echo "Generating code..."
-	python -m generator --all
+	$(ACTIVATE) $(PYTHON)  -m generator --all
 
 generate-test:
 	@echo "Generating code..."
-	python -m generator --test
+	$(ACTIVATE) $(PYTHON)  -m generator --test
 
 csv-analysis:
 	@echo "Scanning all CSV data..."
-	python -m generator --csv_analysis
+	$(ACTIVATE) $(PYTHON)  -m generator --csv_analysis
 
 optimizer:
 	@echo "Scanning all CSV data..."
-	python -m optimizer
+	$(ACTIVATE) $(PYTHON)  -m optimizer
 
 # =-=-=--=-=-=-=-=-
 # Pipeline commands
 # =-=-=--=-=-=-=-=-
 run-all-pipelines:
 	@echo "Running pipeline..."
-	python -m db.pipelines
+	$(ACTIVATE) $(PYTHON)  -m db.pipelines
 
 # =-=-=--=-=-=-=-=-
 # Database commands

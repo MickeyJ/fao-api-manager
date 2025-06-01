@@ -6,19 +6,34 @@ from typing import Dict, List
 from .structure import Structure
 from .scanner import Scanner
 from .file_generator import FileGenerator
-from . import ZIP_PATH
+from optimizer.csv_cache import CSVCache
+from . import ZIP_PATH, logger
 
 
 class CSVAnalyzer:
     def __init__(
-        self, structure: Structure, scanner: Scanner, file_generator: FileGenerator
+        self,
+        structure: Structure,
+        scanner: Scanner,
+        file_generator: FileGenerator,
+        shared_cache: CSVCache | None = None,
     ):
         self.structure = structure
         self.scanner = scanner
         self.file_generator = file_generator
+        # Use shared cache or create new one
+        self.cache = shared_cache or CSVCache()
 
     def analyze_csv_from_zip(self, zip_path: Path, csv_filename: str) -> Dict:
-        """Analyze a CSV file directly from inside a ZIP"""
+        """Analyze a CSV file directly from inside a ZIP with caching"""
+        return self.cache.get_analysis(
+            zip_path, csv_filename, self._analyze_csv_from_zip_uncached
+        )[
+            0
+        ]  # Just return the analysis, not the cache key
+
+    def _analyze_csv_from_zip_uncached(self, zip_path: Path, csv_filename: str) -> Dict:
+        """The actual analysis logic (without caching)"""
         with zipfile.ZipFile(zip_path, "r") as zf:
             with zf.open(csv_filename) as csv_file:
                 # Try different encodings
@@ -67,6 +82,58 @@ class CSVAnalyzer:
             "sample_rows": sample_rows,
             "column_analysis": column_analysis,
         }
+
+    def analyze_files(self) -> Dict[str, Dict]:
+        """Scan all ZIP files and identify duplicate files across datasets"""
+        logger.info("🔍 Starting comprehensive file analysis...")
+        all_files = {}
+
+        for zip_path in self.scanner.zip_dir.glob("*.zip"):
+            if self.scanner._is_zip(zip_path):
+                with zipfile.ZipFile(zip_path, "r") as zf:
+                    csv_files = [f for f in zf.namelist() if f.endswith(".csv")]
+
+                for csv_filename in csv_files:
+                    normalized_name = self.structure.extract_module_name(csv_filename)
+
+                    if normalized_name not in all_files:
+                        all_files[normalized_name] = {
+                            "normalized_name": normalized_name,
+                            "csv_filename": csv_filename,
+                            "occurrence_count": 0,
+                            "occurrences": [],
+                        }
+
+                    all_files[normalized_name]["occurrence_count"] += 1
+
+                    logger.info(f"📊 Analyzing {normalized_name} in {zip_path.name}")
+
+                    # Use cached analysis
+                    csv_analysis = self.analyze_csv_from_zip(zip_path, csv_filename)
+
+                    occurrence = {
+                        "csv_filename": csv_filename,
+                        "row_count": csv_analysis["row_count"],
+                        "column_count": csv_analysis["column_count"],
+                        "columns": csv_analysis["columns"],
+                        "sample_rows": csv_analysis["sample_rows"],
+                    }
+
+                    all_files[normalized_name]["occurrences"].append(occurrence)
+
+        # Save results
+        self.file_generator.write_json_file(
+            self.file_generator.output_dir / "all_csv_file_analysis.json",
+            all_files,
+        )
+
+        # Log cache stats
+        cache_stats = self.cache.get_cache_stats()
+        logger.info(
+            f"💾 Analysis complete. Cache contains {cache_stats['total_analyses']} analyses"
+        )
+
+        return all_files
 
     def _analyze_column(self, series, column_name: str) -> Dict:
         """Analyze a single column to infer type and properties"""
@@ -204,47 +271,47 @@ class CSVAnalyzer:
     #     # Example: Exclude columns with too many nulls or non-informative names
     #     threshold = 0.5
 
-    def analyze_files(self) -> Dict[str, Dict]:
-        """Scan all ZIP files and identify duplicate files across datasets"""
-        all_files = {}
+    # def analyze_files(self) -> Dict[str, Dict]:
+    #     """Scan all ZIP files and identify duplicate files across datasets"""
+    #     all_files = {}
 
-        for zip_path in self.scanner.zip_dir.glob("*.zip"):
-            if self.scanner._is_zip(zip_path):
-                with zipfile.ZipFile(zip_path, "r") as zf:
-                    csv_files = [f for f in zf.namelist() if f.endswith(".csv")]
+    #     for zip_path in self.scanner.zip_dir.glob("*.zip"):
+    #         if self.scanner._is_zip(zip_path):
+    #             with zipfile.ZipFile(zip_path, "r") as zf:
+    #                 csv_files = [f for f in zf.namelist() if f.endswith(".csv")]
 
-                for csv_filename in csv_files:
-                    normalized_name = self.structure.extract_module_name(csv_filename)
+    #             for csv_filename in csv_files:
+    #                 normalized_name = self.structure.extract_module_name(csv_filename)
 
-                    if normalized_name not in all_files:
-                        all_files[normalized_name] = {
-                            "normalized_name": normalized_name,
-                            "csv_filename": csv_filename,
-                            "occurrence_count": 0,
-                            "occurrences": [],
-                        }
+    #                 if normalized_name not in all_files:
+    #                     all_files[normalized_name] = {
+    #                         "normalized_name": normalized_name,
+    #                         "csv_filename": csv_filename,
+    #                         "occurrence_count": 0,
+    #                         "occurrences": [],
+    #                     }
 
-                    all_files[normalized_name]["occurrence_count"] += 1
+    #                 all_files[normalized_name]["occurrence_count"] += 1
 
-                    print(f"Analyzing {normalized_name} - found in {zip_path.name}")
-                    csv_analysis = self.analyze_csv_from_zip(zip_path, csv_filename)
+    #                 print(f"Analyzing {normalized_name} - found in {zip_path.name}")
+    #                 csv_analysis = self.analyze_csv_from_zip(zip_path, csv_filename)
 
-                    occurrence = {
-                        "csv_filename": csv_filename,
-                        "row_count": csv_analysis["row_count"],
-                        "column_count": csv_analysis["column_count"],
-                        "columns": csv_analysis["columns"],
-                        "sample_rows": csv_analysis["sample_rows"],
-                    }
+    #                 occurrence = {
+    #                     "csv_filename": csv_filename,
+    #                     "row_count": csv_analysis["row_count"],
+    #                     "column_count": csv_analysis["column_count"],
+    #                     "columns": csv_analysis["columns"],
+    #                     "sample_rows": csv_analysis["sample_rows"],
+    #                 }
 
-                    all_files[normalized_name]["occurrences"].append(occurrence)
+    #                 all_files[normalized_name]["occurrences"].append(occurrence)
 
-        self.file_generator.write_json_file(
-            self.file_generator.output_dir / "all_csv_file_analysis.json",
-            all_files,
-        )
+    #     self.file_generator.write_json_file(
+    #         self.file_generator.output_dir / "all_csv_file_analysis.json",
+    #         all_files,
+    #     )
 
-        return all_files
+    #     return all_files
 
 
 # Test usage

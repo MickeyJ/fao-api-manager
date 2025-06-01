@@ -1,10 +1,9 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from db.utils import load_csv
+from db.utils import load_csv, get_csv_path_for
 from db.database import run_with_session
 from db.models import {{ model_name }}
-from . import get_csv_path_for
 
 CSV = [
     {% for csv_file in csv_files %}
@@ -36,7 +35,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     {% endif %}
     {% endfor %}
 
-    {% if csv_files.length > 1 %}
+    {% if csv_files|length > 1 %}
     # Deduplicate unified data
     df = df.drop_duplicates(subset=['{{ primary_key_column }}'], keep='first')
     {% endif %}

@@ -6,6 +6,8 @@ from .dataset_pipelines import DatasetPipelines
 from .csv_analyzer import CSVAnalyzer
 from .file_generator import FileGenerator
 from .template_renderer import TemplateRenderer
+from optimizer.pattern_discovery import PatternDiscovery
+from optimizer.pipeline_specs import PipelineSpecs
 
 
 class Generator:
@@ -18,6 +20,10 @@ class Generator:
             self.structure, self.scanner, self.file_generator
         )
         self.template_renderer = TemplateRenderer()
+        discovery = PatternDiscovery(input_dir)
+        pattern_results = discovery.discover_file_patterns()
+        specs_generator = PipelineSpecs(pattern_results)
+        self.pipeline_specs = specs_generator.generate_specifications()
         self.all_zip_info = self.scanner.scan_all_zips()
 
         # Will hold all modules from all pipelines
@@ -38,11 +44,13 @@ class Generator:
     def _discover_modules(self, all_zip_info: List[Dict]):
         """Discover modules from all pipelines"""
         # Core modules
-        core_pipeline = CorePipeline(all_zip_info, self.structure)
+        core_pipeline = CorePipeline(all_zip_info, self.structure, self.pipeline_specs)
         self.all_modules.extend(core_pipeline.modules)
 
         # All other dataset modules
-        dataset_pipelines = DatasetPipelines(all_zip_info, self.structure)
+        dataset_pipelines = DatasetPipelines(
+            all_zip_info, self.structure, self.pipeline_specs
+        )
         self.all_modules.extend(dataset_pipelines.modules)
 
     def _analyze_modules(self):
@@ -135,7 +143,7 @@ class Generator:
 
             # Generate pipeline module (areas.py in pipeline_dir)
             pipeline_content = self.template_renderer.render_module_template(
-                csv_filename=module["file_info"]["csv_filename"],
+                csv_files=[module["file_info"]["csv_filename"]],
                 model_name=module["model_name"],
                 table_name=module["table_name"],
                 csv_analysis=module["csv_analysis"],

@@ -4,7 +4,7 @@ from generator.file_generator import FileGenerator
 from generator.scanner import Scanner
 from generator.csv_analyzer import CSVAnalyzer
 from generator.generator import Generator
-from generator.do_backup import run_optimization_analysis
+
 from . import ZIP_PATH
 
 
@@ -23,9 +23,9 @@ def all_csv_analysis():
         print(f"\n{normalized_name}: found in {data['occurrence_count']} datasets")
 
 
-def optimization_analysis():
-    """Run optimization analysis on the CSV files"""
-    results = run_optimization_analysis(ZIP_PATH)
+# def optimization_analysis():
+#     """Run optimization analysis on the CSV files"""
+#     results = run_optimization_analysis(ZIP_PATH)
 
 
 def test():
@@ -54,8 +54,8 @@ def main():
 
     if args.csv_analysis:
         all_csv_analysis()
-    elif args.opt_analysis:
-        optimization_analysis()
+    # elif args.opt_analysis:
+    #     optimization_analysis()
     elif args.test:
         test()
     elif args.all:

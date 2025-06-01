@@ -2,10 +2,11 @@ from .structure import Structure
 
 
 class DatasetPipelines:
-    def __init__(self, all_zip_info, structure: Structure):
+    def __init__(self, all_zip_info, structure: Structure, pipeline_specs: dict):
         self.all_zip_info = all_zip_info
         self.structure = structure
         self.modules = []
+        self.pipeline_specs = pipeline_specs
         self._collect_dataset_files()
 
     def _collect_dataset_files(self):

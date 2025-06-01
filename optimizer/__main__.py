@@ -1,5 +1,6 @@
 import argparse
 from .pattern_discovery import PatternDiscovery
+from .pipeline_specs import PipelineSpecs
 
 
 def main():
@@ -20,6 +21,10 @@ def main():
 
     discovery = PatternDiscovery(zip_path)
     patterns = discovery.discover_file_patterns()
+
+    # Now create specs from the results
+    specs_generator = PipelineSpecs(patterns)
+    pipeline_specs = specs_generator.generate_specifications()
 
 
 if __name__ == "__main__":

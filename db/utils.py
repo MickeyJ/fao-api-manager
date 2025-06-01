@@ -1,8 +1,19 @@
 import pandas as pd
 
+SMALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\small"
+MEDIUM_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\medium"
+LARGE_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\large"
+ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
+
+ZIP_PATH = ALL_ZIP_EXAMPLE
+
 
 def strip_quote(df: pd.DataFrame, column_name, quote="'"):
     return df[column_name].str.replace(quote, "").str.strip()
+
+
+def get_csv_path_for(filename):
+    return f"{ZIP_PATH}/{filename}"
 
 
 def load_csv(csv_paths) -> pd.DataFrame:

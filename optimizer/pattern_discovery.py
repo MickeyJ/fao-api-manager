@@ -1,9 +1,10 @@
 import logging
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Any
 from collections import defaultdict
 
+from .csv_cache import CSVCache
 from generator.scanner import Scanner
 from generator.structure import Structure
 from generator.file_generator import FileGenerator
@@ -16,13 +17,15 @@ logger = logging.getLogger(__name__)
 
 
 class PatternDiscovery:
-    def __init__(self, zip_path: str):
+    def __init__(self, zip_path: str, shared_cache: CSVCache | None = None):
         self.scanner = Scanner(zip_path)
         self.structure = Structure()
         self.file_generator = FileGenerator("./analysis")
         self.csv_analyzer = CSVAnalyzer(
             self.structure, self.scanner, self.file_generator
         )
+        self.pattern_analysis = {}  # Store analysis results here
+        self.cache = shared_cache or CSVCache()
 
         # Setup caching
         self.cache_file = Path("./analysis/csv_analysis_cache.json")
@@ -31,34 +34,20 @@ class PatternDiscovery:
 
     def _load_cache(self):
         """Load existing cache from disk"""
-        if self.cache_file.exists():
-            with open(self.cache_file, "r") as f:
-                self._csv_cache = json.load(f)
-            logger.info(f"📁 Loaded {len(self._csv_cache)} cached analyses")
-        else:
-            self._csv_cache = {}
-            logger.info("📁 No existing cache found, starting fresh")
+        self.cache._load_cache()
 
     def _save_cache(self):
-        """Save cache to disk"""
-        with open(self.cache_file, "w") as f:
-            json.dump(self._csv_cache, f, indent=2)
+        self.cache._save_cache()
 
     def get_csv_analysis(self, zip_path, csv_file):
-        """Get CSV analysis with incremental caching"""
-        cache_key = f"{zip_path.name}:{csv_file}"
-
-        if cache_key not in self._csv_cache:
-            logger.debug(f"🔍 Analyzing {csv_file}...")
-            analysis = self.csv_analyzer.analyze_csv_from_zip(zip_path, csv_file)
-
-            # Store both the analysis AND the cache key for later lookup
-            self._csv_cache[cache_key] = analysis
-            self._save_cache()
+        """Get CSV analysis with caching"""
+        return self.cache.get_analysis(
+            zip_path, csv_file, self.csv_analyzer.analyze_csv_from_zip
+        )
 
         return self._csv_cache[cache_key], cache_key  # Return both analysis and key
 
-    def discover_file_patterns(self) -> Dict[Tuple, List]:
+    def discover_file_patterns(self) -> Dict[str, Any]:
         """Group files by column structure and naming pattern"""
         logger.info("🔍 Starting pattern discovery...")
 
@@ -101,13 +90,65 @@ class PatternDiscovery:
         logger.info(
             f"✅ Analyzed {total_files} files, found {len(file_groups)} unique patterns"
         )
-        logger.info(f"💾 Cache now contains {len(self._csv_cache)} analyses")
+
+        # Log cache stats
+        cache_stats = self.cache.get_cache_stats()
+        logger.info(f"💾 Cache now contains {len(cache_stats)} analyses")
 
         # Show summary
         self.print_pattern_summary(file_groups)
         self.check_unification_feasibility(file_groups)
 
-        return file_groups
+        return {"file_groups": file_groups, "pattern_analysis": self.pattern_analysis}
+
+    def identify_primary_key_column(
+        self, columns_sig: tuple, sample_data: List[Dict]
+    ) -> int | None:
+        """Identify which column is likely the primary key based on data patterns"""
+        if not sample_data:
+            return None
+
+        candidates = []
+
+        for col_idx, col_name in enumerate(columns_sig):
+            score = 0
+            sample_values = [row.get(col_name, "") for row in sample_data[:10]]
+
+            # Check if values are numeric
+            numeric_count = 0
+            for val in sample_values:
+                if val and str(val).strip().isdigit():
+                    numeric_count += 1
+
+            if numeric_count > len(sample_values) * 0.8:  # 80% numeric
+                score += 3
+
+            # Check if values are short strings (codes)
+            short_string_count = 0
+            for val in sample_values:
+                if val and len(str(val).strip()) <= 3:
+                    short_string_count += 1
+
+            if short_string_count > len(sample_values) * 0.8:  # 80% short
+                score += 2
+
+            # Bonus for being first column
+            if col_idx == 0:
+                score += 1
+
+            # Check for uniqueness (if we have enough sample data)
+            unique_values = set(str(v).strip() for v in sample_values if v)
+            if len(unique_values) == len([v for v in sample_values if v]):
+                score += 2
+
+            candidates.append((col_idx, col_name, score))
+
+        # Return the column with highest score
+        if candidates:
+            best_candidate = max(candidates, key=lambda x: x[2])
+            return best_candidate[0] if best_candidate[2] > 0 else None
+
+        return None
 
     def check_unification_feasibility(self, file_groups: Dict):
         """Check for value conflicts across files"""
@@ -119,59 +160,93 @@ class PatternDiscovery:
 
             logger.info(f"\n📊 {pattern_name} ({len(files)} files)")
 
-            # Collect all value combinations
-            value_combinations = defaultdict(set)
+            # Collect sample data from all files
+            all_sample_data = []
             files_processed = 0
 
             for file_info in files:
                 cache_key = file_info["cache_key"]
-                if cache_key in self._csv_cache:
-                    csv_analysis = self._csv_cache[cache_key]
-
-                    for row in csv_analysis.get("sample_rows", []):
-                        row_values = tuple(
-                            str(row.get(col, "")).strip() for col in columns_sig
-                        )
-                        if any(row_values):
-                            value_combinations[row_values].add(file_info["dataset"])
-
+                if self.cache.has_analysis_by_key(cache_key):
+                    csv_analysis = self.cache.get_analysis_by_key(cache_key)
+                    sample_rows = csv_analysis.get("sample_rows", [])
+                    all_sample_data.extend(sample_rows)
                     files_processed += 1
 
-            # REPLACE THIS SECTION:
-            # Find which column is the code vs description
-            code_col_idx = None
+            if not all_sample_data:
+                logger.info("   ⚠️ No sample data available")
+                continue
+
+            # Identify primary key column
+            pk_col_idx = self.identify_primary_key_column(columns_sig, all_sample_data)
+
+            if pk_col_idx is None:
+                logger.info("   ⚠️ Could not identify primary key column")
+                self.pattern_analysis[pattern_name] = {
+                    "unifiable": False,
+                    "reason": "no_primary_key_identified",
+                    "files": files,
+                    "columns": columns_sig,
+                }
+                continue
+
+            pk_col_name = columns_sig[pk_col_idx]
+
+            # Find description column (not the PK, probably longer text)
             desc_col_idx = None
-
-            for i, col in enumerate(columns_sig):
-                if "code" in col.lower():
-                    code_col_idx = i
-                else:
+            for i, col_name in enumerate(columns_sig):
+                if i != pk_col_idx:
                     desc_col_idx = i
+                    break
 
-            if code_col_idx is not None and desc_col_idx is not None:
-                # Look for real conflicts: same code with different descriptions
-                code_to_descriptions = defaultdict(set)
-                for row_values in value_combinations.keys():
-                    if len(row_values) > max(code_col_idx, desc_col_idx):
-                        code = row_values[code_col_idx]
-                        description = row_values[desc_col_idx]
-                        if code and description:
-                            code_to_descriptions[code].add(description)
+            if desc_col_idx is None:
+                logger.info("   ⚠️ Only one column found, cannot check conflicts")
+                self.pattern_analysis[pattern_name] = {
+                    "unifiable": False,
+                    "reason": "insufficient_columns",
+                    "files": files,
+                    "columns": columns_sig,
+                }
+                continue
 
-                conflicts = [
-                    (code, list(descs))
-                    for code, descs in code_to_descriptions.items()
-                    if len(descs) > 1
-                ]
-            else:
-                conflicts = []
+            desc_col_name = columns_sig[desc_col_idx]
+
+            logger.info(
+                f"   📋 Primary key: {pk_col_name}, Description: {desc_col_name}"
+            )
+
+            # Look for conflicts: same PK with different descriptions
+            pk_to_descriptions = defaultdict(set)
+            for row in all_sample_data:
+                pk_value = str(row.get(pk_col_name, "")).strip()
+                desc_value = str(row.get(desc_col_name, "")).strip()
+
+                if pk_value and desc_value:
+                    pk_to_descriptions[pk_value].add(desc_value)
+
+            conflicts = [
+                (pk, list(descs))
+                for pk, descs in pk_to_descriptions.items()
+                if len(descs) > 1
+            ]
+
+            self.pattern_analysis[pattern_name] = {
+                "unifiable": len(conflicts) == 0,
+                "primary_key_column": pk_col_name,
+                "description_column": desc_col_name,
+                "conflicts": conflicts,
+                "files": files,
+                "columns": columns_sig,
+                "files_processed": files_processed,
+            }
 
             # Report results
             if conflicts:
                 logger.info(f"   ❌ {len(conflicts)} conflicts - CANNOT unify")
-                logger.info(f"      Same code maps to different descriptions:")
-                for code, descriptions in conflicts[:3]:
-                    logger.info(f"      Code '{code}' → {descriptions}")
+                logger.info(
+                    f"      Same {pk_col_name} maps to different {desc_col_name}:"
+                )
+                for pk, descriptions in conflicts[:3]:
+                    logger.info(f"      {pk_col_name} '{pk}' → {descriptions}")
             else:
                 logger.info(f"   ✅ No conflicts - SAFE to unify into single table")
                 logger.info(f"      Would save {files_processed - 1} redundant tables")
