@@ -1,0 +1,14 @@
+# FAO Data Optimization Analysis
+
+## Executive Summary
+- **Area Codes**: {{ area_codes.total_unique_codes }} unique codes
+- **Item Codes**: {{ item_codes.recommendation }} recommended
+- **Normalization Opportunities**: {{ normalization_opportunities|length }} identified
+
+## Optimization Recommendations
+{% for rec in recommendations %}
+### {{ loop.index }}. {{ rec.table_name.title() }} - {{ rec.action.replace('_', ' ').title() }}
+**Expected Savings**: {{ rec.estimated_savings }}
+
+{{ rec.details }}
+{% endfor %}

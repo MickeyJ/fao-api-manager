@@ -181,6 +181,7 @@ cython_debug/
 *.zip
 data/
 datasets/
+analysis/
 
 # Database files
 *.db
