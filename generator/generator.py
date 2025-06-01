@@ -1,4 +1,5 @@
-from typing import List, Dict
+from typing import List, Dict, Literal
+from .scanner import Scanner
 from .structure import Structure
 from .core_pipeline import CorePipeline
 from .dataset_pipelines import DatasetPipelines
@@ -8,21 +9,25 @@ from .template_renderer import TemplateRenderer
 
 
 class Generator:
-    def __init__(self, output_dir: str = "./db"):
+    def __init__(self, output_dir: str, input_dir: str):
         self.output_dir = output_dir
         self.structure = Structure()
-        self.csv_analyzer = CSVAnalyzer()
         self.file_generator = FileGenerator(output_dir)
+        self.scanner = Scanner(input_dir)
+        self.csv_analyzer = CSVAnalyzer(
+            self.structure, self.scanner, self.file_generator
+        )
         self.template_renderer = TemplateRenderer()
+        self.all_zip_info = self.scanner.scan_all_zips()
 
         # Will hold all modules from all pipelines
         self.all_modules = []
         self.pipelines = {}
 
-    def generate(self, all_zip_info: List[Dict]):
+    def generate(self) -> None:
         """Main generation workflow"""
         # Step 1: Discover all modules
-        self._discover_modules(all_zip_info)
+        self._discover_modules(self.all_zip_info)
 
         # Step 2: Analyze CSV files in all modules
         self._analyze_modules()
@@ -57,10 +62,10 @@ class Generator:
         # Group modules by pipeline
         self._group_modules_by_pipeline()
 
-        self._generate_all_pipelines_main()
-        self._generate_models_init()
         for pipeline_name, modules in self.pipelines.items():
             self._generate_pipeline_and_models(pipeline_name, modules)
+        self._generate_all_pipelines_main()
+        self._generate_models_init()
 
     def _group_modules_by_pipeline(self) -> None:
         """Group modules by their pipeline name"""

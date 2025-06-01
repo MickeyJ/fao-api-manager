@@ -78,7 +78,7 @@ scanner = FAOZipScanner("/path/to/fao/zips")
 results = scanner.scan_all_zips()
 
 for result in results:
-    print(f"Pipeline: {result['suggested_pipeline_name']}")
+    print(f"Pipeline: {result['pipeline_name']}")
     print(f"CSV files: {result['csv_files']}")
 ```
 

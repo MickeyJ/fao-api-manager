@@ -3,10 +3,19 @@ from io import StringIO
 import pandas as pd
 from pathlib import Path
 from typing import Dict, List
+from .structure import Structure
+from .scanner import Scanner
+from .file_generator import FileGenerator
 from . import ZIP_PATH
 
 
 class CSVAnalyzer:
+    def __init__(
+        self, structure: Structure, scanner: Scanner, file_generator: FileGenerator
+    ):
+        self.structure = structure
+        self.scanner = scanner
+        self.file_generator = file_generator
 
     def analyze_csv_from_zip(self, zip_path: Path, csv_filename: str) -> Dict:
         """Analyze a CSV file directly from inside a ZIP"""
@@ -194,14 +203,58 @@ class CSVAnalyzer:
     #     # Example: Exclude columns with too many nulls or non-informative names
     #     threshold = 0.5
 
+    def analyze_files(self) -> Dict[str, Dict]:
+        """Scan all ZIP files and identify duplicate files across datasets"""
+        all_files = {}
+
+        for zip_path in self.scanner.zip_dir.glob("*.zip"):
+            if self.scanner._is_zip(zip_path):
+                with zipfile.ZipFile(zip_path, "r") as zf:
+                    csv_files = [f for f in zf.namelist() if f.endswith(".csv")]
+
+                for csv_filename in csv_files:
+                    normalized_name = self.structure.extract_module_name(csv_filename)
+
+                    if normalized_name not in all_files:
+                        all_files[normalized_name] = {
+                            "normalized_name": normalized_name,
+                            "csv_filename": csv_filename,
+                            "occurrence_count": 0,
+                            "occurrences": [],
+                        }
+
+                    all_files[normalized_name]["occurrence_count"] += 1
+
+                    print(f"Analyzing {normalized_name} - found in {zip_path.name}")
+                    csv_analysis = self.analyze_csv_from_zip(zip_path, csv_filename)
+
+                    occurrence = {
+                        "csv_filename": csv_filename,
+                        "row_count": csv_analysis["row_count"],
+                        "column_count": csv_analysis["column_count"],
+                        "columns": csv_analysis["columns"],
+                        "sample_rows": csv_analysis["sample_rows"],
+                    }
+
+                    all_files[normalized_name]["occurrences"].append(occurrence)
+
+        self.file_generator.write_json_file(
+            self.file_generator.output_dir / "all_csv_file_analysis.json",
+            all_files,
+        )
+
+        return all_files
+
 
 # Test usage
 if __name__ == "__main__":
-    analyzer = CSVAnalyzer()
-    # Replace with actual path to test
 
-    # Point to a specific ZIP file
-    zip_file = Path(ZIP_PATH) / "Emissions_Land_Use_Fires_E_All_Data_(Normalized).zip"
-    csv_filename = "Emissions_Land_Use_Fires_E_All_Data_(Normalized).csv"
-    result = analyzer.analyze_csv_from_zip(zip_file, csv_filename)
-    print(result)
+    # analyzer = CSVAnalyzer()
+    # # Replace with actual path to test
+
+    # # Point to a specific ZIP file
+    # zip_file = Path(ZIP_PATH) / "Emissions_Land_Use_Fires_E_All_Data_(Normalized).zip"
+    # csv_filename = "Emissions_Land_Use_Fires_E_All_Data_(Normalized).csv"
+    # result = analyzer.analyze_csv_from_zip(zip_file, csv_filename)
+    # print(result)
+    raise NotImplementedError("Not Yet Implemented.")

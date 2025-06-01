@@ -3,10 +3,12 @@ import zipfile, re
 from pathlib import Path
 from typing import List, Dict
 import pandas as pd
+from .structure import Structure
+from .file_generator import FileGenerator
 from . import ZIP_PATH, to_snake_case
 
 
-class FAOZipScanner:
+class Scanner:
     def __init__(self, zip_directory: str):
         self.zip_dir = Path(zip_directory)
 
@@ -35,10 +37,10 @@ class FAOZipScanner:
             "zip_name": zip_path.name,
             "zip_path": zip_path,
             "csv_files": csv_files,
-            "suggested_pipeline_name": self._suggest_pipeline_name(zip_path.name),
+            "pipeline_name": self._format_pipeline_name(zip_path.name),
         }
 
-    def _suggest_pipeline_name(self, zip_name: str) -> str:
+    def _format_pipeline_name(self, zip_name: str) -> str:
         """Convert ZIP name to pipeline directory name"""
         # Remove .zip and common suffixes
         name = zip_name.replace(".zip", "")
@@ -52,7 +54,9 @@ class FAOZipScanner:
 
 if __name__ == "__main__":
     # Test it out
-    scanner = FAOZipScanner(ZIP_PATH)  # Update this path
+    structure = Structure()
+    file_generator = FileGenerator("./db")
+    scanner = Scanner(ZIP_PATH)
     # Debug: show ALL zip files in directory
     print("=== ALL ZIP FILES FOUND ===")
     for zip_path in scanner.zip_dir.glob("*.zip"):
@@ -67,5 +71,5 @@ if __name__ == "__main__":
     results = scanner.scan_all_zips()
     for result in results:
         print(f"\nZIP: {result['zip_name']}")
-        print(f"Pipeline name: {result['suggested_pipeline_name']}")
+        print(f"Pipeline name: {result['pipeline_name']}")
         print(f"CSV files: {result['csv_files']}")

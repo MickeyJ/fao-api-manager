@@ -3,7 +3,8 @@ export
 
 .PHONY: \
 	initialize requirements install \
-	generator pipeline \
+	generator scan-csv-data \
+	run-all-pipelines \
 	use-sb-db use-local-db db-upgrade db-revision create-test-db drop-test-db reset-test-db reset-db \
 	show-all-tables clear-all-tables rm-pipelines reset-and-test pipe-reset-and-test
 
@@ -27,12 +28,16 @@ install:
 # =-=-=--=-=-=-=-=-=
 generate:
 	@echo "Generating code..."
-	python -m generator
+	python -m generator --all
+
+analyze-csv-data:
+	@echo "Scanning all CSV data..."
+	python -m generator --analyze
 
 # =-=-=--=-=-=-=-=-
 # Pipeline commands
 # =-=-=--=-=-=-=-=-
-pipelines:
+run-all-pipelines:
 	@echo "Running pipeline..."
 	python -m db.pipelines
 

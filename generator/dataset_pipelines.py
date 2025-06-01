@@ -11,7 +11,7 @@ class DatasetPipelines:
     def _collect_dataset_files(self):
         """Collect all dataset CSV files and build module specs"""
         for zip_info in self.all_zip_info:
-            pipeline_name = zip_info["suggested_pipeline_name"]
+            pipeline_name = zip_info["pipeline_name"]
 
             for csv_file in zip_info["csv_files"]:
                 if not self.structure.is_core_module(csv_file):  # Skip core files
