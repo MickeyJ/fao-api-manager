@@ -1,5 +1,6 @@
 import logging
 import json
+import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Tuple, Any
 from collections import defaultdict
@@ -9,6 +10,10 @@ from generator.scanner import Scanner
 from generator.structure import Structure
 from generator.file_generator import FileGenerator
 from generator.csv_analyzer import CSVAnalyzer
+
+# Force reset logging configuration
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -27,22 +32,13 @@ class PipelineSpecs:
 
     def discover_file_patterns(self) -> Dict[str, Any]:
         """Simplified pattern discovery focused on core files"""
-        file_groups = defaultdict(list)
-
         all_zip_info = self.scanner.scan_all_zips()
-
-        """
-            zip_info: {
-                "zip_name": zip_path.name,
-                "zip_path": zip_path,
-                "csv_files": csv_files,
-                "pipeline_name": self._format_pipeline_name(zip_path.name),
-            }
-        """
 
         dataset_file_info = {}
         core_file_info = {}
 
+        # First pass: collect all file info and dataset column signatures
+        print("=== FIRST PASS: Collecting file information ===")
         for zip_info in all_zip_info:
             pipeline_name = zip_info["pipeline_name"]
             zip_path = zip_info["zip_path"]
@@ -60,9 +56,6 @@ class PipelineSpecs:
                 }
 
             for csv_file in zip_info["csv_files"]:
-
-                is_core_file = not ("all_data" in csv_file.lower())
-
                 csv_analysis, cache_key = self.cache.get_analysis(
                     zip_path,
                     csv_file,
@@ -73,110 +66,125 @@ class PipelineSpecs:
                 module_name = self.structure.extract_module_name(csv_file)
                 column_count = csv_analysis["column_count"]
 
-                print(f"\nPipeline: {zip_info['pipeline_name']}")
-                print(f"=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
-
                 dataset_file_info[pipeline_name]["modules"].append(
                     {
                         "module_name": module_name,
                         "cache_key": cache_key,
                     }
                 )
-                file_info = {
-                    "module_name": module_name,
-                    "columns_signature": columns_signature,
-                    "is_core_file": is_core_file,
-                    "column_count": column_count,
-                }
 
-                first_column = csv_analysis["column_analysis"][0]
+                is_core_file = not ("all_data" in csv_file.lower())
 
-                if is_core_file and first_column["sample_values"]:
+                if is_core_file:
+                    # Core file - collect basic info only
+                    first_column = csv_analysis["column_analysis"][0]
 
-                    print(f"CORE: {module_name}")
-                    first_column_name = first_column["column_name"]
-                    sample_value = first_column["sample_values"][0]
+                    if first_column["sample_values"]:
+                        print(f"CORE: {module_name}")
+                        first_column_name = first_column["column_name"]
+                        sample_value = first_column["sample_values"][0]
 
-                    pk_score = 0
+                        # Calculate PK score
+                        pk_score = 0
+                        if len(sample_value) < 5:
+                            pk_score += 1
+                        if "code" in first_column_name.lower():
+                            pk_score += 1
+                        if len(sample_value) < 10 and any(char.isdigit() for char in sample_value):
+                            pk_score += 1
+                        if sample_value.isdigit():
+                            pk_score += 1
+                        if first_column["is_likely_foreign_key"]:
+                            pk_score += 1
+                        if first_column["inferred_sql_type"] == "Integer":
+                            pk_score += 1
+                        if column_count < 4:
+                            pk_score += 1
 
-                    if len(sample_value) < 5:
-                        pk_score += 1
-                    if "code" in first_column_name.lower():
-                        pk_score += 1
-                    if len(sample_value) < 10 and any(char.isdigit() for char in sample_value):
-                        pk_score += 1
-                    if sample_value.isdigit():
-                        pk_score += 1
-                    if first_column["is_likely_foreign_key"]:
-                        pk_score += 1
-                    if first_column["inferred_sql_type"] == "Integer":
-                        pk_score += 1
-                    if column_count < 4:
-                        pk_score += 1
+                        has_pk = pk_score > 1
 
-                    print(f"First Column {first_column_name} - PK Score: {pk_score}")
+                        if module_name not in core_file_info:
+                            core_file_info[module_name] = {
+                                "module_name": module_name,
+                                "columns_signature": columns_signature,
+                                "is_core_file": True,
+                                "column_count": column_count,
+                                "has_pk": has_pk,
+                                # "first_column_name": first_column_name,
+                                "pk_score": pk_score if has_pk else 0,
+                                "occurrence": 0,
+                                "cache_keys": [],
+                            }
 
-                    has_pk = pk_score > 1
-
-                    file_info["has_pk"] = has_pk
-                    file_info["occurrence"] = 0
-                    if has_pk:
-
-                        file_info["pk_score"] = pk_score
-
-                        for core_column in columns_signature:
-                            dataset_columns = dataset_file_info[pipeline_name]["columns_signature"]
-                            found_column = next(
-                                (col for col in dataset_columns if core_column in col),
-                                None,
-                            )
-                            print(f"\n\n\n{found_column}")
-                            if found_column:
-                                if found_column != core_column:
-                                    dataset_file_info[pipeline_name]["fk_pk_mismatch"] = True
-                                    dataset_file_info[pipeline_name]["foreign_keys"].append(found_column)
-                                    file_info["fk_pk_mismatch"] = True
-                                    file_info["original_pk_column"] = core_column
-                                    file_info["found_fk_column"] = found_column
-                                    file_info["pk_column"] = found_column
-
-                                else:
-                                    file_info["pk_column"] = first_column_name
-                                    dataset_file_info[pipeline_name]["foreign_keys"].append(first_column_name)
-                                    break
-
-                        dataset_file_info[pipeline_name]["exclude_columns"].extend(csv_analysis["columns"][1:])
-
-                    if module_name not in core_file_info:
-                        core_file_info[module_name] = file_info
-
-                    if not "cache_keys" in core_file_info[module_name]:
-                        core_file_info[module_name]["cache_keys"] = []
-
-                    core_file_info[module_name]["occurrence"] += 1
-                    core_file_info[module_name]["cache_keys"].append(cache_key)
-
-                    # dataset_file_info[pipeline_name]["files"].append(
-                    #     core_file_info[module_name]
-                    # )
+                        core_file_info[module_name]["occurrence"] += 1
+                        core_file_info[module_name]["cache_keys"].append(cache_key)
                 else:
+                    # Dataset file - capture column signature
                     print(f"DATASET: {module_name}")
-                    file_info["cache_keys"] = []
-                    file_info["cache_keys"].append(cache_key)
                     dataset_file_info[pipeline_name]["columns_signature"] = columns_signature
 
-        print(f"Core Modules: {len(core_file_info)}")
-        for module_name, file_info in core_file_info.items():
-            print(f"{module_name} - {file_info['occurrence']}")
+        # Second pass: establish FK relationships
+        print("\n=== SECOND PASS: Establishing FK relationships ===")
+        for core_module_name, core_info in core_file_info.items():
+            if not core_info["has_pk"]:
+                continue
 
-        print(f"Core Modules: {len(core_file_info)}")
-        for pipeline_name, pipeline_info in dataset_file_info.items():
-            print(f"{pipeline_name} - {pipeline_info['foreign_keys']}")
+            print(f"Processing FK relationships for {core_module_name}")
 
+            # Default to first column as primary key
+            # core_info["pk_column"] = core_info["first_column_name"]
+
+            # Look for FK relationships across all datasets
+            found_relationship = False
+            for pipeline_name, pipeline_info in dataset_file_info.items():
+                dataset_columns = pipeline_info["columns_signature"]
+
+                if not dataset_columns:  # Skip if no dataset columns found
+                    continue
+
+                # Check if any core column appears in this dataset
+                for core_column in core_info["columns_signature"]:
+                    found_column = next(
+                        (col for col in dataset_columns if core_column in col),
+                        None,
+                    )
+
+                    if found_column:
+                        print(f"  Found FK relationship: {core_column} -> {found_column} in {pipeline_name}")
+
+                        if found_column != core_column:
+                            # FK mismatch case
+                            pipeline_info["fk_pk_mismatch"] = True
+                            pipeline_info["foreign_keys"].append(found_column)
+                            core_info["fk_pk_mismatch"] = True
+                            core_info["original_pk_column"] = core_column
+                            core_info["found_fk_column"] = found_column
+                            core_info["pk_column"] = found_column
+                        else:
+                            # Perfect match
+                            core_info["pk_column"] = core_column
+                            pipeline_info["foreign_keys"].append(core_column)
+
+                        # Exclude other columns from this dataset
+                        exclude_cols = [col for col in core_info["columns_signature"] if col != core_column]
+                        pipeline_info["exclude_columns"].extend(exclude_cols)
+
+                        found_relationship = True
+                        break
+
+                if found_relationship:
+                    break
+
+            if not found_relationship:
+                print(f"  No FK relationship found for {core_module_name} - using first column as PK")
+
+        # Build final output
         specs_output = {
             "core_file_info": dict(core_file_info),
             "dataset_file_info": dict(dataset_file_info),
         }
+
+        specs_output = self.validate_core_file_consistency(specs_output)
 
         self.file_generator.write_json_file(
             Path("analysis/pipeline_spec.json"),
@@ -184,3 +192,191 @@ class PipelineSpecs:
         )
 
         return specs_output
+
+    def validate_core_file_consistency(self, specs_output: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate core file consistency - step by step approach"""
+        logger.info("🔍 Starting core file validation...")
+
+        core_file_info = specs_output["core_file_info"]
+
+        for core_module_name, core_info in core_file_info.items():
+            logger.info(f"📊 Processing {core_module_name}...")
+
+            if "pk_column" not in core_info:
+                logger.warning(f"  ⚠️  No primary key column found for {core_module_name}, skipping validation")
+                continue
+
+            cache_keys = core_info["cache_keys"]
+            logger.info(f"  Found {len(cache_keys)} files for {core_module_name}")
+
+            # Collect all dataframes for this core module
+            all_dfs = []
+
+            for cache_key in cache_keys:
+                # Parse cache key: "ZipName:CSVFileName"
+                zip_name, csv_filename = cache_key.split(":", 1)
+
+                # Find the zip file path
+                zip_path = None
+                all_zip_info = self.scanner.scan_all_zips()
+                for zip_info in all_zip_info:
+                    if zip_info["zip_path"].name == zip_name:
+                        zip_path = zip_info["zip_path"]
+                        break
+
+                if not zip_path:
+                    logger.warning(f"    ⚠️  Could not find zip: {zip_name}")
+                    continue
+
+                # Read the CSV data
+                try:
+                    df = self._read_full_csv_from_zip(zip_path, csv_filename)
+                    df["source_dataset"] = zip_name  # Track which dataset this came from
+                    all_dfs.append(df)
+                    # logger.info(f"    ✅ Read {len(df)} rows from {csv_filename}")
+
+                except Exception as e:
+                    logger.warning(f"    ⚠️  Error reading {csv_filename}: {e}")
+
+            # Combine all dataframes for this core module
+            if all_dfs:
+                combined_df = pd.concat(all_dfs, ignore_index=True)
+                logger.info(f"  📋 Combined into {len(combined_df)} total rows for {core_module_name}")
+
+                # Get unique combinations (excluding the source_dataset column we added)
+                data_columns = [col for col in combined_df.columns if col != "source_dataset"]
+                # Get the actual primary key column name from the dataframe
+                pk_column = core_info.get("pk_column")
+
+                # If pk_column doesn't exist in the dataframe, try original_pk_column or first column
+                if pk_column not in combined_df.columns:
+                    if "original_pk_column" in core_info and core_info["original_pk_column"] in combined_df.columns:
+                        pk_column = core_info["original_pk_column"]
+                        logger.info(f"  📝 Using original_pk_column: {pk_column}")
+                    else:
+                        pk_column = combined_df.columns[0]  # Use first column as fallback
+                        logger.info(f"  📝 Using first column as pk: {pk_column}")
+                #
+                grouped = combined_df.groupby(pk_column, as_index=False)
+
+                conflicts = []
+                similarities = []
+
+                for name, group in grouped:
+                    data_columns = [col for col in group.columns if col != "source_dataset"]
+                    unique_df = group.drop_duplicates(subset=data_columns)[data_columns]
+                    if len(unique_df) > 1:
+                        logger.warning(f"  ⚠️  CONFLICT found for {name} in {core_module_name}")
+                        print(unique_df[data_columns].to_string(index=False))
+                        print()  # Add blank line between conflicts
+                        for col in data_columns:
+                            if col == core_info.get("pk_column"):
+                                continue  # Skip the primary key column
+
+                            values = unique_df[col].unique()
+                            if len(values) > 1:
+                                if self._values_are_similar(values):
+                                    similarities.append({"pk_value": name, "column": col, "values": list(values)})
+                                else:
+                                    conflicts.append({"pk_value": name, "column": col, "values": list(values)})
+
+                # Add to the core_file_info
+                core_info["conflicts"] = conflicts
+                core_info["similarities"] = similarities
+                core_info["data_consistent"] = len(conflicts) == 0
+                core_info["total_conflicts"] = len(conflicts)
+                core_info["total_similarities"] = len(similarities)
+
+                # logger.info(f"  🔍 Found {len(unique_df)} unique combinations for {core_module_name}")
+
+        return specs_output
+
+    def _values_are_similar(self, values) -> bool:
+        """Check if values are similar enough to be considered formatting differences"""
+        if len(values) < 2:
+            return True
+
+        values_list = [str(v).strip() for v in values]
+
+        # Check each pair of values
+        for i in range(len(values_list)):
+            for j in range(i + 1, len(values_list)):
+                val1 = values_list[i].lower()
+                val2 = values_list[j].lower()
+
+                # Basic cleaning - remove parentheses and normalize punctuation
+                clean1 = self._clean_for_similarity(val1)
+                clean2 = self._clean_for_similarity(val2)
+
+                # If cleaned versions are identical, they're similar
+                if clean1 == clean2:
+                    continue
+
+                # Calculate character-level similarity
+                from difflib import SequenceMatcher
+
+                similarity = SequenceMatcher(None, clean1, clean2).ratio()
+
+                # If strings are similar (80%+), consider them similar
+                if similarity >= 0.8:
+                    continue
+
+                # Word overlap logic with lower threshold
+                words1 = set(clean1.split())
+                words2 = set(clean2.split())
+
+                if len(words1) == 0 or len(words2) == 0:
+                    return False
+
+                overlap = len(words1.intersection(words2))
+                total_unique = len(words1.union(words2))
+                word_similarity = overlap / total_unique
+
+                # Lowered threshold from 0.7 to 0.5
+                if word_similarity < 0.5:
+                    return False
+
+        return True
+
+    def _clean_for_similarity(self, text: str) -> str:
+        """Clean text for similarity comparison - basic cleaning only"""
+        import re
+
+        # Remove parenthetical content
+        text = re.sub(r"\([^)]*\)", "", text)
+
+        # Remove extra punctuation
+        text = re.sub(r"[;,\.]", " ", text)
+
+        # Normalize whitespace
+        text = " ".join(text.split())
+
+        return text.strip()
+
+    def _read_full_csv_from_zip(self, zip_path: Path, csv_filename: str) -> pd.DataFrame:
+        """Read complete CSV data from ZIP file"""
+        import zipfile
+        from io import StringIO
+
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            with zf.open(csv_filename) as csv_file:
+                # Try different encodings
+                encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
+
+                for encoding in encodings:
+                    try:
+                        csv_file.seek(0)
+                        csv_data = csv_file.read().decode(encoding)
+                        df = pd.read_csv(StringIO(csv_data), dtype=str)
+                        # Clean column names
+                        df.columns = df.columns.str.strip()
+                        return df
+                    except UnicodeDecodeError:
+                        continue
+
+                # If all encodings fail, use errors='ignore'
+                csv_file.seek(0)
+                csv_data = csv_file.read().decode("utf-8", errors="ignore")
+                df = pd.read_csv(StringIO(csv_data), dtype=str)
+                df.columns = df.columns.str.strip()
+                return df
