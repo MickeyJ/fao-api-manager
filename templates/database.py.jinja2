@@ -41,7 +41,7 @@ def get_db():
 
 
 def run_with_session(fn):
-    db = next(get_db())  # <— session from shared generator
+    db = next(get_db())
     try:
         fn(db)
     finally:

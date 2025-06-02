@@ -204,9 +204,9 @@ analysis/
 ehthumbs.db
 Thumbs.db
 
-# Generated pipeline directories (optional - remove if you want to track generated code)
-db/pipelines/*
-db/models/*
+# optional - remove to track generated code
+fao/*
+
 
 # Local configuration
 config.local.py

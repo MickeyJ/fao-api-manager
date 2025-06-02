@@ -1,0 +1,83 @@
+import pandas as pd
+import zipfile
+from pathlib import Path
+
+
+SMALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\small"
+MEDIUM_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\medium"
+LARGE_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\large"
+ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
+
+ZIP_PATH = ALL_ZIP_EXAMPLE
+
+
+def get_csv_path_for(csv_path):
+    """Get CSV path, extracting from ZIP if necessary"""
+    full_path = Path(ZIP_PATH) / csv_path
+
+    if full_path.exists():
+        return str(full_path)
+
+    # Split path and try to find/extract ZIP
+    parts = Path(csv_path).parts
+    if len(parts) >= 2:
+        zip_name = parts[0] + ".zip"  # e.g., "Prices_E_All_Data_(Normalized).zip"
+        zip_path = Path(ZIP_PATH) / zip_name
+
+        if zip_path.exists():
+            extract_dir = Path(ZIP_PATH) / parts[0]
+            extract_dir.mkdir(exist_ok=True)
+
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                zf.extractall(extract_dir)
+
+            print(f"Extracted {zip_name}")
+            return str(full_path)  # Should exist now
+
+    raise FileNotFoundError(f"Could not find or extract {csv_path}")
+
+
+def extract_zip_if_needed(zip_path, csv_filename):
+    """Extract ZIP to directory named after the ZIP file"""
+    extract_dir = zip_path.parent / zip_path.stem
+    extract_dir.mkdir(exist_ok=True)
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extractall(extract_dir)
+
+    print(f"Extracted {zip_path.name} to {extract_dir}")
+
+
+def strip_quote(df: pd.DataFrame, column_name, quote="'"):
+    return df[column_name].str.replace(quote, "").str.strip()
+
+
+def load_csv(csv_paths) -> pd.DataFrame:
+    """Load and preview data from single file or multiple files."""
+    # Handle both single path and list of paths
+    if isinstance(csv_paths, str):
+        csv_paths = [csv_paths]
+
+    dfs = []
+    for csv_path in csv_paths:
+        try:
+            df = pd.read_csv(csv_path, dtype=str)
+            print(f"Loading: {csv_path}")
+            df.columns = df.columns.str.strip()
+            print(df.shape)
+            if not df.empty:
+                dfs.append(df)
+        except FileNotFoundError:
+            print(f"File not found: {csv_path}")
+            continue
+
+    if not dfs:
+        return pd.DataFrame()
+
+    # This works whether dfs has 1 or many DataFrames
+    result_df = pd.concat(dfs, ignore_index=True)
+    if len(dfs) > 1:
+        print(f"Combined {len(dfs)} files into {result_df.shape}")
+    print(result_df.head(5))
+
+    return result_df

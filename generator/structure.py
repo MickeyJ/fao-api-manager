@@ -13,12 +13,16 @@ class Structure:
         core_module_name: str,
         file_info: Dict,
         pipeline_name: str,
+        pipeline_spec: Dict,
     ) -> Dict:
         """Build a complete module specification"""
 
         # Format names
         module_name = self.format_module_name(
-            core_module_name, pipeline_name, file_info["csv_filename"]
+            module_name=core_module_name,
+            pipeline_name=pipeline_name,
+            csv_filename=file_info["csv_filename"],
+            pipeline_spec=pipeline_spec,
         )
         table_name = to_snake_case(module_name)
         model_name = snake_to_pascal_case(table_name)
@@ -31,13 +35,15 @@ class Structure:
             "file_info": file_info,
         }
 
-    def determine_modules(self, csv_files: List[str]) -> Dict[str, str]:
+    def determine_modules(
+        self, csv_files: List[str], pipeline_spec: Dict
+    ) -> Dict[str, str]:
         """Map CSV files to Python module names automatically, excluding core tables"""
         modules = {}
 
         for csv_file in csv_files:
             # Skip core tables - they go in the core pipeline
-            if self.is_core_module(csv_file):
+            if self.is_core_module(csv_file, pipeline_spec):
                 continue
 
             # Extract module name from filename automatically
@@ -73,29 +79,40 @@ class Structure:
         # Fallback - convert entire filename
         return to_snake_case(base_filename)
 
-    def is_core_module(self, csv_filename: str) -> bool:
+    def is_core_module(self, csv_filename: str, pipeline_spec: Dict) -> bool:
         """Check if this is a core/shared table"""
         lower_file = csv_filename.lower()
+        module_name = self.extract_module_name(csv_filename).replace("_", "")
         core_patterns = ["areacodes", "itemcodes", "currencys"]
+
+        # print(f"\n\n\n\n\n'{module_name}' - {lower_file}\n\n\n\n\n")
         return any(pattern in lower_file for pattern in core_patterns)
 
-    def categorize_core_file(self, csv_filename: str) -> str | None:
+    def categorize_core_file(
+        self, csv_filename: str, pipeline_spec: Dict
+    ) -> str | None:
         """Determine what type of core file this is"""
         lower_file = csv_filename.lower()
 
         if "areacodes" in lower_file:
-            return "areas"
+            return "areacodes"
         elif "itemcodes" in lower_file:
-            return "items"
+            return "itemcodes"
         elif "currencys" in lower_file:
             return "currencys"
         return None
 
     def format_module_name(
-        self, module_name: str, pipeline_name: str, csv_filename: str
+        self,
+        module_name: str,
+        pipeline_name: str,
+        csv_filename: str,
+        pipeline_spec: Dict,
     ) -> str:
         """Convert module name to table name"""
-        if self.is_primary_module(csv_filename) or self.is_core_module(csv_filename):
+        if self.is_primary_module(csv_filename) or self.is_core_module(
+            csv_filename, pipeline_spec
+        ):
             # Primary module - no prefix needed
             return module_name.lower()
 

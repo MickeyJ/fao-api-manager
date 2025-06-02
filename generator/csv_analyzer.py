@@ -159,7 +159,9 @@ class CSVAnalyzer:
             "non_null_count": non_null_count,
             "unique_count": unique_count,
             "inferred_sql_type": inferred_type,
-            "is_likely_foreign_key": self._is_likely_foreign_key(column_name),
+            "is_likely_foreign_key": self._is_likely_foreign_key(
+                column_name, sample_values
+            ),
         }
 
     def _format_column_name(self, column_name: str) -> str:
@@ -261,7 +263,7 @@ class CSVAnalyzer:
             pass
         return False
 
-    def _is_likely_foreign_key(self, column_name: str) -> bool:
+    def _is_likely_foreign_key(self, column_name: str, sample_values: list) -> bool:
         """Check if this looks like a foreign key"""
         fk_patterns = ["area code", "item code", "element code", "area_id", "item_id"]
         return any(pattern in column_name.lower() for pattern in fk_patterns)

@@ -37,7 +37,7 @@ def test():
 
 
 def generate_all():
-    generator = Generator("./db", ZIP_PATH)
+    generator = Generator("./fao", ZIP_PATH)
     generator.generate()
 
 

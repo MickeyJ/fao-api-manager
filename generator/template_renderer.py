@@ -58,3 +58,56 @@ class TemplateRenderer:
         return template.render(
             model_name=model_name, table_name=table_name, csv_analysis=csv_analysis
         )
+
+    def render_database_template(
+        self,
+    ) -> str:
+        """Render database file template"""
+        template = self.jinja_env.get_template("database.py.jinja2")
+        return template.render()
+
+    def render_database_utils_template(
+        self,
+    ) -> str:
+        """Render db utils template"""
+        template = self.jinja_env.get_template("db.utils.py.jinja2")
+        return template.render()
+
+    def render_requirements_template(
+        self,
+    ) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("requirements.in.jinja2")
+        return template.render()
+
+    def render_makefile_template(
+        self,
+    ) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("Makefile.jinja2")
+        return template.render()
+
+    def render_env_templates(
+        self,
+    ) -> List[Dict]:
+        """Render .env template"""
+        return [
+            {
+                "file_name": ".env",
+                "content": self.jinja_env.get_template(".env.jinja2").render(),
+            },
+            {
+                "file_name": "local.env",
+                "content": self.jinja_env.get_template("local.env.jinja2").render(),
+            },
+            {
+                "file_name": "local-admin.env",
+                "content": self.jinja_env.get_template(
+                    "local-admin.env.jinja2"
+                ).render(),
+            },
+            {
+                "file_name": "remote.env",
+                "content": self.jinja_env.get_template("remote.env.jinja2").render(),
+            },
+        ]

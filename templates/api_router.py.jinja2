@@ -1,0 +1,23 @@
+from fastapi import APIRouter, Depends, Query, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy import select, func, or_, text
+from typing import Optional
+from db.database import get_db
+from .. import current_version_prefix
+from db.models import (
+  {% for model in router.models %}
+  {{ model.name }},
+  {% endfor %}
+)
+
+router = APIRouter(
+    prefix="/{{ router.name }}",
+    tags=["{{ router.name }}"],
+    responses={404: {"description": "Not found"}},
+)
+
+@router.get("/{{ router.name}}")
+def get_{{ router.name}}(db: Session = Depends(get_db)):
+
+    return {"{{ router.name}}": "Unimplemented {{ router.name }} endpoint"}
+

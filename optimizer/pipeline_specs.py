@@ -1,204 +1,186 @@
-# optimizer/pipeline_specs.py
-from typing import Dict, List, Set, Optional
-from dataclasses import dataclass
+import logging
 import json
 from pathlib import Path
-from generator import logger
+from typing import Dict, List, Tuple, Any
+from collections import defaultdict
 
+from .csv_cache import CSVCache
+from generator.scanner import Scanner
+from generator.structure import Structure
+from generator.file_generator import FileGenerator
+from generator.csv_analyzer import CSVAnalyzer
 
-@dataclass
-class CoreTableSpec:
-    table_name: str
-    primary_key_column: str
-    description_column: str
-    source_files: List[str]
-    unifiable: bool
-    conflicts: List | None = None
-
-
-@dataclass
-class DataTableSpec:
-    table_name: str
-    exclude_columns: List[str]  # Change from Set[str] to List[str]
-    foreign_key_mappings: Dict[str, str]
+logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
 class PipelineSpecs:
-    def __init__(self, pattern_discovery_results: Dict):
-        self.file_groups = pattern_discovery_results["file_groups"]
-        self.pattern_analysis = pattern_discovery_results["pattern_analysis"]
-        self.core_table_specs = {}
-        self.data_table_specs = {}
-        logger.info(
-            f"📋 Initializing PipelineSpecs with {len(self.pattern_analysis)} analyzed patterns"
-        )
+    def __init__(self, zip_path: str, shared_cache: CSVCache | None = None):
+        self.scanner = Scanner(zip_path)
+        self.structure = Structure()
+        self.file_generator = FileGenerator("./analysis")
+        self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
+        self.cache = shared_cache or CSVCache()
 
-    def generate_specifications(self) -> Dict:
-        """Convert pattern discovery results into pipeline generation specs"""
-        logger.info("🔧 Generating pipeline specifications...")
+    def create(self) -> Dict[str, Any]:
+        return self.discover_file_patterns()
 
-        # Step 1: Identify core/lookup tables
-        self._identify_core_tables()
+    def discover_file_patterns(self) -> Dict[str, Any]:
+        """Simplified pattern discovery focused on core files"""
+        file_groups = defaultdict(list)
 
-        # Step 2: Generate data table modifications
-        self._generate_data_table_specs()
+        all_zip_info = self.scanner.scan_all_zips()
 
-        # Step 3: Create specification output
-        specs = {
-            "core_tables": {
-                name: spec.__dict__ for name, spec in self.core_table_specs.items()
-            },
-            "data_table_modifications": {
-                name: spec.__dict__ for name, spec in self.data_table_specs.items()
-            },
-            "generation_rules": self._create_generation_rules(),
-        }
+        """
+            zip_info: {
+                "zip_name": zip_path.name,
+                "zip_path": zip_path,
+                "csv_files": csv_files,
+                "pipeline_name": self._format_pipeline_name(zip_path.name),
+            }
+        """
 
-        logger.info(
-            f"✅ Generated specs: {len(self.core_table_specs)} core tables, {len(self.data_table_specs)} data table modifications"
-        )
-        self.save_specifications(specs=specs)
-        return specs
+        dataset_file_info = {}
+        core_file_info = {}
 
-    def _identify_core_tables(self):
-        """Identify which patterns should become core/lookup tables"""
-        logger.info("🔍 Identifying core/lookup tables...")
+        for zip_info in all_zip_info:
+            pipeline_name = zip_info["pipeline_name"]
+            zip_path = zip_info["zip_path"]
 
-        # Use patterns that were actually analyzed and are unifiable
-        for pattern_name, analysis in self.pattern_analysis.items():
-            if analysis.get("unifiable") and len(analysis.get("files", [])) >= 3:
-                logger.info(
-                    f"   ✅ {pattern_name}: unifiable with {len(analysis.get('files', []))} source files"
+            print(f"Processing zip: {pipeline_name}")
+
+            if pipeline_name not in dataset_file_info:
+                dataset_file_info[pipeline_name] = {
+                    "pipeline_name": pipeline_name,
+                    "zip_path": str(zip_path),
+                    "foreign_keys": [],
+                    "exclude_columns": [],
+                    "columns_signature": [],
+                    "modules": [],
+                }
+
+            for csv_file in zip_info["csv_files"]:
+
+                is_core_file = not ("all_data" in csv_file.lower())
+
+                csv_analysis, cache_key = self.cache.get_analysis(
+                    zip_path,
+                    csv_file,
+                    self.csv_analyzer.analyze_csv_from_zip,
                 )
 
-                self.core_table_specs[pattern_name.lower()] = CoreTableSpec(
-                    table_name=pattern_name.lower(),
-                    primary_key_column=analysis["primary_key_column"],
-                    description_column=analysis["description_column"],
-                    source_files=[f["csv_file"] for f in analysis["files"]],
-                    unifiable=True,
-                    conflicts=analysis.get("conflicts", []),
+                columns_signature = csv_analysis["columns"]
+                module_name = self.structure.extract_module_name(csv_file)
+                column_count = csv_analysis["column_count"]
+
+                print(f"\nPipeline: {zip_info['pipeline_name']}")
+                print(f"=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+
+                dataset_file_info[pipeline_name]["modules"].append(
+                    {
+                        "module_name": module_name,
+                        "cache_key": cache_key,
+                    }
                 )
-            else:
-                reason = (
-                    "not unifiable"
-                    if not analysis.get("unifiable")
-                    else f"only {len(analysis.get('files', []))} files"
-                )
-                logger.info(f"   ❌ {pattern_name}: skipped ({reason})")
+                file_info = {
+                    "module_name": module_name,
+                    "columns_signature": columns_signature,
+                    "is_core_file": is_core_file,
+                    "column_count": column_count,
+                }
 
-        logger.info(
-            f"🎯 Identified {len(self.core_table_specs)} core tables for unification"
-        )
+                first_column = csv_analysis["column_analysis"][0]
 
-    def _generate_data_table_specs(self):
-        """Generate specs for how data tables should be modified"""
-        logger.info("🔗 Generating data table modification specs...")
+                if is_core_file and first_column["sample_values"]:
 
-        for core_name, core_spec in self.core_table_specs.items():
-            logger.info(f"   📊 Checking references to core table '{core_name}'...")
+                    print(f"CORE: {module_name}")
+                    first_column_name = first_column["column_name"]
+                    sample_value = first_column["sample_values"][0]
 
-            # Find the original pattern name in pattern_analysis (case-sensitive)
-            original_pattern_name = None
-            for pattern_name in self.pattern_analysis.keys():
-                if pattern_name.lower() == core_name:
-                    original_pattern_name = pattern_name
-                    break
+                    pk_score = 0
 
-            if not original_pattern_name:
-                logger.warning(
-                    f"   ⚠️ Could not find pattern analysis for '{core_name}'"
-                )
-                continue
+                    if len(sample_value) < 5:
+                        pk_score += 1
+                    if "code" in first_column_name.lower():
+                        pk_score += 1
+                    if len(sample_value) < 10 and any(char.isdigit() for char in sample_value):
+                        pk_score += 1
+                    if sample_value.isdigit():
+                        pk_score += 1
+                    if first_column["is_likely_foreign_key"]:
+                        pk_score += 1
+                    if first_column["inferred_sql_type"] == "Integer":
+                        pk_score += 1
+                    if column_count < 4:
+                        pk_score += 1
 
-            # Get all columns from the core table pattern
-            core_table_columns = set(
-                self.pattern_analysis[original_pattern_name]["columns"]
-            )
-            logger.info(f" core_table_columns: {core_table_columns}'")
-            references_found = 0
+                    print(f"First Column {first_column_name} - PK Score: {pk_score}")
 
-            # For each data table pattern, check if its columns reference this core table
-            for (columns_sig, pattern_name), files in self.file_groups.items():
-                # Skip if this IS a core table
-                if pattern_name.lower() == core_name:
-                    continue
+                    has_pk = pk_score > 1
 
-                exclude_cols = []
-                fk_mappings = {}
+                    file_info["has_pk"] = has_pk
+                    file_info["occurrence"] = 0
+                    if has_pk:
 
-                for col in columns_sig:
-                    related_to_core = any(
-                        col.lower().startswith(core_col.lower())
-                        for core_col in core_table_columns
-                    )
+                        file_info["pk_score"] = pk_score
 
-                    if related_to_core:
-                        # Keep the primary key column as FK
-                        if col == core_spec.primary_key_column:
-                            fk_mappings[col] = (
-                                f"{core_spec.table_name}.{core_spec.primary_key_column}"
+                        for core_column in columns_signature:
+                            dataset_columns = dataset_file_info[pipeline_name]["columns_signature"]
+                            found_column = next(
+                                (col for col in dataset_columns if core_column in col),
+                                None,
                             )
-                        # Exclude all other columns from the core table
-                        else:
-                            exclude_cols.append(col)
+                            print(f"\n\n\n{found_column}")
+                            if found_column:
+                                if found_column != core_column:
+                                    dataset_file_info[pipeline_name]["fk_pk_mismatch"] = True
+                                    dataset_file_info[pipeline_name]["foreign_keys"].append(found_column)
+                                    file_info["fk_pk_mismatch"] = True
+                                    file_info["original_pk_column"] = core_column
+                                    file_info["found_fk_column"] = found_column
+                                    file_info["pk_column"] = found_column
 
-                if exclude_cols or fk_mappings:
-                    references_found += 1
-                    logger.info(
-                        f"      🔗 {pattern_name}: exclude {exclude_cols}, FK {list(fk_mappings.keys())}"
-                    )
-                    dataset_name = files[0]["dataset"]
+                                else:
+                                    file_info["pk_column"] = first_column_name
+                                    dataset_file_info[pipeline_name]["foreign_keys"].append(first_column_name)
+                                    break
 
-                    self.data_table_specs[dataset_name] = DataTableSpec(
-                        table_name=dataset_name,
-                        exclude_columns=exclude_cols,
-                        foreign_key_mappings=fk_mappings,
-                    )
+                        dataset_file_info[pipeline_name]["exclude_columns"].extend(csv_analysis["columns"][1:])
 
-            logger.info(
-                f"   📈 Found {references_found} data tables referencing '{core_name}'"
-            )
+                    if module_name not in core_file_info:
+                        core_file_info[module_name] = file_info
 
-        logger.info(
-            f"🔗 Generated {len(self.data_table_specs)} data table modification specs"
-        )
+                    if not "cache_keys" in core_file_info[module_name]:
+                        core_file_info[module_name]["cache_keys"] = []
 
-    def _create_generation_rules(self) -> Dict:
-        """Create rules for the existing generator to use"""
-        logger.info("📝 Creating generation rules...")
+                    core_file_info[module_name]["occurrence"] += 1
+                    core_file_info[module_name]["cache_keys"].append(cache_key)
 
-        rules = {
-            "core_pipeline_modules": list(self.core_table_specs.keys()),
-            "excluded_from_regular_pipelines": list(self.core_table_specs.keys()),
-            "primary_key_overrides": {
-                spec.table_name: spec.primary_key_column
-                for spec in self.core_table_specs.values()
-                if spec.unifiable
-            },
-            "foreign_key_rules": {
-                data_spec.table_name: data_spec.foreign_key_mappings
-                for data_spec in self.data_table_specs.values()
-            },
+                    # dataset_file_info[pipeline_name]["files"].append(
+                    #     core_file_info[module_name]
+                    # )
+                else:
+                    print(f"DATASET: {module_name}")
+                    file_info["cache_keys"] = []
+                    file_info["cache_keys"].append(cache_key)
+                    dataset_file_info[pipeline_name]["columns_signature"] = columns_signature
+
+        print(f"Core Modules: {len(core_file_info)}")
+        for module_name, file_info in core_file_info.items():
+            print(f"{module_name} - {file_info['occurrence']}")
+
+        print(f"Core Modules: {len(core_file_info)}")
+        for pipeline_name, pipeline_info in dataset_file_info.items():
+            print(f"{pipeline_name} - {pipeline_info['foreign_keys']}")
+
+        specs_output = {
+            "core_file_info": dict(core_file_info),
+            "dataset_file_info": dict(dataset_file_info),
         }
 
-        logger.info(
-            f"📝 Rules: {len(rules['core_pipeline_modules'])} core modules, {len(rules['foreign_key_rules'])} FK rules"
+        self.file_generator.write_json_file(
+            Path("analysis/pipeline_spec.json"),
+            specs_output,
         )
-        return rules
 
-    def save_specifications(
-        self,
-        output_path: str = "./analysis/pipeline_specs.json",
-        specs: Optional[Dict] = None,
-    ) -> None:
-        """Save specifications to JSON file for use by generator"""
-        logger.info(f"💾 Saving specifications to {output_path}...")
-
-        # Ensure directory exists
-        Path(output_path).parent.mkdir(exist_ok=True)
-
-        with open(output_path, "w") as f:
-            json.dump(specs, f, indent=2)
-
-        logger.info(f"✅ Pipeline specifications saved to {output_path}")
+        return specs_output
