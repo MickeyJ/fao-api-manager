@@ -1,4 +1,4 @@
-from . import logger
+from . import logger, to_snake_case
 import json
 import pandas as pd
 from pathlib import Path
@@ -76,7 +76,7 @@ class PipelineSpecs:
                 if is_core_file:
                     # Core file - collect info and determine primary key
                     if csv_analysis["row_count"] > 0 and csv_analysis.get("column_analysis"):
-                        print(f"CORE: {module_name}")
+                        # logger.info(f"CORE: {module_name}")
 
                         # Determine primary key (first column ending in "Code" or first column)
                         pk_column = None
@@ -92,6 +92,8 @@ class PipelineSpecs:
                         # Calculate PK score for has_pk determination
                         first_column = csv_analysis["column_analysis"][0]
                         pk_score = 0
+                        is_int_score = 0
+
                         if first_column["sample_values"]:
                             sample_value = first_column["sample_values"][0]
                             if len(sample_value) < 5:
@@ -102,14 +104,17 @@ class PipelineSpecs:
                                 pk_score += 1
                             if sample_value.isdigit():
                                 pk_score += 1
+                                is_int_score += 1
                             if first_column["is_likely_foreign_key"]:
                                 pk_score += 1
                             if first_column["inferred_sql_type"] == "Integer":
                                 pk_score += 1
+                                is_int_score += 1
                             if column_count < 4:
                                 pk_score += 1
 
                         has_pk = pk_score > 1
+                        is_int = is_int_score > 1
 
                         if module_name not in core_file_info:
                             core_file_info[module_name] = {
@@ -120,6 +125,7 @@ class PipelineSpecs:
                                 "has_pk": has_pk,
                                 "pk_score": pk_score if has_pk else 0,
                                 "pk_column": pk_column,
+                                "pk_sql_column_name": to_snake_case(pk_column),
                                 "occurrence": 0,
                                 "cache_keys": [],
                             }
@@ -128,7 +134,7 @@ class PipelineSpecs:
                         core_file_info[module_name]["cache_keys"].append(cache_key)
                 else:
                     # Dataset file - capture column signature
-                    print(f"DATASET: {module_name}")
+                    # print(f"DATASET: {module_name}")
                     dataset_file_info[pipeline_name]["columns_signature"] = columns_signature
 
         # Second pass: establish FK relationships
@@ -164,12 +170,32 @@ class PipelineSpecs:
 
                     # Add to foreign keys
                     if found_column not in pipeline_info["foreign_keys"]:
-                        pipeline_info["foreign_keys"].append(found_column)
+                        pipeline_info["foreign_keys"].append(
+                            {
+                                "table_name": core_module_name,
+                                "column_name": to_snake_case(found_column),
+                            }
+                        )
 
-                    # Add non-primary columns to exclude list
+                    # Add non-primary columns to exclude list using fuzzy matching
+                    # Get all FK columns identified so far to avoid excluding them
+                    all_fk_columns = [fk_info["column_name"] for fk_info in pipeline_info["foreign_keys"]]
+                    all_fk_column_names = [col for col in dataset_columns if to_snake_case(col) in all_fk_columns]
+
                     for core_col in core_info["columns_signature"]:
-                        if core_col != pk_column and core_col not in pipeline_info["exclude_columns"]:
-                            pipeline_info["exclude_columns"].append(core_col)
+                        if core_col != pk_column:
+                            # Filter out ALL FK columns from dataset columns when matching
+                            filtered_dataset_columns = [
+                                col for col in dataset_columns if col not in all_fk_column_names
+                            ]
+
+                            logger.info(
+                                f"  Matching core column '{core_col}' against dataset columns: {filtered_dataset_columns}"
+                            )
+
+                            found_dataset_col = self._find_matching_column_fuzzy(core_col, filtered_dataset_columns)
+                            if found_dataset_col and found_dataset_col not in pipeline_info["exclude_columns"]:
+                                pipeline_info["exclude_columns"].append(found_dataset_col)
 
                     # Set mismatch flag only if there's actually a mismatch
                     if found_column != pk_column:
@@ -177,7 +203,9 @@ class PipelineSpecs:
                         core_info["fk_pk_mismatch"] = True
                         core_info["original_pk_column"] = pk_column
                         core_info["found_fk_column"] = found_column
-                        core_info["pk_column"] = found_column
+                        core_info["pk_column"] = (found_column,)
+                        core_info["original_pk_sql_column_name"] = (to_snake_case(pk_column),)
+                        core_info["pk_sql_column_name"] = to_snake_case(found_column)
                     else:
                         # Perfect match - ensure no mismatch flags
                         if "fk_pk_mismatch" not in core_info:
@@ -190,6 +218,7 @@ class PipelineSpecs:
         }
 
         specs_output = self.validate_core_file_consistency(specs_output)
+        specs_output = self.resolve_conflicts_with_synthetic_pks(specs_output)
 
         self.file_generator.write_json_file(
             Path("analysis/pipeline_spec.json"),
@@ -205,14 +234,14 @@ class PipelineSpecs:
         core_file_info = specs_output["core_file_info"]
 
         for core_module_name, core_info in core_file_info.items():
-            logger.info(f"📊 Processing {core_module_name}...")
+            # logger.info(f"📊 Processing {core_module_name}...")
 
             if "pk_column" not in core_info:
                 logger.warning(f"  ⚠️  No primary key column found for {core_module_name}, skipping validation")
                 continue
 
             cache_keys = core_info["cache_keys"]
-            logger.info(f"  Found {len(cache_keys)} files for {core_module_name}")
+            # logger.info(f"  Found {len(cache_keys)} files for {core_module_name}")
 
             # Collect all dataframes for this core module
             all_dfs = []
@@ -246,7 +275,7 @@ class PipelineSpecs:
             # Combine all dataframes for this core module
             if all_dfs:
                 combined_df = pd.concat(all_dfs, ignore_index=True)
-                logger.info(f"  📋 Combined into {len(combined_df)} total rows for {core_module_name}")
+                # logger.info(f"  📋 Combined into {len(combined_df)} total rows for {core_module_name}")
 
                 # Get unique combinations (excluding the source_dataset column we added)
                 data_columns = [col for col in combined_df.columns if col != "source_dataset"]
@@ -269,10 +298,10 @@ class PipelineSpecs:
 
                 for name, group in grouped:
                     data_columns = [col for col in group.columns if col != "source_dataset"]
-                    unique_df = group.drop_duplicates(subset=data_columns)[data_columns]
+                    unique_df = group.drop_duplicates(subset=data_columns)
                     if len(unique_df) > 1:
                         logger.warning(f"  ⚠️  CONFLICT found for {name} in {core_module_name}")
-                        print(unique_df[data_columns].to_string(index=False))
+                        print(unique_df)
                         print()  # Add blank line between conflicts
                         for col in data_columns:
                             if col == core_info.get("pk_column"):
@@ -281,9 +310,23 @@ class PipelineSpecs:
                             values = unique_df[col].unique()
                             if len(values) > 1:
                                 if self._values_are_similar(values):
-                                    similarities.append({"pk_value": name, "column": col, "values": list(values)})
+                                    similarities.append(
+                                        {
+                                            "pk_value": name,
+                                            "column": col,
+                                            "values": list(values),
+                                            "source_dataset": unique_df["source_dataset"].unique().tolist(),
+                                        }
+                                    )
                                 else:
-                                    conflicts.append({"pk_value": name, "column": col, "values": list(values)})
+                                    conflicts.append(
+                                        {
+                                            "pk_value": name,
+                                            "column": col,
+                                            "values": list(values),
+                                            "source_dataset": unique_df["source_dataset"].unique().tolist(),
+                                        }
+                                    )
 
                 # Add to the core_file_info
                 core_info["conflicts"] = conflicts
@@ -295,6 +338,147 @@ class PipelineSpecs:
                 # logger.info(f"  🔍 Found {len(unique_df)} unique combinations for {core_module_name}")
 
         return specs_output
+
+    def resolve_conflicts_with_synthetic_pks(self, specs_output: Dict[str, Any]) -> Dict[str, Any]:
+        """Third pass: Create synthetic PKs for conflicts and update dataset specs"""
+        logger.info("🔧 Starting conflict resolution with synthetic PKs...")
+
+        core_file_info = specs_output["core_file_info"]
+        dataset_file_info = specs_output["dataset_file_info"]
+
+        for core_module_name, core_info in core_file_info.items():
+            conflicts = core_info.get("conflicts", [])
+            if not conflicts:
+                continue
+
+            logger.info(f"📝 Resolving {len(conflicts)} conflicts for {core_module_name}")
+
+            # Read combined data to find max PK
+            combined_df = self._get_combined_core_data(core_module_name, core_info)
+            pk_column = core_info["pk_column"]
+            max_pk = int(combined_df[pk_column].max())
+
+            # Create synthetic PK mappings
+            synthetic_counter = 1
+            conflict_mappings = {}
+
+            for conflict in conflicts:
+                original_pk = conflict["pk_value"]
+                conflict_column = conflict["column"]
+                conflict_values = conflict["values"]
+
+                # First value keeps original PK, others get synthetic PKs
+                value_mapping = {conflict_values[0]: original_pk}
+
+                for conflict_value in conflict_values[1:]:
+                    synthetic_pk = max_pk + synthetic_counter
+                    value_mapping[conflict_value] = synthetic_pk
+                    synthetic_counter += 1
+
+                conflict_mappings[original_pk] = {"column": conflict_column, "value_mapping": value_mapping}
+
+                # Update the conflict object with synthetic PK mappings
+                conflict["value_pk_mapping"] = value_mapping
+
+            # Update the core_file_info with enhanced conflicts
+            core_info["conflicts"] = conflicts
+
+            # Get all source datasets that have conflicts for this core table
+            conflicted_datasets = set()
+            for conflict in conflicts:
+                for zip_name in conflict["source_dataset"]:
+                    # Convert ZIP name to pipeline name
+                    pipeline_name = self.scanner._format_pipeline_name(zip_name)
+                    conflicted_datasets.add(pipeline_name)
+
+            logger.info(f"  Adding FK fixes to datasets: {conflicted_datasets}")
+
+            # Update only datasets that actually contain conflicted data
+            for dataset_name, dataset_info in dataset_file_info.items():
+                if dataset_name in conflicted_datasets:
+                    for fk in dataset_info.get("foreign_keys", []):
+                        if fk["table_name"] == core_module_name:
+                            if "conflict_pk_mappings" not in dataset_info:
+                                dataset_info["conflict_pk_mappings"] = {}
+
+                            # Include FK column name in the mappings
+                            enhanced_conflict_mappings = {}
+                            for original_pk, mapping_info in conflict_mappings.items():
+                                enhanced_conflict_mappings[original_pk] = {
+                                    **mapping_info,
+                                    "fk_column_name": fk["column_name"],
+                                }
+
+                            dataset_info["conflict_pk_mappings"][core_module_name] = enhanced_conflict_mappings
+                            break
+
+        return specs_output
+
+    def _find_matching_column_fuzzy(self, core_col: str, dataset_columns: list) -> str | None:
+        """Find dataset column using fuzzy word matching"""
+        import re
+
+        # Clean and split core column into words
+        core_words = set(re.findall(r"\b\w+\b", core_col.lower()))
+
+        best_match = None
+        best_score = 0
+
+        for dataset_col in dataset_columns:
+            # Exact match first
+            if core_col == dataset_col:
+                return dataset_col
+
+            # Substring match
+            if core_col in dataset_col or dataset_col in core_col:
+                return dataset_col
+
+            # Word overlap scoring
+            dataset_words = set(re.findall(r"\b\w+\b", dataset_col.lower()))
+            common_words = core_words.intersection(dataset_words)
+
+            if len(common_words) > 0:
+                score = len(common_words) / len(core_words)
+                if score > best_score and score >= 0.5:  # At least 50% word overlap
+                    best_score = score
+                    best_match = dataset_col
+
+        return best_match
+
+    def _get_combined_core_data(self, core_module_name: str, core_info: Dict) -> pd.DataFrame:
+        """Read and combine all CSV files for a specific core module"""
+        cache_keys = core_info["cache_keys"]
+        all_dfs = []
+
+        for cache_key in cache_keys:
+            # Parse cache key: "ZipName:CSVFileName"
+            zip_name, csv_filename = cache_key.split(":", 1)
+
+            # Find the zip file path
+            zip_path = None
+            all_zip_info = self.scanner.scan_all_zips()
+            for zip_info in all_zip_info:
+                if zip_info["zip_path"].name == zip_name:
+                    zip_path = zip_info["zip_path"]
+                    break
+
+            if not zip_path:
+                logger.warning(f"    ⚠️  Could not find zip: {zip_name}")
+                continue
+
+            # Read the CSV data
+            try:
+                df = self._read_full_csv_from_zip(zip_path, csv_filename)
+                df["source_dataset"] = zip_name  # Track which dataset this came from
+                all_dfs.append(df)
+            except Exception as e:
+                logger.warning(f"    ⚠️  Error reading {csv_filename}: {e}")
+
+        if all_dfs:
+            combined_df = pd.concat(all_dfs, ignore_index=True)
+            return combined_df
+        else:
+            return pd.DataFrame()
 
     def _values_are_similar(self, values) -> bool:
         """Check if values are similar enough to be considered formatting differences"""

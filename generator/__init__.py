@@ -28,7 +28,7 @@ def to_snake_case(text: str) -> str:
     result = s2.replace("-", "_").lower()
     # Remove multiple underscores
     result = re.sub("_+", "_", result)
-    return result.strip("_")
+    return result.strip("_").replace(" ", "")
 
 
 def snake_to_pascal_case(snake_str: str) -> str:

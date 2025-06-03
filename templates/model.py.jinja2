@@ -14,18 +14,57 @@ from db.database import Base
 class {{ model_name }}(Base):
     __tablename__ = "{{ table_name }}"
     
-    id = Column(Integer, primary_key=True)
-    {% for column in csv_analysis.column_analysis %}
+    {% if specs.is_core_file %}
+        {# Core models use domain primary key #}
+        {% if specs.fk_pk_mismatch %}
+            {# Create the correct primary key manually for mismatch cases #}
+    {{ specs.pk_sql_column_name }} = Column(String, primary_key=True, nullable=False)
+            {# Create CSV columns but skip the first (bad) one #}
+            {% for column in csv_analysis.column_analysis[1:] %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-    {% endfor %}
+            {% endfor %}
+        {% else %}
+            {# Normal case - find the CSV column that matches the primary key #}
+            {% for column in csv_analysis.column_analysis %}
+                {% if column.sql_column_name == specs.pk_sql_column_name %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}, primary_key=True{% if column.null_count == 0 %}, nullable=False{% endif %})
+                {% else %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% else %}
+        {# Dataset models use auto-increment id and foreign keys #}
+    id = Column(Integer, primary_key=True)
+        {% for column in csv_analysis.column_analysis %}
+            {# Check if this column is a foreign key by matching table name #}
+            {% set matching_fks = specs.foreign_keys | selectattr('table_name', 'equalto', column.sql_table_name) | list %}
+            {% if matching_fks %}
+                {% set fk = matching_fks[0] %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}, ForeignKey("{{ fk.table_name }}.{{ fk.column_name }}"){% if column.null_count == 0 %}, nullable=False{% endif %})
+            {% else %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, default=func.now(), onupdate=func.now(), nullable=False
     )
 
+    {% if specs.foreign_keys %}
+    __table_args__ = (
+        {% for fk in specs.foreign_keys %}
+        Index("ix_{{ table_name }}_{{ fk.column_name }}", "{{ fk.column_name }}"),
+        {% endfor %}
+    )
+    {% endif %}
+
     def __repr__(self):
+        {% if specs.is_core_file and specs.pk_sql_column_name %}
+        return f"<{{ model_name }}({{ specs.pk_sql_column_name }}='{self.{{ specs.pk_sql_column_name }}}')"
+        {% else %}
         {% set repr_columns = csv_analysis.column_analysis[:3] %}
         return f"<{{ model_name }}({% for column in repr_columns %}{{ column.sql_column_name }}='{self.{{ column.sql_column_name }}}'{% if not loop.last %}, {% endif %}{% endfor %})>"
-
-    
+        {% endif %}

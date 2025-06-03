@@ -192,17 +192,17 @@ class Generator:
         templates = self.template_renderer.render_env_templates()
 
         for template in templates:
-            self.file_generator.write_file(self.paths.src / template["file_name"], template["content"])
+            self.file_generator.write_file(template["file_name"], template["content"])
 
     def _generate_makefile(self):
         """Generate database.py for db"""
         content = self.template_renderer.render_makefile_template()
-        self.file_generator.write_file(self.paths.src / "Makefile", content)
+        self.file_generator.write_file("Makefile", content)
 
     def _generate_requirements_file(self):
         """Generate database.py for db"""
         content = self.template_renderer.render_requirements_template()
-        self.file_generator.write_file(self.paths.src / "requirements.in", content)
+        self.file_generator.write_file("requirements.in", content)
 
     def _generate_database_file(self):
         """Generate database.py for db"""

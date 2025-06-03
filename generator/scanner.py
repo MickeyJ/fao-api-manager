@@ -1,14 +1,18 @@
-# scanner.py
-import zipfile, re
+"""Scanner for FAO ZIP files
+This module scans a directory for ZIP files containing FAO data, extracts their contents,
+and formats the information for further processing."""
+
+import zipfile
 from pathlib import Path
 from typing import List, Dict
-import pandas as pd
 from .structure import Structure
 from .file_generator import FileGenerator
 from . import ZIP_PATH, to_snake_case
 
 
 class Scanner:
+    """Scanner for FAO ZIP files in a specified directory"""
+
     def __init__(self, zip_directory: str):
         self.zip_dir = Path(zip_directory)
 
@@ -17,13 +21,13 @@ class Scanner:
         results = []
 
         for zip_path in self.zip_dir.glob("*.zip"):
-            if self._is_zip(zip_path):
+            if self.is_zip(zip_path):
                 info = self._analyze_zip(zip_path)
                 results.append(info)
 
         return results
 
-    def _is_zip(self, zip_path: Path) -> bool:
+    def is_zip(self, zip_path: Path) -> bool:
         """Check if this looks like an FAO data zip"""
         name = zip_path.name.lower()
         return "_e_all_data" in name or "_f_all_data" in name or "faostat" in name
@@ -64,7 +68,7 @@ if __name__ == "__main__":
 
     print("\n=== CHECKING FAO FILTER ===")
     for zip_path in scanner.zip_dir.glob("*.zip"):
-        is_fao = scanner._is_zip(zip_path)
+        is_fao = scanner.is_zip(zip_path)
         print(f"{zip_path.name} -> FAO: {is_fao}")
 
     print("\n=== FINAL RESULTS ===")
