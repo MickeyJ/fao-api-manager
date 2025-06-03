@@ -14,6 +14,7 @@ class Structure:
         file_info: Dict,
         pipeline_name: str,
         pipeline_spec: Dict,
+        spec: Dict,
     ) -> Dict:
         """Build a complete module specification"""
 
@@ -33,11 +34,10 @@ class Structure:
             "model_name": model_name,
             "table_name": table_name,
             "file_info": file_info,
+            "specs": spec,
         }
 
-    def determine_modules(
-        self, csv_files: List[str], pipeline_spec: Dict
-    ) -> Dict[str, str]:
+    def determine_modules(self, csv_files: List[str], pipeline_spec: Dict) -> Dict[str, str]:
         """Map CSV files to Python module names automatically, excluding core tables"""
         modules = {}
 
@@ -82,25 +82,8 @@ class Structure:
     def is_core_module(self, csv_filename: str, pipeline_spec: Dict) -> bool:
         """Check if this is a core/shared table"""
         lower_file = csv_filename.lower()
-        module_name = self.extract_module_name(csv_filename).replace("_", "")
-        core_patterns = ["areacodes", "itemcodes", "currencys"]
-
-        # print(f"\n\n\n\n\n'{module_name}' - {lower_file}\n\n\n\n\n")
-        return any(pattern in lower_file for pattern in core_patterns)
-
-    def categorize_core_file(
-        self, csv_filename: str, pipeline_spec: Dict
-    ) -> str | None:
-        """Determine what type of core file this is"""
-        lower_file = csv_filename.lower()
-
-        if "areacodes" in lower_file:
-            return "areacodes"
-        elif "itemcodes" in lower_file:
-            return "itemcodes"
-        elif "currencys" in lower_file:
-            return "currencys"
-        return None
+        module_name = self.extract_module_name(csv_filename)
+        return module_name in pipeline_spec.get("core_file_info", {})
 
     def format_module_name(
         self,
@@ -110,9 +93,7 @@ class Structure:
         pipeline_spec: Dict,
     ) -> str:
         """Convert module name to table name"""
-        if self.is_primary_module(csv_filename) or self.is_core_module(
-            csv_filename, pipeline_spec
-        ):
+        if self.is_primary_module(csv_filename) or self.is_core_module(csv_filename, pipeline_spec):
             # Primary module - no prefix needed
             return module_name.lower()
 
@@ -122,6 +103,9 @@ class Structure:
 
     def is_primary_module(self, csv_filename: str) -> bool:
         """Check if this is the main All_Data file"""
-        return (
-            "all_data" in csv_filename.lower() and "normalized" in csv_filename.lower()
-        )
+        return "all_data" in csv_filename.lower() and "normalized" in csv_filename.lower()
+
+    def cache_key_to_csv_path(self, cache_key):
+        zip_name, csv_filename = cache_key.split(":", 1)
+        zip_name = zip_name.replace(".zip", "")
+        return f"{zip_name}/{csv_filename}"

@@ -8,9 +8,11 @@ ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
 
 ZIP_PATH = ALL_ZIP_EXAMPLE
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# # Force reset logging configuration
+# for handler in logging.root.handlers[:]:
+#     logging.root.removeHandler(handler)
+
+logging.basicConfig(level=logging.INFO, format="%(filename)s:%(lineno)d - %(message)s")
 logger = logging.getLogger(__name__)
 
 

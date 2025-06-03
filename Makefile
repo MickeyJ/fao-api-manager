@@ -81,7 +81,7 @@ csv-analysis:
 
 optimizer:
 	@echo "Scanning all CSV data..."
-	$(ACTIVATE) $(PYTHON) -m optimizer
+	$(ACTIVATE) $(PYTHON) -m generator --opt_analysis
 
 # =-=-=--=-=-=-=-=-
 # Pipeline commands

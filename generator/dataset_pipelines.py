@@ -15,16 +15,20 @@ class DatasetPipelines:
             pipeline_name = zip_info["pipeline_name"]
 
             for csv_file in zip_info["csv_files"]:
-                if not self.structure.is_core_module(
-                    csv_file, self.pipeline_spec
-                ):  # Skip core files
+                if not self.structure.is_core_module(csv_file, self.pipeline_spec):  # Skip core files
                     module_name = self.structure.extract_module_name(csv_file)
                     if module_name:
+                        zip_path = zip_info["zip_path"]
                         file_info = {
                             "csv_filename": csv_file,
-                            "zip_path": zip_info["zip_path"],
+                            "zip_path": zip_path,
+                            "csv_files": [f"{zip_path.stem}/{csv_file}"],
                         }
                         module_spec = self.structure.build_module_spec(
-                            module_name, file_info, pipeline_name, self.pipeline_spec
+                            core_module_name=module_name,
+                            file_info=file_info,
+                            pipeline_name=pipeline_name,
+                            pipeline_spec=self.pipeline_spec,
+                            spec=self.pipeline_spec["dataset_file_info"].get(module_name, {}),
                         )
                         self.modules.append(module_spec)

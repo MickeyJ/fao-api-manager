@@ -39,7 +39,8 @@ class TemplateRenderer:
         csv_files: List[str],
         model_name: str,
         table_name: str,
-        csv_analysis: Optional[Dict] = None,
+        csv_analysis: Dict | None = None,
+        specs: Dict | None = None,
     ) -> str:
         """Render pipeline_module template (e.g., items.py, areas.py)"""
         template = self.jinja_env.get_template("pipeline_module.py.jinja2")
@@ -48,16 +49,13 @@ class TemplateRenderer:
             model_name=model_name,
             table_name=table_name,
             csv_analysis=csv_analysis,
+            specs=specs,
         )
 
-    def render_model_template(
-        self, model_name: str, table_name: str, csv_analysis: Dict
-    ) -> str:
+    def render_model_template(self, model_name: str, table_name: str, csv_analysis: Dict, specs: Dict) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("model.py.jinja2")
-        return template.render(
-            model_name=model_name, table_name=table_name, csv_analysis=csv_analysis
-        )
+        return template.render(model_name=model_name, table_name=table_name, csv_analysis=csv_analysis, specs=specs)
 
     def render_database_template(
         self,
@@ -102,9 +100,7 @@ class TemplateRenderer:
             },
             {
                 "file_name": "local-admin.env",
-                "content": self.jinja_env.get_template(
-                    "local-admin.env.jinja2"
-                ).render(),
+                "content": self.jinja_env.get_template("local-admin.env.jinja2").render(),
             },
             {
                 "file_name": "remote.env",

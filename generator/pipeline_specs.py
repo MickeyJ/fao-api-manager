@@ -1,4 +1,4 @@
-import logging
+from . import logger
 import json
 import pandas as pd
 from pathlib import Path
@@ -11,16 +11,10 @@ from generator.structure import Structure
 from generator.file_generator import FileGenerator
 from generator.csv_analyzer import CSVAnalyzer
 
-# Force reset logging configuration
-for handler in logging.root.handlers[:]:
-    logging.root.removeHandler(handler)
-
-logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
 
 class PipelineSpecs:
     def __init__(self, zip_path: str, shared_cache: CSVCache | None = None):
+        self.json_path = Path("analysis/pipeline_spec.json")
         self.scanner = Scanner(zip_path)
         self.structure = Structure()
         self.file_generator = FileGenerator("./analysis")
@@ -28,7 +22,11 @@ class PipelineSpecs:
         self.cache = shared_cache or CSVCache()
 
     def create(self) -> Dict[str, Any]:
-        return self.discover_file_patterns()
+        if self.json_path.exists():
+            with open(self.json_path, "r") as f:
+                return json.load(f)
+        else:
+            return self.discover_file_patterns()
 
     def discover_file_patterns(self) -> Dict[str, Any]:
         """Simplified pattern discovery focused on core files"""
@@ -76,30 +74,40 @@ class PipelineSpecs:
                 is_core_file = not ("all_data" in csv_file.lower())
 
                 if is_core_file:
-                    # Core file - collect basic info only
-                    first_column = csv_analysis["column_analysis"][0]
-
-                    if first_column["sample_values"]:
+                    # Core file - collect info and determine primary key
+                    if csv_analysis["row_count"] > 0 and csv_analysis.get("column_analysis"):
                         print(f"CORE: {module_name}")
-                        first_column_name = first_column["column_name"]
-                        sample_value = first_column["sample_values"][0]
 
-                        # Calculate PK score
+                        # Determine primary key (first column ending in "Code" or first column)
+                        pk_column = None
+                        for col_info in csv_analysis["column_analysis"]:
+                            col_name = col_info["column_name"]
+                            if col_name.endswith(" Code") or col_name.endswith("Code"):
+                                pk_column = col_name
+                                break
+
+                        if not pk_column:
+                            pk_column = csv_analysis["column_analysis"][0]["column_name"]
+
+                        # Calculate PK score for has_pk determination
+                        first_column = csv_analysis["column_analysis"][0]
                         pk_score = 0
-                        if len(sample_value) < 5:
-                            pk_score += 1
-                        if "code" in first_column_name.lower():
-                            pk_score += 1
-                        if len(sample_value) < 10 and any(char.isdigit() for char in sample_value):
-                            pk_score += 1
-                        if sample_value.isdigit():
-                            pk_score += 1
-                        if first_column["is_likely_foreign_key"]:
-                            pk_score += 1
-                        if first_column["inferred_sql_type"] == "Integer":
-                            pk_score += 1
-                        if column_count < 4:
-                            pk_score += 1
+                        if first_column["sample_values"]:
+                            sample_value = first_column["sample_values"][0]
+                            if len(sample_value) < 5:
+                                pk_score += 1
+                            if "code" in pk_column.lower():
+                                pk_score += 1
+                            if len(sample_value) < 10 and any(char.isdigit() for char in sample_value):
+                                pk_score += 1
+                            if sample_value.isdigit():
+                                pk_score += 1
+                            if first_column["is_likely_foreign_key"]:
+                                pk_score += 1
+                            if first_column["inferred_sql_type"] == "Integer":
+                                pk_score += 1
+                            if column_count < 4:
+                                pk_score += 1
 
                         has_pk = pk_score > 1
 
@@ -110,8 +118,8 @@ class PipelineSpecs:
                                 "is_core_file": True,
                                 "column_count": column_count,
                                 "has_pk": has_pk,
-                                # "first_column_name": first_column_name,
                                 "pk_score": pk_score if has_pk else 0,
+                                "pk_column": pk_column,
                                 "occurrence": 0,
                                 "cache_keys": [],
                             }
@@ -130,53 +138,50 @@ class PipelineSpecs:
                 continue
 
             print(f"Processing FK relationships for {core_module_name}")
+            pk_column = core_info["pk_column"]
 
-            # Default to first column as primary key
-            # core_info["pk_column"] = core_info["first_column_name"]
-
-            # Look for FK relationships across all datasets
-            found_relationship = False
+            # Check this core module's primary key against all datasets
             for pipeline_name, pipeline_info in dataset_file_info.items():
                 dataset_columns = pipeline_info["columns_signature"]
 
                 if not dataset_columns:  # Skip if no dataset columns found
                     continue
 
-                # Check if any core column appears in this dataset
-                for core_column in core_info["columns_signature"]:
-                    found_column = next(
-                        (col for col in dataset_columns if core_column in col),
-                        None,
-                    )
-
-                    if found_column:
-                        print(f"  Found FK relationship: {core_column} -> {found_column} in {pipeline_name}")
-
-                        if found_column != core_column:
-                            # FK mismatch case
-                            pipeline_info["fk_pk_mismatch"] = True
-                            pipeline_info["foreign_keys"].append(found_column)
-                            core_info["fk_pk_mismatch"] = True
-                            core_info["original_pk_column"] = core_column
-                            core_info["found_fk_column"] = found_column
-                            core_info["pk_column"] = found_column
-                        else:
-                            # Perfect match
-                            core_info["pk_column"] = core_column
-                            pipeline_info["foreign_keys"].append(core_column)
-
-                        # Exclude other columns from this dataset
-                        exclude_cols = [col for col in core_info["columns_signature"] if col != core_column]
-                        pipeline_info["exclude_columns"].extend(exclude_cols)
-
-                        found_relationship = True
+                # Look for the primary key column in this dataset
+                found_column = None
+                for dataset_col in dataset_columns:
+                    if pk_column == dataset_col:
+                        # Perfect match
+                        found_column = dataset_col
+                        break
+                    elif pk_column in dataset_col or dataset_col in pk_column:
+                        # Partial match (like "Area Code" vs "Area Code (M49)")
+                        found_column = dataset_col
                         break
 
-                if found_relationship:
-                    break
+                if found_column:
+                    print(f"  Found relationship: {pk_column} -> {found_column} in {pipeline_name}")
 
-            if not found_relationship:
-                print(f"  No FK relationship found for {core_module_name} - using first column as PK")
+                    # Add to foreign keys
+                    if found_column not in pipeline_info["foreign_keys"]:
+                        pipeline_info["foreign_keys"].append(found_column)
+
+                    # Add non-primary columns to exclude list
+                    for core_col in core_info["columns_signature"]:
+                        if core_col != pk_column and core_col not in pipeline_info["exclude_columns"]:
+                            pipeline_info["exclude_columns"].append(core_col)
+
+                    # Set mismatch flag only if there's actually a mismatch
+                    if found_column != pk_column:
+                        pipeline_info["fk_pk_mismatch"] = True
+                        core_info["fk_pk_mismatch"] = True
+                        core_info["original_pk_column"] = pk_column
+                        core_info["found_fk_column"] = found_column
+                        core_info["pk_column"] = found_column
+                    else:
+                        # Perfect match - ensure no mismatch flags
+                        if "fk_pk_mismatch" not in core_info:
+                            core_info["fk_pk_mismatch"] = False
 
         # Build final output
         specs_output = {

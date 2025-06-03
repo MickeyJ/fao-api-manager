@@ -4,6 +4,7 @@ from generator.file_generator import FileGenerator
 from generator.scanner import Scanner
 from generator.csv_analyzer import CSVAnalyzer
 from generator.generator import Generator
+from generator.pipeline_specs import PipelineSpecs
 
 from . import ZIP_PATH
 
@@ -28,6 +29,7 @@ def all_csv_analysis():
 #     results = run_optimization_analysis(ZIP_PATH)
 
 
+
 def test():
     """Test function to run the generator"""
     # generator = Generator("./db", ZIP_PATH)
@@ -44,9 +46,7 @@ def generate_all():
 def main():
     parser = argparse.ArgumentParser(description="FAO data pipeline generator")
     parser.add_argument("--csv_analysis", action="store_true", help="Analyze CSV files")
-    parser.add_argument(
-        "--opt_analysis", action="store_true", help="run optimization analysis"
-    )
+    parser.add_argument("--opt_analysis", action="store_true", help="run optimization analysis")
     parser.add_argument("--test", action="store_true", help="Generate all pipelines")
     parser.add_argument("--all", action="store_true", help="Generate all pipelines")
 
@@ -54,8 +54,8 @@ def main():
 
     if args.csv_analysis:
         all_csv_analysis()
-    # elif args.opt_analysis:
-    #     optimization_analysis()
+    elif args.opt_analysis:
+        PipelineSpecs(ZIP_PATH).create()
     elif args.test:
         test()
     elif args.all:

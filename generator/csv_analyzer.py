@@ -6,7 +6,7 @@ from typing import Dict, List
 from .structure import Structure
 from .scanner import Scanner
 from .file_generator import FileGenerator
-from optimizer.csv_cache import CSVCache
+from .csv_cache import CSVCache
 from . import ZIP_PATH, logger
 
 
@@ -26,9 +26,7 @@ class CSVAnalyzer:
 
     def analyze_csv_from_zip(self, zip_path: Path, csv_filename: str) -> Dict:
         """Analyze a CSV file directly from inside a ZIP with caching"""
-        return self.cache.get_analysis(
-            zip_path, csv_filename, self._analyze_csv_from_zip_uncached
-        )[
+        return self.cache.get_analysis(zip_path, csv_filename, self._analyze_csv_from_zip_uncached)[
             0
         ]  # Just return the analysis, not the cache key
 
@@ -52,13 +50,9 @@ class CSVAnalyzer:
                 csv_file.seek(0)
                 csv_data = csv_file.read().decode("utf-8", errors="ignore")
                 df = pd.read_csv(StringIO(csv_data), dtype=str)
-                return self._analyze_dataframe(
-                    df, csv_filename, "utf-8 (with errors ignored)"
-                )
+                return self._analyze_dataframe(df, csv_filename, "utf-8 (with errors ignored)")
 
-    def _analyze_dataframe(
-        self, df: pd.DataFrame, csv_filename: str, encoding: str
-    ) -> Dict:
+    def _analyze_dataframe(self, df: pd.DataFrame, csv_filename: str, encoding: str) -> Dict:
         """Analyze a DataFrame and return structured information"""
         # Clean column names
         df.columns = df.columns.str.strip()
@@ -129,9 +123,7 @@ class CSVAnalyzer:
 
         # Log cache stats
         cache_stats = self.cache.get_cache_stats()
-        logger.info(
-            f"💾 Analysis complete. Cache contains {cache_stats['total_analyses']} analyses"
-        )
+        logger.info(f"💾 Analysis complete. Cache contains {cache_stats['total_analyses']} analyses")
 
         return all_files
 
@@ -159,20 +151,12 @@ class CSVAnalyzer:
             "non_null_count": non_null_count,
             "unique_count": unique_count,
             "inferred_sql_type": inferred_type,
-            "is_likely_foreign_key": self._is_likely_foreign_key(
-                column_name, sample_values
-            ),
+            "is_likely_foreign_key": self._is_likely_foreign_key(column_name, sample_values),
         }
 
     def _format_column_name(self, column_name: str) -> str:
         """Convert CSV column name to database-friendly name"""
-        return (
-            column_name.lower()
-            .replace(" ", "_")
-            .replace("(", "")
-            .replace(")", "")
-            .replace("-", "_")
-        )
+        return column_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_")
 
     def _infer_sql_type(self, series, column_name: str) -> str:
         """Infer SQLAlchemy column type from data patterns"""
@@ -228,12 +212,7 @@ class CSVAnalyzer:
 
     def _clean_quoted_values(self, series):
         """Remove quotes from values like '004', '123'"""
-        return (
-            series.astype(str)
-            .str.strip()
-            .str.replace("^'", "", regex=True)
-            .str.replace("'$", "", regex=True)
-        )
+        return series.astype(str).str.strip().str.replace("^'", "", regex=True).str.replace("'$", "", regex=True)
 
     def _is_integer_pattern(self, series) -> bool:
         """Check if series contains integer-like values"""
