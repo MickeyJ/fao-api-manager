@@ -34,7 +34,7 @@ endif
 	generator generate-test csv-analysis optimizer \
 	run-all-pipelines \
 	use-remote-db use-local-db db-init db-upgrade db-revision create-test-db drop-test-db reset-test-db reset-db \
-	show-all-tables clear-all-tables rm-pipelines reset-and-test pipe-reset-and-test
+	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test
 
 # =-=-=--=-=-=-=-=-=-=
 #  Python Environment
@@ -88,7 +88,7 @@ optimizer:
 # =-=-=--=-=-=-=-=-
 run-all-pipelines:
 	@echo "Running pipeline..."
-	$(ACTIVATE) $(PYTHON)  -m db.pipelines
+	$(ACTIVATE) $(PYTHON) -m foa.src.db.pipelines
 
 # =-=-=--=-=-=-=-=-
 # Database commands
@@ -119,7 +119,7 @@ db-revision:
 
 create-test-db: use-local-db-admin
 	@echo "Creating test database and setting permissions..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f db/sql/create_database.sql
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_database.sql
 	@echo "Test database 'fao' created with permissions"
 	make use-local-db
 
@@ -134,20 +134,20 @@ reset-test-db: drop-test-db create-test-db
 
 reset-db:
 	@echo "Resetting database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f db/sql/drop_tables.sql
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/drop_tables.sql
 	@echo "Database reset complete"
 
 show-all-tables:
 	@echo "Showing all tables in the database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f db/sql/select_all_tables.sql
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/select_all_tables.sql
 
 clear-all-tables:
 	@echo "Showing all tables in the database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f db/sql/clear_all_tables.sql
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/clear_all_tables.sql
 
-rm-pipelines:
+rm-codebase:
 	@echo "Removing pipelines..."
-	rm -rf db/pipelines
+	rm -rf fao
 
-db-reset-and-test: clear-all-tables rm-pipelines generate pipelines
-pipe-reset-and-test: rm-pipelines generate
+db-reset-and-test: clear-all-tables rm-codebase generate
+pipe-reset-and-test: rm-codebase generate

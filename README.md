@@ -16,7 +16,9 @@ A Python tool for automatically generating data pipeline code from FAO (Food and
 ## Project Structure
 
 ```
-fao-api-codebase-generator/
+ETL-codebase-generator/
+├── requirements.txt          # Python dependencies
+├── Makefile                  # Build and setup commands
 ├── generator/                 # Core generation logic
 │   ├── __init__.py           # Configuration (ZIP_PATH)
 │   ├── scanner.py            # FAO ZIP file scanner
@@ -26,14 +28,43 @@ fao-api-codebase-generator/
 │   ├── __main__.py.jinja2    # Pipeline execution entry point
 │   ├── module.py.jinja2      # Individual module template
 │   └── __init___empty.py.jinja2  # Empty init template
-├── db/pipelines/             # Generated pipeline modules
-│   ├── core_tables/      # Core/shared tables
-│   ├── prices/           # Price data pipeline
-│   ├── population/       # Population data pipeline
-│   └── ...                   # Other generated pipelines
-├── requirements.txt          # Python dependencies
-├── Makefile                  # Build and setup commands
-└── generate.py               # Main generation script
+│ 
+│ # Generated Codebase
+├── fao/ 
+├── requirements.in
+├── .env
+├── Makefile
+│   └──src/
+│      └── db/
+│          ├── utils.py
+│          ├── database.py
+│          └── models/ 
+│              ├── __main__.py
+│              └── core/
+│                  └── area_codes.py
+│              └── emissions_totals/
+│                  ├── __main__.py
+│                  └── emissions_totals.py
+│              └── ...
+│          └── pipelines/ 
+│              ├── __main__.py
+│              └── core/
+│                  └── area_codes.py
+│              └── emissions_totals/
+│                  ├── __main__.py
+│                  └── emissions_totals.py
+│              └── ...
+│      └── api/
+│          ├── __main__.py
+│          ├── __init__.py
+│          └── routers/ 
+│              ├── __main__.py
+│              └── core/
+│                  └── area_codes.py
+│              └── emissions_totals/
+│                  └── emissions_totals.py
+
+
 ```
 
 ## Installation

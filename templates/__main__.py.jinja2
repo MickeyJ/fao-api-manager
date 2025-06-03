@@ -1,5 +1,5 @@
 {% for module in modules %}from . import {{ module }}
-{% endfor %}from db.database import run_with_session
+{% endfor %}from {{ project_name }}.src.db.database import run_with_session
 
 
 def run_all(db):

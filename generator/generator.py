@@ -9,7 +9,7 @@ from .csv_analyzer import CSVAnalyzer
 from .file_generator import FileGenerator
 from .template_renderer import TemplateRenderer
 from .pipeline_specs import PipelineSpecs
-from . import logger
+from . import logger, clean_text
 
 
 @dataclass
@@ -25,13 +25,14 @@ class ProjectPath:
 
 class Generator:
     def __init__(self, output_dir: str, input_dir: str):
+        self.project_name = clean_text(output_dir)
         self.paths = ProjectPath(Path(output_dir))
         self.input_dir = input_dir
         self.structure = Structure()
         self.file_generator = FileGenerator(self.paths.project)
-        self.scanner = Scanner(self.input_dir)
+        self.scanner = Scanner(self.input_dir, self.structure)
         self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
-        self.template_renderer = TemplateRenderer()
+        self.template_renderer = TemplateRenderer(self.project_name)
 
         self.all_zip_info = self.scanner.scan_all_zips()
 
@@ -134,12 +135,15 @@ class Generator:
         imports = []
         for pipeline_name, modules in self.pipelines.items():
             for module in modules:
-                # print(f"Adding import for {module['model_name']} from {pipeline_name}")
-                import_line = f"from .{pipeline_name}.{module['module_name']} import {module['model_name']}"
-                imports.append(import_line)
+                imports.append(
+                    {
+                        "pipeline_name": pipeline_name,
+                        "module_name": module["module_name"],
+                        "model_name": module["model_name"],
+                    }
+                )
 
-        content = "\n".join(sorted(imports))
-        self.file_generator.create_dir(self.paths.db_models)
+        content = self.template_renderer.render_models_init_template(imports=imports)
         self.file_generator.write_file(self.paths.db_models / "__init__.py", content)
 
     def _generate_modules_and_models(self, pipeline_dir, model_dir, modules):
@@ -186,6 +190,14 @@ class Generator:
         self._generate_requirements_file()
         self._generate_database_file()
         self._generate_database_utils_file()
+        self._generate_empty_init_files()
+
+    def _generate_empty_init_files(self):
+        """Generate __init__.py for root, src"""
+        content = self.template_renderer.render_empty_init_template()
+        self.file_generator.write_file("__init__.py", content)
+        self.file_generator.write_file(self.paths.src / "__init__.py", content)
+        self.file_generator.write_file(self.paths.db / "__init__.py", content)
 
     def _generate_env_files(self):
         """Generate database.py for db"""

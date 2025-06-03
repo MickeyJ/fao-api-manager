@@ -9,12 +9,13 @@ from sqlalchemy import (
     Column,
     func,
 )
-from db.database import Base
+from {{ project_name }}.src.db.database import Base
 
 class {{ model_name }}(Base):
     __tablename__ = "{{ table_name }}"
     
-    {% if specs.is_core_file %}
+    {% if specs.is_core_file and specs.pk_column %}
+    # Core Model
         {# Core models use domain primary key #}
         {% if specs.fk_pk_mismatch %}
             {# Create the correct primary key manually for mismatch cases #}
@@ -34,15 +35,16 @@ class {{ model_name }}(Base):
             {% endfor %}
         {% endif %}
     {% else %}
+    # Dataset Model
         {# Dataset models use auto-increment id and foreign keys #}
     id = Column(Integer, primary_key=True)
         {% for column in csv_analysis.column_analysis %}
             {# Check if this column is a foreign key by matching table name #}
-            {% set matching_fks = specs.foreign_keys | selectattr('table_name', 'equalto', column.sql_table_name) | list %}
+            {% set matching_fks = specs.foreign_keys | selectattr('actual_column_name', 'equalto', column.csv_column_name) | list %}
             {% if matching_fks %}
                 {% set fk = matching_fks[0] %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}, ForeignKey("{{ fk.table_name }}.{{ fk.column_name }}"){% if column.null_count == 0 %}, nullable=False{% endif %})
-            {% else %}
+            {% elif not specs.exclude_columns or column.csv_column_name not in specs.exclude_columns %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
             {% endif %}
         {% endfor %}

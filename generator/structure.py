@@ -54,30 +54,71 @@ class Structure:
         return modules
 
     def extract_module_name(self, csv_filename: str) -> str:
-        """Automatically extract module name from CSV filename - handles all FAO patterns"""
+        """Extract module name from CSV filename - enhanced processing for dataset files"""
         base_filename = csv_filename.replace(".csv", "")
 
-        # Handle different language versions (_E_ or _F_) and variations
-        patterns = [
-            r"(.+)_([EF])_All_Data_?\(Normalized\)",  # Standard pattern
-            r"(.+)([EF])_All_Data\(Normalized\)",  # Missing underscore variant
-            r"(.+)_([EF])_(.+)",  # Other suffixes like Elements, Flags
-        ]
+        # Check if this is a main dataset file (All_Data + Normalized)
+        if "all_data" in base_filename.lower() and "normalized" in base_filename.lower():
+            # Enhanced processing for dataset files to preserve distinguishing info
+            name = base_filename
+            name = re.sub(r"_[EF]_All_Data_?\(Normalized\)$", "", name)  # Remove suffixes
+            name = re.sub(r"_[EF]_All_Data\(Normalized\)$", "", name)  # Handle variations
 
-        for pattern in patterns:
-            match = re.match(pattern, base_filename)
-            if match:
-                if len(match.groups()) >= 3:
-                    suffix = match.group(3)  # Other data files
-                    # print(f"Match suffix: {suffix}")
-                    return to_snake_case(suffix)
-                else:
-                    base_name = match.group(1)  # Main data file
-                    # print(f"base_name: {base_name}")
-                    return to_snake_case(base_name)
+            # Clean up special characters but preserve meaningful content
+            name = re.sub(r"[()]", "", name)  # Remove parentheses
+            name = re.sub(r"-+", "_", name)  # Replace hyphens with underscores
+            name = re.sub(r"_+", "_", name)  # Collapse multiple underscores
+            name = name.strip("_")  # Remove leading/trailing underscores
 
-        # Fallback - convert entire filename
-        return to_snake_case(base_filename)
+            return to_snake_case(name)
+        else:
+            # Handle different language versions (_E_ or _F_) and variations
+            patterns = [
+                r"(.+)_([EF])_All_Data_?\(Normalized\)",  # Standard pattern
+                r"(.+)([EF])_All_Data\(Normalized\)",  # Missing underscore variant
+                r"(.+)_([EF])_(.+)",  # Other suffixes like Elements, Flags
+            ]
+
+            for pattern in patterns:
+                match = re.match(pattern, base_filename)
+                if match:
+                    if len(match.groups()) >= 3:
+                        suffix = match.group(3)  # Other data files
+                        # print(f"Match suffix: {suffix}")
+                        return to_snake_case(suffix)
+                    else:
+                        base_name = match.group(1)  # Main data file
+                        # print(f"base_name: {base_name}")
+                        return to_snake_case(base_name)
+
+            # Fallback - convert entire filename
+            return to_snake_case(base_filename)
+
+    # def extract_module_name(self, csv_filename: str) -> str:
+    #     """Automatically extract module name from CSV filename - handles all FAO patterns"""
+    #     base_filename = csv_filename.replace(".csv", "")
+
+    #     # Handle different language versions (_E_ or _F_) and variations
+    #     patterns = [
+    #         r"(.+)_([EF])_All_Data_?\(Normalized\)",  # Standard pattern
+    #         r"(.+)([EF])_All_Data\(Normalized\)",  # Missing underscore variant
+    #         r"(.+)_([EF])_(.+)",  # Other suffixes like Elements, Flags
+    #     ]
+
+    #     for pattern in patterns:
+    #         match = re.match(pattern, base_filename)
+    #         if match:
+    #             if len(match.groups()) >= 3:
+    #                 suffix = match.group(3)  # Other data files
+    #                 # print(f"Match suffix: {suffix}")
+    #                 return to_snake_case(suffix)
+    #             else:
+    #                 base_name = match.group(1)  # Main data file
+    #                 # print(f"base_name: {base_name}")
+    #                 return to_snake_case(base_name)
+
+    #     # Fallback - convert entire filename
+    #     return to_snake_case(base_filename)
 
     def is_core_module(self, csv_filename: str, pipeline_spec: Dict) -> bool:
         """Check if this is a core/shared table"""

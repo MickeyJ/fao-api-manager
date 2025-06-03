@@ -1,9 +1,9 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from db.utils import load_csv, get_csv_path_for
-from db.database import run_with_session
-from db.models import {{ model_name }}
+from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for
+from {{ project_name }}.src.db.database import run_with_session
+from {{ project_name }}.src.db.models import {{ model_name }}
 
 CSV = [
     {% for csv_file in csv_files %}
@@ -75,10 +75,29 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
         print(f"Dropped redundant columns: {columns_to_drop}")
     {% endif %}
 
+    {% if specs.get('fk_pk_mismatch') and specs.get('is_core_file') and specs.get('found_fk_column') and specs.get('original_pk_column') %}
+    # Handle FK/PK mismatch - create synthetic PK and deduplicate columns
+    print("Handling FK/PK mismatch...")
+
+    # Deduplicate .1 columns
+    duplicate_columns = [col for col in df.columns if col.endswith('.1')]
+    for dup_col in duplicate_columns:
+        original_col = dup_col.replace('.1', '')
+        if original_col in df.columns:
+            print(f"Dropping duplicate column: {dup_col}, keeping: {original_col}")
+            df = df.drop(columns=[dup_col])
+
+    # Create the synthetic PK column that the model expects
+    df['{{ specs.found_fk_column }}'] = df['{{ specs.original_pk_column }}'].copy()
+    print(f"Created PK column '{{ specs.found_fk_column }}' from '{{ specs.original_pk_column }}'")
+    {% endif %}
+
     {% for column in csv_analysis.column_analysis %}
     # DEBUG: Column {{ column.csv_column_name }} - Excluded: {{ column.csv_column_name in specs.exclude_columns if specs.exclude_columns else False }}
     {% if specs.exclude_columns and column.csv_column_name in specs.exclude_columns %}
     # SKIPPING excluded column: {{ column.csv_column_name }} {{ specs.exclude_columns}}
+    {% elif specs.get('fk_pk_mismatch') and column.csv_column_name == specs.original_pk_column %}
+    # SKIPPING - handled above in fk_pk_mismatch section
     {% else %}
     # Clean {{ column.csv_column_name }} -> {{ column.sql_column_name }}
     df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
@@ -113,9 +132,22 @@ def insert(df: pd.DataFrame, session: Session):
             records = []
             for _, row in chunk.iterrows():
                 records.append({
-                    {% for column in csv_analysis.column_analysis %}
+                    {% if specs.get('fk_pk_mismatch') and specs.get('is_core_file') and specs.get('found_fk_column') and specs.get('original_pk_column') %}
+                    # FK/PK mismatch case - insert PK manually, then process remaining columns
+                    '{{ specs.pk_sql_column_name }}': row['{{ specs.found_fk_column }}'],
+                    {% for column in csv_analysis.column_analysis[1:] %}
+                    {% if not (specs.exclude_columns and column.csv_column_name in specs.exclude_columns) %}
                     '{{ column.sql_column_name }}': row['{{ column.csv_column_name }}'],
+                    {% endif %}
                     {% endfor %}
+                    {% else %}
+                    # Normal case - process all non-excluded columns
+                    {% for column in csv_analysis.column_analysis %}
+                    {% if not (specs.exclude_columns and column.csv_column_name in specs.exclude_columns) %}
+                    '{{ column.sql_column_name }}': row['{{ column.csv_column_name }}'],
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
                 })
             
             stmt = pg_insert({{ model_name }}).values(records)
@@ -132,9 +164,22 @@ def insert(df: pd.DataFrame, session: Session):
         records = []
         for _, row in df.iterrows():
             records.append({
-                {% for column in csv_analysis.column_analysis %}
+                {% if specs.get('fk_pk_mismatch') and specs.get('is_core_file') and specs.get('found_fk_column') and specs.get('original_pk_column') %}
+                # FK/PK mismatch case - insert PK manually, then process remaining columns
+                '{{ specs.pk_sql_column_name }}': row['{{ specs.found_fk_column }}'],
+                {% for column in csv_analysis.column_analysis[1:] %}
+                {% if not (specs.exclude_columns and column.csv_column_name in specs.exclude_columns) %}
                 '{{ column.sql_column_name }}': row['{{ column.csv_column_name }}'],
+                {% endif %}
                 {% endfor %}
+                {% else %}
+                # Normal case - process all non-excluded columns
+                {% for column in csv_analysis.column_analysis %}
+                {% if not (specs.exclude_columns and column.csv_column_name in specs.exclude_columns) %}
+                '{{ column.sql_column_name }}': row['{{ column.csv_column_name }}'],
+                {% endif %}
+                {% endfor %}
+                {% endif %}
             })
         
         stmt = pg_insert({{ model_name }}).values(records)

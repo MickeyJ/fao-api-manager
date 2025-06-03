@@ -4,8 +4,9 @@ from typing import Dict, List, Optional
 
 
 class TemplateRenderer:
-    def __init__(self, template_dir: str = "templates"):
+    def __init__(self, project_name: str, template_dir: str = "templates"):
         self.template_dir = Path(template_dir)
+        self.project_name = project_name
 
         # Set up Jinja2 environment
         self.jinja_env = Environment(
@@ -14,25 +15,33 @@ class TemplateRenderer:
             lstrip_blocks=True,
         )
 
-    def render_init_template(
-        self,
-        directory_name: str,
-    ) -> str:
+    def render_empty_init_template(self) -> str:
+        """Render __init__.py template"""
+        template = self.jinja_env.get_template("__init__empty.py.jinja2")
+        return template.render()
+
+    def render_init_template(self, directory_name: str) -> str:
         """Render __init__.py template"""
         template = self.jinja_env.get_template("__init__.py.jinja2")
-        return template.render(
-            directory_name=directory_name,
-        )
+        return template.render(directory_name=directory_name, project_name=self.project_name)
 
     def render_main_template(self, pipeline_name: str, modules: List[str]) -> str:
         """Render __main__.py template"""
         template = self.jinja_env.get_template("__main__.py.jinja2")
-        return template.render(pipeline_name=pipeline_name, modules=modules)
+        return template.render(pipeline_name=pipeline_name, modules=modules, project_name=self.project_name)
 
     def render_pipelines_main_template(self, pipeline_names: List[str]) -> str:
         """Render pipelines_main__.py template"""
         template = self.jinja_env.get_template("pipelines__main__.py.jinja2")
-        return template.render(pipeline_names=pipeline_names)  # Named parameters
+        return template.render(pipeline_names=pipeline_names, project_name=self.project_name)  # Named parameters
+
+    def render_models_init_template(
+        self,
+        imports: list[Dict],
+    ) -> str:
+        """Render __init__.py template"""
+        template = self.jinja_env.get_template("models__init__.py.jinja2")
+        return template.render(imports=imports, project_name=self.project_name)
 
     def render_module_template(
         self,
@@ -50,12 +59,19 @@ class TemplateRenderer:
             table_name=table_name,
             csv_analysis=csv_analysis,
             specs=specs,
+            project_name=self.project_name,
         )
 
     def render_model_template(self, model_name: str, table_name: str, csv_analysis: Dict, specs: Dict) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("model.py.jinja2")
-        return template.render(model_name=model_name, table_name=table_name, csv_analysis=csv_analysis, specs=specs)
+        return template.render(
+            model_name=model_name,
+            table_name=table_name,
+            csv_analysis=csv_analysis,
+            specs=specs,
+            project_name=self.project_name,
+        )
 
     def render_database_template(
         self,

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, text
 from typing import Optional
-from db.database import get_db
+from {{ project_name }}.src.db.database import get_db
 from .. import current_version_prefix
-from db.models import (
+from {{ project_name }}.src.db.models import (
   {% for model in router.models %}
   {{ model.name }},
   {% endfor %}

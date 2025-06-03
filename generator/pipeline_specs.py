@@ -15,8 +15,8 @@ from generator.csv_analyzer import CSVAnalyzer
 class PipelineSpecs:
     def __init__(self, zip_path: str, shared_cache: CSVCache | None = None):
         self.json_path = Path("analysis/pipeline_spec.json")
-        self.scanner = Scanner(zip_path)
         self.structure = Structure()
+        self.scanner = Scanner(zip_path, self.structure)
         self.file_generator = FileGenerator("./analysis")
         self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
         self.cache = shared_cache or CSVCache()
@@ -41,9 +41,8 @@ class PipelineSpecs:
             pipeline_name = zip_info["pipeline_name"]
             zip_path = zip_info["zip_path"]
 
-            print(f"Processing zip: {pipeline_name}")
-
             if pipeline_name not in dataset_file_info:
+                print(f"Processing zip: {pipeline_name}")
                 dataset_file_info[pipeline_name] = {
                     "pipeline_name": pipeline_name,
                     "zip_path": str(zip_path),
@@ -143,7 +142,7 @@ class PipelineSpecs:
             if not core_info["has_pk"]:
                 continue
 
-            print(f"Processing FK relationships for {core_module_name}")
+            # print(f"Processing FK relationships for {core_module_name}")
             pk_column = core_info["pk_column"]
 
             # Check this core module's primary key against all datasets
@@ -166,7 +165,7 @@ class PipelineSpecs:
                         break
 
                 if found_column:
-                    print(f"  Found relationship: {pk_column} -> {found_column} in {pipeline_name}")
+                    # print(f"  Found relationship: {pk_column} -> {found_column} in {pipeline_name}")
 
                     # Add to foreign keys
                     if found_column not in pipeline_info["foreign_keys"]:
@@ -174,28 +173,42 @@ class PipelineSpecs:
                             {
                                 "table_name": core_module_name,
                                 "column_name": to_snake_case(found_column),
+                                "actual_column_name": found_column,  # Store the actual dataset column name
                             }
                         )
 
                     # Add non-primary columns to exclude list using fuzzy matching
                     # Get all FK columns identified so far to avoid excluding them
-                    all_fk_columns = [fk_info["column_name"] for fk_info in pipeline_info["foreign_keys"]]
-                    all_fk_column_names = [col for col in dataset_columns if to_snake_case(col) in all_fk_columns]
-
+                    actual_fk_column_names = [
+                        fk_info["actual_column_name"] for fk_info in pipeline_info["foreign_keys"]
+                    ]
+                    # logger.info(
+                    #     f"\n\n  Found {len(actual_fk_column_names)} FK columns in dataset '{pipeline_name}': {actual_fk_column_names}"
+                    # )
                     for core_col in core_info["columns_signature"]:
                         if core_col != pk_column:
                             # Filter out ALL FK columns from dataset columns when matching
                             filtered_dataset_columns = [
-                                col for col in dataset_columns if col not in all_fk_column_names
+                                col for col in dataset_columns if col not in actual_fk_column_names
                             ]
 
-                            logger.info(
-                                f"  Matching core column '{core_col}' against dataset columns: {filtered_dataset_columns}"
+                            # logger.info(
+                            #     f"\n\n  Matching core column '{core_col}' against dataset columns: {filtered_dataset_columns}"
+                            # )
+
+                            found_dataset_col = self._find_matching_column_fuzzy(
+                                core_col.replace(".1", ""), filtered_dataset_columns
                             )
 
-                            found_dataset_col = self._find_matching_column_fuzzy(core_col, filtered_dataset_columns)
+                            if core_col.replace(".1", "") == "Population Age Group":
+                                logger.info(
+                                    f"  🐛 DEBUG: Fuzzy match result for 'Population Age Group': {found_dataset_col}"
+                                )
+
                             if found_dataset_col and found_dataset_col not in pipeline_info["exclude_columns"]:
                                 pipeline_info["exclude_columns"].append(found_dataset_col)
+                                if core_col.replace(".1", "") == "Population Age Group":  # Add this too
+                                    logger.info(f"  🐛 DEBUG: Added 'Population Age Group' to exclude_columns")
 
                     # Set mismatch flag only if there's actually a mismatch
                     if found_column != pk_column:
@@ -300,9 +313,9 @@ class PipelineSpecs:
                     data_columns = [col for col in group.columns if col != "source_dataset"]
                     unique_df = group.drop_duplicates(subset=data_columns)
                     if len(unique_df) > 1:
-                        logger.warning(f"  ⚠️  CONFLICT found for {name} in {core_module_name}")
-                        print(unique_df)
-                        print()  # Add blank line between conflicts
+                        # logger.warning(f"  ⚠️  CONFLICT found for {name} in {core_module_name}")
+                        # print(unique_df)
+                        # print()  # Add blank line between conflicts
                         for col in data_columns:
                             if col == core_info.get("pk_column"):
                                 continue  # Skip the primary key column
@@ -418,28 +431,30 @@ class PipelineSpecs:
         """Find dataset column using fuzzy word matching"""
         import re
 
-        # Clean and split core column into words
+        # Phase 1: Check for exact matches first (highest priority)
+        for dataset_col in dataset_columns:
+            if core_col == dataset_col:
+                return dataset_col
+
+        # Phase 2: Check for substring matches (medium priority)
+        for dataset_col in dataset_columns:
+            if core_col in dataset_col or dataset_col in core_col:
+                return dataset_col
+
+        # Phase 3: Check for word overlap matches (lowest priority)
         core_words = set(re.findall(r"\b\w+\b", core_col.lower()))
 
         best_match = None
         best_score = 0
 
         for dataset_col in dataset_columns:
-            # Exact match first
-            if core_col == dataset_col:
-                return dataset_col
-
-            # Substring match
-            if core_col in dataset_col or dataset_col in core_col:
-                return dataset_col
-
-            # Word overlap scoring
+            # Word overlap scoring - require ALL core words to be present
             dataset_words = set(re.findall(r"\b\w+\b", dataset_col.lower()))
             common_words = core_words.intersection(dataset_words)
 
             if len(common_words) > 0:
                 score = len(common_words) / len(core_words)
-                if score > best_score and score >= 0.5:  # At least 50% word overlap
+                if score == 1.0:  # ALL words from core column must be in dataset column
                     best_score = score
                     best_match = dataset_col
 

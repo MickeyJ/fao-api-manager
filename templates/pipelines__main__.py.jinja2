@@ -1,4 +1,4 @@
-from db.database import run_with_session
+from src.db.database import run_with_session
 {% for name in pipeline_names %}
 from .{{ name }}.__main__ import run_all as run_{{ name }}
 {% endfor %}

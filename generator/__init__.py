@@ -16,6 +16,10 @@ logging.basicConfig(level=logging.INFO, format="%(filename)s:%(lineno)d - %(mess
 logger = logging.getLogger(__name__)
 
 
+def clean_text(text):
+    return re.sub(r"[^a-zA-Z0-9\s]", "", str(text).strip())
+
+
 def to_snake_case(text: str) -> str:
     """Convert text to snake_case"""
     # Remove parentheses and their contents
