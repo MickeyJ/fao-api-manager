@@ -1,0 +1,4 @@
+
+{% for model in modules %}
+from .{{ model.module_name }} import {{ model.model_name }}
+{% endfor %}

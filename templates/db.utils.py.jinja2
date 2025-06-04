@@ -61,14 +61,32 @@ def load_csv(csv_paths) -> pd.DataFrame:
     dfs = []
     for csv_path in csv_paths:
         try:
-            df = pd.read_csv(csv_path, dtype=str)
-            print(f"Loading: {csv_path}")
+            # Try different encodings like CSVAnalyzer does
+            encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
+            df = None
+            
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(csv_path, dtype=str, encoding=encoding)
+                    print(f"Loading: {csv_path} (encoding: {encoding})")
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if df is None:
+                # If all encodings fail, read with latin-1 (accepts any byte)
+                df = pd.read_csv(csv_path, dtype=str, encoding="latin-1")
+                print(f"Loading: {csv_path} (encoding: latin-1 fallback)")
+            
             df.columns = df.columns.str.strip()
             print(df.shape)
             if not df.empty:
                 dfs.append(df)
         except FileNotFoundError:
             print(f"File not found: {csv_path}")
+            continue
+        except Exception as e:
+            print(f"Error reading {csv_path}: {e}")
             continue
 
     if not dfs:

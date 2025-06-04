@@ -4,7 +4,7 @@ from sqlalchemy import select, func, or_, text
 from typing import Optional
 from {{ project_name }}.src.db.database import get_db
 from .. import current_version_prefix
-from {{ project_name }}.src.db.models import {{ router.model }}
+from {{ project_name }}.src.db.pipelines import {{ router.model }}
 
 router = APIRouter(
     prefix="/{{ router.name }}",

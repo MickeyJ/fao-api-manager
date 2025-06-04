@@ -1,9 +1,53 @@
-from src.db.database import run_with_session
+import json
+import zipfile
+from pathlib import Path
+from {{ project_name }}.src.db.database import run_with_session
 {% for name in pipeline_names %}
 from .{{ name }}.__main__ import run_all as run_{{ name }}
 {% endfor %}
 
+def ensure_zips_extracted():
+    """Extract ZIP files if needed based on manifest"""
+    manifest_path = Path(__file__).parent.parent.parent / "extraction_manifest.json"
+    
+    if not manifest_path.exists():
+        print("⚠️  No extraction manifest found - ZIPs may not be extracted")
+        return
+    
+    with open(manifest_path, 'r') as f:
+        manifest = json.load(f)
+    
+    print("📦 Checking ZIP extractions...")
+    
+    for extraction in manifest["extractions"]:
+        zip_path = Path(extraction["zip_path"])
+        extract_dir = Path(extraction["extract_dir"])
+        
+        # Check if extraction is needed
+        if not extract_dir.exists() or not _extraction_is_current(zip_path, extract_dir):
+            print(f"📂 Extracting {zip_path.name}...")
+            extract_dir.mkdir(exist_ok=True)
+            
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                zf.extractall(extract_dir)
+        else:
+            print(f"✅ {zip_path.name} already extracted")
+
+def _extraction_is_current(zip_path: Path, extract_dir: Path) -> bool:
+    """Check if extraction is up to date"""
+    if not extract_dir.exists():
+        return False
+    
+    # Simple check: if extract dir is newer than ZIP file
+    try:
+        zip_mtime = zip_path.stat().st_mtime
+        extract_mtime = extract_dir.stat().st_mtime
+        return extract_mtime >= zip_mtime
+    except (OSError, FileNotFoundError):
+        return False
+
 def run_all_pipelines(db):
+    ensure_zips_extracted()
     print("🚀 Starting all data pipelines...")
 {% for name in pipeline_names %}
     run_{{ name }}(db)

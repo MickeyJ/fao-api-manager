@@ -20,15 +20,15 @@ class TemplateRenderer:
         template = self.jinja_env.get_template("__init__empty.py.jinja2")
         return template.render()
 
-    def render_init_template(self, directory_name: str) -> str:
+    def render_pipeline_init_template(self, directory_name: str, modules) -> str:
         """Render __init__.py template"""
-        template = self.jinja_env.get_template("__init__.py.jinja2")
-        return template.render(directory_name=directory_name, project_name=self.project_name)
+        template = self.jinja_env.get_template("pipeline__init__.py.jinja2")
+        return template.render(directory_name=directory_name, project_name=self.project_name, modules=modules)
 
-    def render_main_template(self, pipeline_name: str, modules: List[str]) -> str:
+    def render_pipeline_main_template(self, pipeline_name: str, modules: List[str]) -> str:
         """Render __main__.py template"""
-        template = self.jinja_env.get_template("__main__.py.jinja2")
-        return template.render(pipeline_name=pipeline_name, modules=modules, project_name=self.project_name)
+        template = self.jinja_env.get_template("pipeline__main__.py.jinja2")
+        return template.render(pipeline_name=pipeline_name, project_name=self.project_name, modules=modules)
 
     def render_pipelines_main_template(self, pipeline_names: List[str]) -> str:
         """Render pipelines_main__.py template"""
@@ -92,6 +92,13 @@ class TemplateRenderer:
     def render_api_init_template(self) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("api__init__.py.jinja2")
+        return template.render(
+            project_name=self.project_name,
+        )
+
+    def render_project_main_template(self) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("project__main__.py.jinja2")
         return template.render(
             project_name=self.project_name,
         )

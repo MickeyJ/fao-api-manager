@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for
 from {{ project_name }}.src.db.database import run_with_session
-from {{ project_name }}.src.db.models import {{ model_name }}
+from {{ project_name }}.src.db.pipelines import {{ model_name }}
 
 CSV = [
     {% for csv_file in csv_files %}
@@ -101,8 +101,10 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     {% else %}
     # Clean {{ column.csv_column_name }} -> {{ column.sql_column_name }}
     df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
-    {% if column.inferred_sql_type == 'Integer' %}
-    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce').astype('Int64')
+    {% if specs.is_core_file and specs.pk_sql_column_name == column.sql_column_name %}
+    # Keep primary key columns as strings for consistency
+    {% elif column.inferred_sql_type == 'Integer' %}
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
     {% elif column.inferred_sql_type == 'Float' %}
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
     {% endif %}

@@ -35,7 +35,8 @@ endif
 	run-all-pipelines \
 	use-remote-db use-local-db db-init db-upgrade db-revision  \
 	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
-	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test
+	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test \
+	run-pipelines
 
 # =-=-=--=-=-=-=-=-=-=
 #  Python Environment
@@ -163,3 +164,7 @@ rm-codebase:
 
 db-reset-and-test: clear-all-tables rm-codebase generate
 pipe-reset-and-test: rm-codebase generate
+
+run-pipelines:
+	@echo "Running all pipelines..."
+	$(ACTIVATE) $(PYTHON) -m fao.src.db.pipelines

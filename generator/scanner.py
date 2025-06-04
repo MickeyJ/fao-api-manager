@@ -17,6 +17,29 @@ class Scanner:
         self.zip_dir = Path(zip_directory)
         self.structure = structure
 
+    # In generator/scanner.py, add this method to the Scanner class:
+
+    def create_extraction_manifest(self, all_zip_info: List[Dict]) -> Dict:
+        """Create manifest of ZIP files that need to be extracted for pipeline execution"""
+        import time
+
+        manifest = {"created_at": time.time(), "extraction_root": str(self.zip_dir), "extractions": []}
+
+        for zip_info in all_zip_info:
+            zip_path = zip_info["zip_path"]
+            extract_dir = self.zip_dir / zip_path.stem  # Remove .zip extension
+
+            manifest["extractions"].append(
+                {
+                    "zip_file": zip_path.name,
+                    "zip_path": str(zip_path),
+                    "extract_dir": str(extract_dir),
+                    "csv_files": zip_info["csv_files"],
+                }
+            )
+
+        return manifest
+
     def scan_all_zips(self) -> List[Dict]:
         """Scan all ZIP files and return their contents"""
         results = []

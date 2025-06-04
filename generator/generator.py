@@ -15,7 +15,7 @@ from . import logger, clean_text
 
 @dataclass
 class ProjectPath:
-    project: str | Path
+    project: Path
     src: Path = Path("src")
     db: Path = Path("src/db")
     db_models: Path = Path("src/db/models")
@@ -64,6 +64,9 @@ class Generator:
         dataset_pipelines = DatasetPipelines(all_zip_info, self.structure, self.pipeline_specs)
         self.all_modules.extend(dataset_pipelines.modules)
 
+        extraction_manifest = self.scanner.create_extraction_manifest(all_zip_info)
+        self.file_generator.write_json_file(self.paths.project / "extraction_manifest.json", extraction_manifest)
+
     def _analyze_modules(self):
         """Add CSV analysis to all modules"""
 
@@ -100,20 +103,21 @@ class Generator:
         """Generate files for a single pipeline"""
         # Create pipeline and model directory
         self.file_generator.create_dir(self.paths.db_pipelines / pipeline_name)
-        self.file_generator.create_dir(self.paths.db_models / pipeline_name)
+        # self.file_generator.create_dir(self.paths.db_models / pipeline_name)
 
         # Generate pipeline files
-        self._generate_pipeline_init(pipeline_name)
+        self._generate_pipeline_init(pipeline_name, modules)
         self._generate_pipeline_main(pipeline_name, modules)
         self._generate_modules_and_models(
+            pipeline_name,
             self.paths.db_pipelines / pipeline_name,
             self.paths.db_models / pipeline_name,
             modules,
         )
 
-    def _generate_pipeline_init(self, pipeline_name):
+    def _generate_pipeline_init(self, pipeline_name, modules):
         """Generate __init__.py for pipeline"""
-        content = self.template_renderer.render_init_template(directory_name=pipeline_name)
+        content = self.template_renderer.render_pipeline_init_template(directory_name=pipeline_name, modules=modules)
         self.file_generator.write_file(self.paths.db_pipelines / pipeline_name / "__init__.py", content)
 
     def _generate_pipeline_main(self, pipeline_name, modules):
@@ -121,7 +125,9 @@ class Generator:
         # Deduplicate module names
         module_names = list(set(module["module_name"] for module in modules))
 
-        content = self.template_renderer.render_main_template(pipeline_name=pipeline_name, modules=module_names)
+        content = self.template_renderer.render_pipeline_main_template(
+            pipeline_name=pipeline_name, modules=module_names
+        )
         self.file_generator.write_file(self.paths.db_pipelines / pipeline_name / "__main__.py", content)
 
     def _generate_all_pipelines_main(self):
@@ -146,9 +152,9 @@ class Generator:
                 )
 
         content = self.template_renderer.render_models_init_template(imports=imports)
-        self.file_generator.write_file(self.paths.db_models / "__init__.py", content)
+        self.file_generator.write_file(self.paths.db_pipelines / "__init__.py", content)
 
-    def _generate_modules_and_models(self, pipeline_dir, model_dir, modules):
+    def _generate_modules_and_models(self, pipeline_name, pipeline_dir, model_dir, modules):
         """Generate both pipeline modules and model files"""
         for module in modules:
             module_name = module["module_name"]
@@ -170,7 +176,7 @@ class Generator:
                 csv_analysis=module["csv_analysis"],
                 specs=module["specs"],
             )
-            self.file_generator.write_file(model_dir / f"{module_name}.py", model_content)
+            self.file_generator.write_file(pipeline_dir / f"{module_name}.model.py", model_content)
 
             # Generate analysis JSON
             self.file_generator.write_json_file(
@@ -224,7 +230,6 @@ class Generator:
     def _generate_directories(self):
         self.file_generator.create_dir(self.paths.src)
         self.file_generator.create_dir(self.paths.db)
-        self.file_generator.create_dir(self.paths.db_models)
         self.file_generator.create_dir(self.paths.db_pipelines)
         self.file_generator.create_dir(self.paths.api)
         self.file_generator.create_dir(self.paths.api_routers)
@@ -236,6 +241,12 @@ class Generator:
         self._generate_database_file()
         self._generate_database_utils_file()
         self._generate_empty_init_files()
+        self._generate_project_main()
+
+    def _generate_project_main(self):
+        """Generate database.py for db"""
+        content = self.template_renderer.render_project_main_template()
+        self.file_generator.write_file("__main__.py", content)
 
     def _generate_empty_init_files(self):
         """Generate __init__.py for root, src"""
