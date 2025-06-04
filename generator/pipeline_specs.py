@@ -197,9 +197,7 @@ class PipelineSpecs:
                             #     f"\n\n  Matching core column '{core_col}' against dataset columns: {filtered_dataset_columns}"
                             # )
 
-                            found_dataset_col = self._find_matching_column_fuzzy(
-                                core_col.replace(".1", ""), filtered_dataset_columns
-                            )
+                            found_dataset_col = self._find_matching_column_fuzzy(core_col, filtered_dataset_columns)
 
                             if found_dataset_col and found_dataset_col not in pipeline_info["exclude_columns"]:
                                 pipeline_info["exclude_columns"].append(found_dataset_col)

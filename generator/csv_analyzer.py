@@ -185,7 +185,9 @@ class CSVAnalyzer:
 
     def _format_column_name(self, column_name: str) -> str:
         """Convert CSV column name to database-friendly name"""
-        return column_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_")
+        return (
+            column_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_").replace(".", "_")
+        )
 
     def _infer_sql_type(self, column_name: str, series) -> str:
         """Infer SQLAlchemy column type with foolproof cross-file logic"""

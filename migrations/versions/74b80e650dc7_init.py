@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 907227dfa704
+Revision ID: 74b80e650dc7
 Revises: 
-Create Date: 2025-06-04 10:25:29.545691
+Create Date: 2025-06-04 16:27:46.585389
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '907227dfa704'
+revision: str = '74b80e650dc7'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -67,7 +67,7 @@ def upgrade() -> None:
     )
     op.create_table('population_age_groups',
     sa.Column('population_age_group_code', sa.String(), nullable=False),
-    sa.Column('population_age_group', sa.String(), nullable=False),
+    sa.Column('population_age_group_1', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('population_age_group_code')
@@ -126,10 +126,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_26ca2ca8_Item Code_item_code', 'asti_expenditures', ['item_code'], unique=False)
-    op.create_index('ix_c597eac8_Element Code_element_code', 'asti_expenditures', ['element_code'], unique=False)
-    op.create_index('ix_c79f23ca_Flag_flag', 'asti_expenditures', ['flag'], unique=False)
-    op.create_index('ix_d35cdedb_Area Code_area_code', 'asti_expenditures', ['area_code'], unique=False)
+    op.create_index('ix_14ec76fa_Area Code_area_code', 'asti_expenditures', ['area_code'], unique=False)
+    op.create_index('ix_185773a2_Element Code_element_code', 'asti_expenditures', ['element_code'], unique=False)
+    op.create_index('ix_b9e7965f_Flag_flag', 'asti_expenditures', ['flag'], unique=False)
+    op.create_index('ix_df3fe6ff_Item Code_item_code', 'asti_expenditures', ['item_code'], unique=False)
     op.create_table('asti_researchers',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -149,10 +149,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_000da19f_Element Code_element_code', 'asti_researchers', ['element_code'], unique=False)
-    op.create_index('ix_18715b33_Area Code_area_code', 'asti_researchers', ['area_code'], unique=False)
-    op.create_index('ix_638aaed8_Flag_flag', 'asti_researchers', ['flag'], unique=False)
-    op.create_index('ix_6ceb7808_Item Code_item_code', 'asti_researchers', ['item_code'], unique=False)
+    op.create_index('ix_34512d8d_Element Code_element_code', 'asti_researchers', ['element_code'], unique=False)
+    op.create_index('ix_6a3e2299_Item Code_item_code', 'asti_researchers', ['item_code'], unique=False)
+    op.create_index('ix_7ff29eca_Area Code_area_code', 'asti_researchers', ['area_code'], unique=False)
+    op.create_index('ix_fd087521_Flag_flag', 'asti_researchers', ['flag'], unique=False)
     op.create_table('climate_change_emissions_indicators',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -171,10 +171,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_10023ccf_Flag_flag', 'climate_change_emissions_indicators', ['flag'], unique=False)
-    op.create_index('ix_56010ac9_Area Code_area_code', 'climate_change_emissions_indicators', ['area_code'], unique=False)
-    op.create_index('ix_ae95f134_Element Code_element_code', 'climate_change_emissions_indicators', ['element_code'], unique=False)
-    op.create_index('ix_b4be9a4e_Item Code_item_code', 'climate_change_emissions_indicators', ['item_code'], unique=False)
+    op.create_index('ix_185fb556_Item Code_item_code', 'climate_change_emissions_indicators', ['item_code'], unique=False)
+    op.create_index('ix_2ea3409e_Element Code_element_code', 'climate_change_emissions_indicators', ['element_code'], unique=False)
+    op.create_index('ix_63fa5604_Flag_flag', 'climate_change_emissions_indicators', ['flag'], unique=False)
+    op.create_index('ix_b826087a_Area Code_area_code', 'climate_change_emissions_indicators', ['area_code'], unique=False)
     op.create_table('commodity_balances_non_food',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -193,10 +193,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0b5c7737_Area Code_area_code', 'commodity_balances_non_food', ['area_code'], unique=False)
-    op.create_index('ix_10d751fe_Element Code_element_code', 'commodity_balances_non_food', ['element_code'], unique=False)
-    op.create_index('ix_1da7f234_Flag_flag', 'commodity_balances_non_food', ['flag'], unique=False)
-    op.create_index('ix_8e316e2d_Item Code_item_code', 'commodity_balances_non_food', ['item_code'], unique=False)
+    op.create_index('ix_32eb2a2b_Item Code_item_code', 'commodity_balances_non_food', ['item_code'], unique=False)
+    op.create_index('ix_726af37f_Flag_flag', 'commodity_balances_non_food', ['flag'], unique=False)
+    op.create_index('ix_96eb360e_Element Code_element_code', 'commodity_balances_non_food', ['element_code'], unique=False)
+    op.create_index('ix_a050cfe1_Area Code_area_code', 'commodity_balances_non_food', ['area_code'], unique=False)
     op.create_table('commodity_balances_non_food_2010',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -216,10 +216,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_49d8dd2b_Element Code_element_code', 'commodity_balances_non_food_2010', ['element_code'], unique=False)
-    op.create_index('ix_6495338e_Flag_flag', 'commodity_balances_non_food_2010', ['flag'], unique=False)
-    op.create_index('ix_a67bfd34_Area Code_area_code', 'commodity_balances_non_food_2010', ['area_code'], unique=False)
-    op.create_index('ix_e199afa8_Item Code_item_code', 'commodity_balances_non_food_2010', ['item_code'], unique=False)
+    op.create_index('ix_6893c503_Flag_flag', 'commodity_balances_non_food_2010', ['flag'], unique=False)
+    op.create_index('ix_69b390a1_Element Code_element_code', 'commodity_balances_non_food_2010', ['element_code'], unique=False)
+    op.create_index('ix_8be99632_Item Code_item_code', 'commodity_balances_non_food_2010', ['item_code'], unique=False)
+    op.create_index('ix_8fde6a84_Area Code_area_code', 'commodity_balances_non_food_2010', ['area_code'], unique=False)
     op.create_table('commodity_balances_non_food_2013_old_methodology',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -238,10 +238,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_1b59678f_Item Code_item_code', 'commodity_balances_non_food_2013_old_methodology', ['item_code'], unique=False)
-    op.create_index('ix_1f157388_Flag_flag', 'commodity_balances_non_food_2013_old_methodology', ['flag'], unique=False)
-    op.create_index('ix_3944ebaa_Area Code_area_code', 'commodity_balances_non_food_2013_old_methodology', ['area_code'], unique=False)
-    op.create_index('ix_5dc492c5_Element Code_element_code', 'commodity_balances_non_food_2013_old_methodology', ['element_code'], unique=False)
+    op.create_index('ix_24c4e3d7_Element Code_element_code', 'commodity_balances_non_food_2013_old_methodology', ['element_code'], unique=False)
+    op.create_index('ix_be1fb920_Flag_flag', 'commodity_balances_non_food_2013_old_methodology', ['flag'], unique=False)
+    op.create_index('ix_e569ed92_Item Code_item_code', 'commodity_balances_non_food_2013_old_methodology', ['item_code'], unique=False)
+    op.create_index('ix_ed6f466a_Area Code_area_code', 'commodity_balances_non_food_2013_old_methodology', ['area_code'], unique=False)
     op.create_table('consumer_price_indices',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -263,10 +263,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0af151fe_Element Code_element_code', 'consumer_price_indices', ['element_code'], unique=False)
-    op.create_index('ix_49c37209_Area Code_area_code', 'consumer_price_indices', ['area_code'], unique=False)
-    op.create_index('ix_72415e86_Flag_flag', 'consumer_price_indices', ['flag'], unique=False)
-    op.create_index('ix_9edb4b9c_Item Code_item_code', 'consumer_price_indices', ['item_code'], unique=False)
+    op.create_index('ix_71ac2edc_Element Code_element_code', 'consumer_price_indices', ['element_code'], unique=False)
+    op.create_index('ix_8ec3fd3a_Item Code_item_code', 'consumer_price_indices', ['item_code'], unique=False)
+    op.create_index('ix_9208fbcb_Area Code_area_code', 'consumer_price_indices', ['area_code'], unique=False)
+    op.create_index('ix_e4c8c245_Flag_flag', 'consumer_price_indices', ['flag'], unique=False)
     op.create_table('cost_affordability_healthy_diet_co_ahd',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -287,11 +287,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['release_code'], ['releases.release_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_086a236a_Element Code_element_code', 'cost_affordability_healthy_diet_co_ahd', ['element_code'], unique=False)
-    op.create_index('ix_19f84612_Item Code_item_code', 'cost_affordability_healthy_diet_co_ahd', ['item_code'], unique=False)
-    op.create_index('ix_1da90657_Release Code_release_code', 'cost_affordability_healthy_diet_co_ahd', ['release_code'], unique=False)
-    op.create_index('ix_a01a371c_Area Code_area_code', 'cost_affordability_healthy_diet_co_ahd', ['area_code'], unique=False)
-    op.create_index('ix_b52ffd9f_Flag_flag', 'cost_affordability_healthy_diet_co_ahd', ['flag'], unique=False)
+    op.create_index('ix_232b5b19_Area Code_area_code', 'cost_affordability_healthy_diet_co_ahd', ['area_code'], unique=False)
+    op.create_index('ix_28f921a0_Flag_flag', 'cost_affordability_healthy_diet_co_ahd', ['flag'], unique=False)
+    op.create_index('ix_c585479b_Release Code_release_code', 'cost_affordability_healthy_diet_co_ahd', ['release_code'], unique=False)
+    op.create_index('ix_d152f719_Element Code_element_code', 'cost_affordability_healthy_diet_co_ahd', ['element_code'], unique=False)
+    op.create_index('ix_d78ae165_Item Code_item_code', 'cost_affordability_healthy_diet_co_ahd', ['item_code'], unique=False)
     op.create_table('deflators',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -310,10 +310,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_5175388b_Area Code_area_code', 'deflators', ['area_code'], unique=False)
-    op.create_index('ix_a7b15fce_Flag_flag', 'deflators', ['flag'], unique=False)
-    op.create_index('ix_bfee0715_Item Code_item_code', 'deflators', ['item_code'], unique=False)
-    op.create_index('ix_dc32ae5c_Element Code_element_code', 'deflators', ['element_code'], unique=False)
+    op.create_index('ix_114fdc0e_Element Code_element_code', 'deflators', ['element_code'], unique=False)
+    op.create_index('ix_301f01c6_Item Code_item_code', 'deflators', ['item_code'], unique=False)
+    op.create_index('ix_a3edf42f_Area Code_area_code', 'deflators', ['area_code'], unique=False)
+    op.create_index('ix_cdd6c0f7_Flag_flag', 'deflators', ['flag'], unique=False)
     op.create_table('development_assistance_to_agriculture',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('donor_code', sa.Integer(), nullable=False),
@@ -339,10 +339,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['purpose_code'], ['purposes.purpose_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_10f4ddee_Element Code_element_code', 'development_assistance_to_agriculture', ['element_code'], unique=False)
-    op.create_index('ix_1d35fe67_Item Code_item_code', 'development_assistance_to_agriculture', ['item_code'], unique=False)
-    op.create_index('ix_4f3b987f_Flag_flag', 'development_assistance_to_agriculture', ['flag'], unique=False)
-    op.create_index('ix_6a410a0f_Purpose Code_purpose_code', 'development_assistance_to_agriculture', ['purpose_code'], unique=False)
+    op.create_index('ix_0c5daf94_Element Code_element_code', 'development_assistance_to_agriculture', ['element_code'], unique=False)
+    op.create_index('ix_63a5cfe6_Flag_flag', 'development_assistance_to_agriculture', ['flag'], unique=False)
+    op.create_index('ix_6c917440_Item Code_item_code', 'development_assistance_to_agriculture', ['item_code'], unique=False)
+    op.create_index('ix_c467ddc1_Purpose Code_purpose_code', 'development_assistance_to_agriculture', ['purpose_code'], unique=False)
     op.create_table('emissions_agriculture_energy',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -361,10 +361,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2c711312_Item Code_item_code', 'emissions_agriculture_energy', ['item_code'], unique=False)
-    op.create_index('ix_38a66191_Area Code_area_code', 'emissions_agriculture_energy', ['area_code'], unique=False)
-    op.create_index('ix_75638e7f_Flag_flag', 'emissions_agriculture_energy', ['flag'], unique=False)
-    op.create_index('ix_9a4adc61_Element Code_element_code', 'emissions_agriculture_energy', ['element_code'], unique=False)
+    op.create_index('ix_3cc242ac_Area Code_area_code', 'emissions_agriculture_energy', ['area_code'], unique=False)
+    op.create_index('ix_c94d659e_Item Code_item_code', 'emissions_agriculture_energy', ['item_code'], unique=False)
+    op.create_index('ix_dcce060a_Flag_flag', 'emissions_agriculture_energy', ['flag'], unique=False)
+    op.create_index('ix_f939c693_Element Code_element_code', 'emissions_agriculture_energy', ['element_code'], unique=False)
     op.create_table('emissions_crops',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -386,11 +386,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_055bb391_Source Code_source_code', 'emissions_crops', ['source_code'], unique=False)
-    op.create_index('ix_2b8cd71f_Element Code_element_code', 'emissions_crops', ['element_code'], unique=False)
-    op.create_index('ix_3d973727_Item Code_item_code', 'emissions_crops', ['item_code'], unique=False)
-    op.create_index('ix_47e08b77_Flag_flag', 'emissions_crops', ['flag'], unique=False)
-    op.create_index('ix_a0cc5fcc_Area Code_area_code', 'emissions_crops', ['area_code'], unique=False)
+    op.create_index('ix_1fdc10a5_Item Code_item_code', 'emissions_crops', ['item_code'], unique=False)
+    op.create_index('ix_309e6d41_Element Code_element_code', 'emissions_crops', ['element_code'], unique=False)
+    op.create_index('ix_442563e6_Flag_flag', 'emissions_crops', ['flag'], unique=False)
+    op.create_index('ix_ba54107d_Source Code_source_code', 'emissions_crops', ['source_code'], unique=False)
+    op.create_index('ix_fc4c56bd_Area Code_area_code', 'emissions_crops', ['area_code'], unique=False)
     op.create_table('emissions_drained_organic_soils',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -412,11 +412,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_17f1d007_Item Code_item_code', 'emissions_drained_organic_soils', ['item_code'], unique=False)
-    op.create_index('ix_8746e455_Flag_flag', 'emissions_drained_organic_soils', ['flag'], unique=False)
-    op.create_index('ix_a606e8d3_Source Code_source_code', 'emissions_drained_organic_soils', ['source_code'], unique=False)
-    op.create_index('ix_a6d3a25f_Element Code_element_code', 'emissions_drained_organic_soils', ['element_code'], unique=False)
-    op.create_index('ix_ae3eba26_Area Code_area_code', 'emissions_drained_organic_soils', ['area_code'], unique=False)
+    op.create_index('ix_0114c1ce_Source Code_source_code', 'emissions_drained_organic_soils', ['source_code'], unique=False)
+    op.create_index('ix_148087fe_Area Code_area_code', 'emissions_drained_organic_soils', ['area_code'], unique=False)
+    op.create_index('ix_46c4cdc1_Flag_flag', 'emissions_drained_organic_soils', ['flag'], unique=False)
+    op.create_index('ix_aded033e_Item Code_item_code', 'emissions_drained_organic_soils', ['item_code'], unique=False)
+    op.create_index('ix_c54a8fc4_Element Code_element_code', 'emissions_drained_organic_soils', ['element_code'], unique=False)
     op.create_table('emissions_land_use_fires',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -438,11 +438,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_00c54731_Flag_flag', 'emissions_land_use_fires', ['flag'], unique=False)
-    op.create_index('ix_581d9176_Area Code_area_code', 'emissions_land_use_fires', ['area_code'], unique=False)
-    op.create_index('ix_8f618455_Source Code_source_code', 'emissions_land_use_fires', ['source_code'], unique=False)
-    op.create_index('ix_b582dbb6_Item Code_item_code', 'emissions_land_use_fires', ['item_code'], unique=False)
-    op.create_index('ix_dcbf23fd_Element Code_element_code', 'emissions_land_use_fires', ['element_code'], unique=False)
+    op.create_index('ix_0c354f5f_Area Code_area_code', 'emissions_land_use_fires', ['area_code'], unique=False)
+    op.create_index('ix_253b5673_Flag_flag', 'emissions_land_use_fires', ['flag'], unique=False)
+    op.create_index('ix_5c39f4a0_Item Code_item_code', 'emissions_land_use_fires', ['item_code'], unique=False)
+    op.create_index('ix_7cbeb5f1_Source Code_source_code', 'emissions_land_use_fires', ['source_code'], unique=False)
+    op.create_index('ix_d98fd2e5_Element Code_element_code', 'emissions_land_use_fires', ['element_code'], unique=False)
     op.create_table('emissions_land_use_forests',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -464,11 +464,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_48dc5e1e_Element Code_element_code', 'emissions_land_use_forests', ['element_code'], unique=False)
-    op.create_index('ix_7d2885bb_Area Code_area_code', 'emissions_land_use_forests', ['area_code'], unique=False)
-    op.create_index('ix_a5073284_Flag_flag', 'emissions_land_use_forests', ['flag'], unique=False)
-    op.create_index('ix_afe7f35d_Source Code_source_code', 'emissions_land_use_forests', ['source_code'], unique=False)
-    op.create_index('ix_ca10bd81_Item Code_item_code', 'emissions_land_use_forests', ['item_code'], unique=False)
+    op.create_index('ix_0340d81c_Area Code_area_code', 'emissions_land_use_forests', ['area_code'], unique=False)
+    op.create_index('ix_2e19528b_Source Code_source_code', 'emissions_land_use_forests', ['source_code'], unique=False)
+    op.create_index('ix_333d8b13_Item Code_item_code', 'emissions_land_use_forests', ['item_code'], unique=False)
+    op.create_index('ix_cd5c4b55_Element Code_element_code', 'emissions_land_use_forests', ['element_code'], unique=False)
+    op.create_index('ix_e9d7c715_Flag_flag', 'emissions_land_use_forests', ['flag'], unique=False)
     op.create_table('emissions_livestock',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -490,11 +490,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0627acae_Element Code_element_code', 'emissions_livestock', ['element_code'], unique=False)
-    op.create_index('ix_89806e40_Item Code_item_code', 'emissions_livestock', ['item_code'], unique=False)
-    op.create_index('ix_c7f7e342_Flag_flag', 'emissions_livestock', ['flag'], unique=False)
-    op.create_index('ix_e07bb2cc_Source Code_source_code', 'emissions_livestock', ['source_code'], unique=False)
-    op.create_index('ix_e84c42c4_Area Code_area_code', 'emissions_livestock', ['area_code'], unique=False)
+    op.create_index('ix_144e09a9_Area Code_area_code', 'emissions_livestock', ['area_code'], unique=False)
+    op.create_index('ix_1dea71f6_Source Code_source_code', 'emissions_livestock', ['source_code'], unique=False)
+    op.create_index('ix_6825ff88_Element Code_element_code', 'emissions_livestock', ['element_code'], unique=False)
+    op.create_index('ix_8aa49385_Item Code_item_code', 'emissions_livestock', ['item_code'], unique=False)
+    op.create_index('ix_9bf69cd2_Flag_flag', 'emissions_livestock', ['flag'], unique=False)
     op.create_table('emissions_pre_post_production',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -513,10 +513,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_6e4ee49b_Element Code_element_code', 'emissions_pre_post_production', ['element_code'], unique=False)
-    op.create_index('ix_7821e131_Item Code_item_code', 'emissions_pre_post_production', ['item_code'], unique=False)
-    op.create_index('ix_97a94cde_Area Code_area_code', 'emissions_pre_post_production', ['area_code'], unique=False)
-    op.create_index('ix_d0c63361_Flag_flag', 'emissions_pre_post_production', ['flag'], unique=False)
+    op.create_index('ix_09205d6f_Element Code_element_code', 'emissions_pre_post_production', ['element_code'], unique=False)
+    op.create_index('ix_a72270ff_Item Code_item_code', 'emissions_pre_post_production', ['item_code'], unique=False)
+    op.create_index('ix_af66ee6c_Area Code_area_code', 'emissions_pre_post_production', ['area_code'], unique=False)
+    op.create_index('ix_d1d5b7fe_Flag_flag', 'emissions_pre_post_production', ['flag'], unique=False)
     op.create_table('emissions_totals',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -538,11 +538,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_4d41dacd_Item Code_item_code', 'emissions_totals', ['item_code'], unique=False)
-    op.create_index('ix_51fb9333_Area Code_area_code', 'emissions_totals', ['area_code'], unique=False)
-    op.create_index('ix_684fa8e1_Source Code_source_code', 'emissions_totals', ['source_code'], unique=False)
-    op.create_index('ix_8a866963_Flag_flag', 'emissions_totals', ['flag'], unique=False)
-    op.create_index('ix_cc21f066_Element Code_element_code', 'emissions_totals', ['element_code'], unique=False)
+    op.create_index('ix_3b822a73_Item Code_item_code', 'emissions_totals', ['item_code'], unique=False)
+    op.create_index('ix_41393f6a_Area Code_area_code', 'emissions_totals', ['area_code'], unique=False)
+    op.create_index('ix_459ea025_Flag_flag', 'emissions_totals', ['flag'], unique=False)
+    op.create_index('ix_72f7da99_Element Code_element_code', 'emissions_totals', ['element_code'], unique=False)
+    op.create_index('ix_c2519387_Source Code_source_code', 'emissions_totals', ['source_code'], unique=False)
     op.create_table('employment_indicators_agriculture',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -566,12 +566,12 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_1b9fe9ef_Indicator Code_indicator_code', 'employment_indicators_agriculture', ['indicator_code'], unique=False)
-    op.create_index('ix_70deede2_Sex Code_sex_code', 'employment_indicators_agriculture', ['sex_code'], unique=False)
-    op.create_index('ix_73dbf5af_Area Code_area_code', 'employment_indicators_agriculture', ['area_code'], unique=False)
-    op.create_index('ix_c54e65df_Element Code_element_code', 'employment_indicators_agriculture', ['element_code'], unique=False)
-    op.create_index('ix_f25e110a_Source Code_source_code', 'employment_indicators_agriculture', ['source_code'], unique=False)
-    op.create_index('ix_f55a6c60_Flag_flag', 'employment_indicators_agriculture', ['flag'], unique=False)
+    op.create_index('ix_1f8ab1fd_Indicator Code_indicator_code', 'employment_indicators_agriculture', ['indicator_code'], unique=False)
+    op.create_index('ix_2c462c42_Sex Code_sex_code', 'employment_indicators_agriculture', ['sex_code'], unique=False)
+    op.create_index('ix_3ee471c3_Element Code_element_code', 'employment_indicators_agriculture', ['element_code'], unique=False)
+    op.create_index('ix_41a38e7b_Source Code_source_code', 'employment_indicators_agriculture', ['source_code'], unique=False)
+    op.create_index('ix_4758d8ad_Flag_flag', 'employment_indicators_agriculture', ['flag'], unique=False)
+    op.create_index('ix_d8aaea4a_Area Code_area_code', 'employment_indicators_agriculture', ['area_code'], unique=False)
     op.create_table('employment_indicators_rural',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -595,12 +595,12 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_code'], ['sources.source_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0451f7c0_Indicator Code_indicator_code', 'employment_indicators_rural', ['indicator_code'], unique=False)
-    op.create_index('ix_72c1e493_Sex Code_sex_code', 'employment_indicators_rural', ['sex_code'], unique=False)
-    op.create_index('ix_86a03db8_Source Code_source_code', 'employment_indicators_rural', ['source_code'], unique=False)
-    op.create_index('ix_9dfd1ef5_Element Code_element_code', 'employment_indicators_rural', ['element_code'], unique=False)
-    op.create_index('ix_a7241904_Flag_flag', 'employment_indicators_rural', ['flag'], unique=False)
-    op.create_index('ix_fb6d17df_Area Code_area_code', 'employment_indicators_rural', ['area_code'], unique=False)
+    op.create_index('ix_5aa5a543_Indicator Code_indicator_code', 'employment_indicators_rural', ['indicator_code'], unique=False)
+    op.create_index('ix_77441e2b_Sex Code_sex_code', 'employment_indicators_rural', ['sex_code'], unique=False)
+    op.create_index('ix_973d28bc_Area Code_area_code', 'employment_indicators_rural', ['area_code'], unique=False)
+    op.create_index('ix_aa29dd06_Flag_flag', 'employment_indicators_rural', ['flag'], unique=False)
+    op.create_index('ix_b9c95237_Element Code_element_code', 'employment_indicators_rural', ['element_code'], unique=False)
+    op.create_index('ix_c9ffa430_Source Code_source_code', 'employment_indicators_rural', ['source_code'], unique=False)
     op.create_table('environment_bioenergy',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -619,10 +619,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_73f0dd02_Flag_flag', 'environment_bioenergy', ['flag'], unique=False)
-    op.create_index('ix_7cb69d8a_Area Code_area_code', 'environment_bioenergy', ['area_code'], unique=False)
-    op.create_index('ix_9c7a914a_Element Code_element_code', 'environment_bioenergy', ['element_code'], unique=False)
-    op.create_index('ix_b79cd879_Item Code_item_code', 'environment_bioenergy', ['item_code'], unique=False)
+    op.create_index('ix_7e1d57d4_Area Code_area_code', 'environment_bioenergy', ['area_code'], unique=False)
+    op.create_index('ix_84842140_Element Code_element_code', 'environment_bioenergy', ['element_code'], unique=False)
+    op.create_index('ix_aaeaba81_Item Code_item_code', 'environment_bioenergy', ['item_code'], unique=False)
+    op.create_index('ix_fef0ddd7_Flag_flag', 'environment_bioenergy', ['flag'], unique=False)
     op.create_table('environment_cropland_nutrient_budget',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -642,10 +642,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0f933228_Element Code_element_code', 'environment_cropland_nutrient_budget', ['element_code'], unique=False)
-    op.create_index('ix_26457d3d_Item Code_item_code', 'environment_cropland_nutrient_budget', ['item_code'], unique=False)
-    op.create_index('ix_721f4f78_Area Code_area_code', 'environment_cropland_nutrient_budget', ['area_code'], unique=False)
-    op.create_index('ix_d5c334ca_Flag_flag', 'environment_cropland_nutrient_budget', ['flag'], unique=False)
+    op.create_index('ix_1237c52f_Flag_flag', 'environment_cropland_nutrient_budget', ['flag'], unique=False)
+    op.create_index('ix_28da192a_Area Code_area_code', 'environment_cropland_nutrient_budget', ['area_code'], unique=False)
+    op.create_index('ix_8469c7bd_Element Code_element_code', 'environment_cropland_nutrient_budget', ['element_code'], unique=False)
+    op.create_index('ix_e0d57afe_Item Code_item_code', 'environment_cropland_nutrient_budget', ['item_code'], unique=False)
     op.create_table('environment_emissions_by_sector',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -664,10 +664,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0e8546e1_Flag_flag', 'environment_emissions_by_sector', ['flag'], unique=False)
-    op.create_index('ix_3c4e2b41_Item Code_item_code', 'environment_emissions_by_sector', ['item_code'], unique=False)
-    op.create_index('ix_822f03b6_Element Code_element_code', 'environment_emissions_by_sector', ['element_code'], unique=False)
-    op.create_index('ix_cd0328e3_Area Code_area_code', 'environment_emissions_by_sector', ['area_code'], unique=False)
+    op.create_index('ix_d55120ce_Item Code_item_code', 'environment_emissions_by_sector', ['item_code'], unique=False)
+    op.create_index('ix_d833193e_Area Code_area_code', 'environment_emissions_by_sector', ['area_code'], unique=False)
+    op.create_index('ix_e9dc9737_Flag_flag', 'environment_emissions_by_sector', ['flag'], unique=False)
+    op.create_index('ix_f9bdaf4c_Element Code_element_code', 'environment_emissions_by_sector', ['element_code'], unique=False)
     op.create_table('environment_emissions_intensities',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -686,10 +686,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_19a302b6_Item Code_item_code', 'environment_emissions_intensities', ['item_code'], unique=False)
-    op.create_index('ix_2186dc6e_Element Code_element_code', 'environment_emissions_intensities', ['element_code'], unique=False)
-    op.create_index('ix_289f8685_Area Code_area_code', 'environment_emissions_intensities', ['area_code'], unique=False)
-    op.create_index('ix_449f94b6_Flag_flag', 'environment_emissions_intensities', ['flag'], unique=False)
+    op.create_index('ix_1c80edca_Item Code_item_code', 'environment_emissions_intensities', ['item_code'], unique=False)
+    op.create_index('ix_6df31535_Flag_flag', 'environment_emissions_intensities', ['flag'], unique=False)
+    op.create_index('ix_9fb9ca4e_Element Code_element_code', 'environment_emissions_intensities', ['element_code'], unique=False)
+    op.create_index('ix_cbce30af_Area Code_area_code', 'environment_emissions_intensities', ['area_code'], unique=False)
     op.create_table('environment_food_waste_disposal',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -708,10 +708,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_04d8ce9d_Element Code_element_code', 'environment_food_waste_disposal', ['element_code'], unique=False)
-    op.create_index('ix_08e7ab8e_Item Code_item_code', 'environment_food_waste_disposal', ['item_code'], unique=False)
-    op.create_index('ix_20294c70_Area Code_area_code', 'environment_food_waste_disposal', ['area_code'], unique=False)
-    op.create_index('ix_e954e9b6_Flag_flag', 'environment_food_waste_disposal', ['flag'], unique=False)
+    op.create_index('ix_020340cd_Element Code_element_code', 'environment_food_waste_disposal', ['element_code'], unique=False)
+    op.create_index('ix_111ec736_Flag_flag', 'environment_food_waste_disposal', ['flag'], unique=False)
+    op.create_index('ix_36ee2371_Area Code_area_code', 'environment_food_waste_disposal', ['area_code'], unique=False)
+    op.create_index('ix_96c1c624_Item Code_item_code', 'environment_food_waste_disposal', ['item_code'], unique=False)
     op.create_table('environment_land_cover',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -730,10 +730,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_24995947_Element Code_element_code', 'environment_land_cover', ['element_code'], unique=False)
-    op.create_index('ix_644cacd8_Flag_flag', 'environment_land_cover', ['flag'], unique=False)
-    op.create_index('ix_b938604a_Area Code_area_code', 'environment_land_cover', ['area_code'], unique=False)
-    op.create_index('ix_cc897cb7_Item Code_item_code', 'environment_land_cover', ['item_code'], unique=False)
+    op.create_index('ix_0c7442c2_Item Code_item_code', 'environment_land_cover', ['item_code'], unique=False)
+    op.create_index('ix_186354bb_Element Code_element_code', 'environment_land_cover', ['element_code'], unique=False)
+    op.create_index('ix_85534abb_Area Code_area_code', 'environment_land_cover', ['area_code'], unique=False)
+    op.create_index('ix_afd0f571_Flag_flag', 'environment_land_cover', ['flag'], unique=False)
     op.create_table('environment_land_use',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -752,10 +752,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_5e883f55_Item Code_item_code', 'environment_land_use', ['item_code'], unique=False)
-    op.create_index('ix_90cd1354_Flag_flag', 'environment_land_use', ['flag'], unique=False)
-    op.create_index('ix_a861e85f_Element Code_element_code', 'environment_land_use', ['element_code'], unique=False)
-    op.create_index('ix_f45eeb2e_Area Code_area_code', 'environment_land_use', ['area_code'], unique=False)
+    op.create_index('ix_1403d47a_Area Code_area_code', 'environment_land_use', ['area_code'], unique=False)
+    op.create_index('ix_39b71383_Item Code_item_code', 'environment_land_use', ['item_code'], unique=False)
+    op.create_index('ix_b501aff8_Element Code_element_code', 'environment_land_use', ['element_code'], unique=False)
+    op.create_index('ix_f65727ae_Flag_flag', 'environment_land_use', ['flag'], unique=False)
     op.create_table('environment_livestock_manure',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -775,10 +775,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_53ba60aa_Element Code_element_code', 'environment_livestock_manure', ['element_code'], unique=False)
-    op.create_index('ix_60744642_Flag_flag', 'environment_livestock_manure', ['flag'], unique=False)
-    op.create_index('ix_cb778fbe_Item Code_item_code', 'environment_livestock_manure', ['item_code'], unique=False)
-    op.create_index('ix_dba55e3f_Area Code_area_code', 'environment_livestock_manure', ['area_code'], unique=False)
+    op.create_index('ix_4bba1308_Element Code_element_code', 'environment_livestock_manure', ['element_code'], unique=False)
+    op.create_index('ix_b8e48b4f_Flag_flag', 'environment_livestock_manure', ['flag'], unique=False)
+    op.create_index('ix_d0e23b5d_Area Code_area_code', 'environment_livestock_manure', ['area_code'], unique=False)
+    op.create_index('ix_ead2ad49_Item Code_item_code', 'environment_livestock_manure', ['item_code'], unique=False)
     op.create_table('environment_livestock_patterns',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -797,10 +797,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_6a988710_Item Code_item_code', 'environment_livestock_patterns', ['item_code'], unique=False)
-    op.create_index('ix_6d53a9a2_Area Code_area_code', 'environment_livestock_patterns', ['area_code'], unique=False)
-    op.create_index('ix_76211800_Flag_flag', 'environment_livestock_patterns', ['flag'], unique=False)
-    op.create_index('ix_7c460bdf_Element Code_element_code', 'environment_livestock_patterns', ['element_code'], unique=False)
+    op.create_index('ix_26a8b1a9_Flag_flag', 'environment_livestock_patterns', ['flag'], unique=False)
+    op.create_index('ix_2a535fff_Item Code_item_code', 'environment_livestock_patterns', ['item_code'], unique=False)
+    op.create_index('ix_4309e11a_Area Code_area_code', 'environment_livestock_patterns', ['area_code'], unique=False)
+    op.create_index('ix_cb13b7a0_Element Code_element_code', 'environment_livestock_patterns', ['element_code'], unique=False)
     op.create_table('environment_pesticides',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -819,10 +819,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_6dcf8bf3_Element Code_element_code', 'environment_pesticides', ['element_code'], unique=False)
-    op.create_index('ix_81b05128_Item Code_item_code', 'environment_pesticides', ['item_code'], unique=False)
-    op.create_index('ix_89ad0e5a_Flag_flag', 'environment_pesticides', ['flag'], unique=False)
-    op.create_index('ix_a271c429_Area Code_area_code', 'environment_pesticides', ['area_code'], unique=False)
+    op.create_index('ix_1e4e1979_Area Code_area_code', 'environment_pesticides', ['area_code'], unique=False)
+    op.create_index('ix_2813ba43_Flag_flag', 'environment_pesticides', ['flag'], unique=False)
+    op.create_index('ix_d88c8786_Item Code_item_code', 'environment_pesticides', ['item_code'], unique=False)
+    op.create_index('ix_fa8000f6_Element Code_element_code', 'environment_pesticides', ['element_code'], unique=False)
     op.create_table('environment_soil_nutrient_budget',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -841,10 +841,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2df9c895_Flag_flag', 'environment_soil_nutrient_budget', ['flag'], unique=False)
-    op.create_index('ix_428191e4_Element Code_element_code', 'environment_soil_nutrient_budget', ['element_code'], unique=False)
-    op.create_index('ix_b7f205da_Area Code_area_code', 'environment_soil_nutrient_budget', ['area_code'], unique=False)
-    op.create_index('ix_c40bc0fd_Item Code_item_code', 'environment_soil_nutrient_budget', ['item_code'], unique=False)
+    op.create_index('ix_3e160a4d_Item Code_item_code', 'environment_soil_nutrient_budget', ['item_code'], unique=False)
+    op.create_index('ix_dfa76342_Element Code_element_code', 'environment_soil_nutrient_budget', ['element_code'], unique=False)
+    op.create_index('ix_f52185d3_Flag_flag', 'environment_soil_nutrient_budget', ['flag'], unique=False)
+    op.create_index('ix_f84a092f_Area Code_area_code', 'environment_soil_nutrient_budget', ['area_code'], unique=False)
     op.create_table('environment_temperature_change',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -863,9 +863,9 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['flag'], ['flags.flag'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_51f62d5b_Area Code_area_code', 'environment_temperature_change', ['area_code'], unique=False)
-    op.create_index('ix_c21354a8_Flag_flag', 'environment_temperature_change', ['flag'], unique=False)
-    op.create_index('ix_f9249e38_Element Code_element_code', 'environment_temperature_change', ['element_code'], unique=False)
+    op.create_index('ix_145bdef1_Area Code_area_code', 'environment_temperature_change', ['area_code'], unique=False)
+    op.create_index('ix_204e88cc_Flag_flag', 'environment_temperature_change', ['flag'], unique=False)
+    op.create_index('ix_e859aa2f_Element Code_element_code', 'environment_temperature_change', ['element_code'], unique=False)
     op.create_table('exchange_rate',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -886,10 +886,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['iso_currency_code'], ['currencys.iso_currency_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_16903fbe_Flag_flag', 'exchange_rate', ['flag'], unique=False)
-    op.create_index('ix_30342b8e_Element Code_element_code', 'exchange_rate', ['element_code'], unique=False)
-    op.create_index('ix_e1b826bb_Area Code_area_code', 'exchange_rate', ['area_code'], unique=False)
-    op.create_index('ix_e8fa2bd2_ISO Currency Code_iso_currency_code', 'exchange_rate', ['iso_currency_code'], unique=False)
+    op.create_index('ix_0b4d7b87_Element Code_element_code', 'exchange_rate', ['element_code'], unique=False)
+    op.create_index('ix_0c0692f3_ISO Currency Code_iso_currency_code', 'exchange_rate', ['iso_currency_code'], unique=False)
+    op.create_index('ix_5a5831fd_Area Code_area_code', 'exchange_rate', ['area_code'], unique=False)
+    op.create_index('ix_97bc48f6_Flag_flag', 'exchange_rate', ['flag'], unique=False)
     op.create_table('fertilizers_detailed_trade_matrix',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('reporter_country_code', sa.Integer(), nullable=False),
@@ -912,9 +912,9 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_31f0c116_Item Code_item_code', 'fertilizers_detailed_trade_matrix', ['item_code'], unique=False)
-    op.create_index('ix_9c4fb35f_Element Code_element_code', 'fertilizers_detailed_trade_matrix', ['element_code'], unique=False)
-    op.create_index('ix_b55aebd4_Flag_flag', 'fertilizers_detailed_trade_matrix', ['flag'], unique=False)
+    op.create_index('ix_15097f19_Item Code_item_code', 'fertilizers_detailed_trade_matrix', ['item_code'], unique=False)
+    op.create_index('ix_7666c02b_Flag_flag', 'fertilizers_detailed_trade_matrix', ['flag'], unique=False)
+    op.create_index('ix_c4d998e8_Element Code_element_code', 'fertilizers_detailed_trade_matrix', ['element_code'], unique=False)
     op.create_table('food_aid_shipments_wfp',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('recipient_country_code', sa.Integer(), nullable=False),
@@ -935,9 +935,9 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_4fb24158_Item Code_item_code', 'food_aid_shipments_wfp', ['item_code'], unique=False)
-    op.create_index('ix_540294f2_Element Code_element_code', 'food_aid_shipments_wfp', ['element_code'], unique=False)
-    op.create_index('ix_caae1702_Flag_flag', 'food_aid_shipments_wfp', ['flag'], unique=False)
+    op.create_index('ix_0db6f830_Item Code_item_code', 'food_aid_shipments_wfp', ['item_code'], unique=False)
+    op.create_index('ix_7b8cd660_Element Code_element_code', 'food_aid_shipments_wfp', ['element_code'], unique=False)
+    op.create_index('ix_94a67500_Flag_flag', 'food_aid_shipments_wfp', ['flag'], unique=False)
     op.create_table('food_and_diet_individual_quantitative_dietary_data',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('survey_code', sa.String(), nullable=False),
@@ -963,11 +963,11 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['survey_code'], ['surveys.survey_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_601904be_Element Code_element_code', 'food_and_diet_individual_quantitative_dietary_data', ['element_code'], unique=False)
-    op.create_index('ix_612a5db2_Sex Code_sex_code', 'food_and_diet_individual_quantitative_dietary_data', ['sex_code'], unique=False)
-    op.create_index('ix_84527f86_Indicator Code_indicator_code', 'food_and_diet_individual_quantitative_dietary_data', ['indicator_code'], unique=False)
-    op.create_index('ix_f98e3843_Survey Code_survey_code', 'food_and_diet_individual_quantitative_dietary_data', ['survey_code'], unique=False)
-    op.create_index('ix_faf4ed17_Flag_flag', 'food_and_diet_individual_quantitative_dietary_data', ['flag'], unique=False)
+    op.create_index('ix_14dadf26_Flag_flag', 'food_and_diet_individual_quantitative_dietary_data', ['flag'], unique=False)
+    op.create_index('ix_5c9500ab_Sex Code_sex_code', 'food_and_diet_individual_quantitative_dietary_data', ['sex_code'], unique=False)
+    op.create_index('ix_65f490ef_Indicator Code_indicator_code', 'food_and_diet_individual_quantitative_dietary_data', ['indicator_code'], unique=False)
+    op.create_index('ix_a1954fc6_Element Code_element_code', 'food_and_diet_individual_quantitative_dietary_data', ['element_code'], unique=False)
+    op.create_index('ix_f7f1b51b_Survey Code_survey_code', 'food_and_diet_individual_quantitative_dietary_data', ['survey_code'], unique=False)
     op.create_table('food_balance_sheets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -988,10 +988,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0584fad5_Item Code_item_code', 'food_balance_sheets', ['item_code'], unique=False)
-    op.create_index('ix_1ae68a55_Flag_flag', 'food_balance_sheets', ['flag'], unique=False)
-    op.create_index('ix_8c41667e_Area Code_area_code', 'food_balance_sheets', ['area_code'], unique=False)
-    op.create_index('ix_9be7c68b_Element Code_element_code', 'food_balance_sheets', ['element_code'], unique=False)
+    op.create_index('ix_0a45cdc0_Flag_flag', 'food_balance_sheets', ['flag'], unique=False)
+    op.create_index('ix_bb430966_Item Code_item_code', 'food_balance_sheets', ['item_code'], unique=False)
+    op.create_index('ix_cda2e808_Element Code_element_code', 'food_balance_sheets', ['element_code'], unique=False)
+    op.create_index('ix_d5efe10a_Area Code_area_code', 'food_balance_sheets', ['area_code'], unique=False)
     op.create_table('food_balance_sheets_historic',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1011,10 +1011,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2b434386_Item Code_item_code', 'food_balance_sheets_historic', ['item_code'], unique=False)
-    op.create_index('ix_84085f90_Flag_flag', 'food_balance_sheets_historic', ['flag'], unique=False)
-    op.create_index('ix_bf4a0ce3_Area Code_area_code', 'food_balance_sheets_historic', ['area_code'], unique=False)
-    op.create_index('ix_e707192d_Element Code_element_code', 'food_balance_sheets_historic', ['element_code'], unique=False)
+    op.create_index('ix_6ec049ed_Element Code_element_code', 'food_balance_sheets_historic', ['element_code'], unique=False)
+    op.create_index('ix_b2e6d711_Flag_flag', 'food_balance_sheets_historic', ['flag'], unique=False)
+    op.create_index('ix_d2a12532_Item Code_item_code', 'food_balance_sheets_historic', ['item_code'], unique=False)
+    op.create_index('ix_da79af32_Area Code_area_code', 'food_balance_sheets_historic', ['area_code'], unique=False)
     op.create_table('food_security_data',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1034,10 +1034,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2b0d74a7_Area Code_area_code', 'food_security_data', ['area_code'], unique=False)
-    op.create_index('ix_2c540e20_Flag_flag', 'food_security_data', ['flag'], unique=False)
-    op.create_index('ix_a6d7becf_Element Code_element_code', 'food_security_data', ['element_code'], unique=False)
-    op.create_index('ix_b5649e43_Item Code_item_code', 'food_security_data', ['item_code'], unique=False)
+    op.create_index('ix_24d7e95c_Area Code_area_code', 'food_security_data', ['area_code'], unique=False)
+    op.create_index('ix_2a301922_Flag_flag', 'food_security_data', ['flag'], unique=False)
+    op.create_index('ix_8c3612d2_Element Code_element_code', 'food_security_data', ['element_code'], unique=False)
+    op.create_index('ix_aca04cbf_Item Code_item_code', 'food_security_data', ['item_code'], unique=False)
     op.create_table('forestry',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1057,10 +1057,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0a939b03_Element Code_element_code', 'forestry', ['element_code'], unique=False)
-    op.create_index('ix_2664c991_Item Code_item_code', 'forestry', ['item_code'], unique=False)
-    op.create_index('ix_c0e0f0f9_Flag_flag', 'forestry', ['flag'], unique=False)
-    op.create_index('ix_c40c7b46_Area Code_area_code', 'forestry', ['area_code'], unique=False)
+    op.create_index('ix_2307e0c0_Area Code_area_code', 'forestry', ['area_code'], unique=False)
+    op.create_index('ix_63ba15b6_Item Code_item_code', 'forestry', ['item_code'], unique=False)
+    op.create_index('ix_6aa81552_Flag_flag', 'forestry', ['flag'], unique=False)
+    op.create_index('ix_f20e0739_Element Code_element_code', 'forestry', ['element_code'], unique=False)
     op.create_table('forestry_pulp_paper_survey',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1079,10 +1079,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2306438e_Item Code_item_code', 'forestry_pulp_paper_survey', ['item_code'], unique=False)
-    op.create_index('ix_249074d4_Flag_flag', 'forestry_pulp_paper_survey', ['flag'], unique=False)
-    op.create_index('ix_27182241_Area Code_area_code', 'forestry_pulp_paper_survey', ['area_code'], unique=False)
-    op.create_index('ix_b778552e_Element Code_element_code', 'forestry_pulp_paper_survey', ['element_code'], unique=False)
+    op.create_index('ix_74f6a314_Element Code_element_code', 'forestry_pulp_paper_survey', ['element_code'], unique=False)
+    op.create_index('ix_d74fafe5_Area Code_area_code', 'forestry_pulp_paper_survey', ['area_code'], unique=False)
+    op.create_index('ix_e166cabe_Item Code_item_code', 'forestry_pulp_paper_survey', ['item_code'], unique=False)
+    op.create_index('ix_fa6958bf_Flag_flag', 'forestry_pulp_paper_survey', ['flag'], unique=False)
     op.create_table('forestry_trade_flows',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('reporter_country_code', sa.Integer(), nullable=False),
@@ -1106,9 +1106,9 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_6fae2eb5_Element Code_element_code', 'forestry_trade_flows', ['element_code'], unique=False)
-    op.create_index('ix_aeb02e6d_Item Code_item_code', 'forestry_trade_flows', ['item_code'], unique=False)
-    op.create_index('ix_cd2f4857_Flag_flag', 'forestry_trade_flows', ['flag'], unique=False)
+    op.create_index('ix_025fecd4_Element Code_element_code', 'forestry_trade_flows', ['element_code'], unique=False)
+    op.create_index('ix_56b55d0b_Item Code_item_code', 'forestry_trade_flows', ['item_code'], unique=False)
+    op.create_index('ix_aabae6f7_Flag_flag', 'forestry_trade_flows', ['flag'], unique=False)
     op.create_table('household_consumption_and_expenditure_surveys_food_and_diet',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('survey_code', sa.String(), nullable=False),
@@ -1130,10 +1130,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['survey_code'], ['surveys.survey_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_373cfabf_Indicator Code_indicator_code', 'household_consumption_and_expenditure_surveys_food_and_diet', ['indicator_code'], unique=False)
-    op.create_index('ix_7a58db07_Flag_flag', 'household_consumption_and_expenditure_surveys_food_and_diet', ['flag'], unique=False)
-    op.create_index('ix_ad526796_Survey Code_survey_code', 'household_consumption_and_expenditure_surveys_food_and_diet', ['survey_code'], unique=False)
-    op.create_index('ix_bfd105f3_Element Code_element_code', 'household_consumption_and_expenditure_surveys_food_and_diet', ['element_code'], unique=False)
+    op.create_index('ix_53209f5f_Element Code_element_code', 'household_consumption_and_expenditure_surveys_food_and_diet', ['element_code'], unique=False)
+    op.create_index('ix_8595d109_Survey Code_survey_code', 'household_consumption_and_expenditure_surveys_food_and_diet', ['survey_code'], unique=False)
+    op.create_index('ix_865b1658_Indicator Code_indicator_code', 'household_consumption_and_expenditure_surveys_food_and_diet', ['indicator_code'], unique=False)
+    op.create_index('ix_e953f509_Flag_flag', 'household_consumption_and_expenditure_surveys_food_and_diet', ['flag'], unique=False)
     op.create_table('indicators_from_household_surveys',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('survey_code', sa.String(), nullable=False),
@@ -1154,10 +1154,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['survey_code'], ['surveys.survey_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_337f0c6d_Indicator Code_indicator_code', 'indicators_from_household_surveys', ['indicator_code'], unique=False)
-    op.create_index('ix_7b6007bc_Flag_flag', 'indicators_from_household_surveys', ['flag'], unique=False)
-    op.create_index('ix_c79e00b4_Survey Code_survey_code', 'indicators_from_household_surveys', ['survey_code'], unique=False)
-    op.create_index('ix_e45f9c40_Element Code_element_code', 'indicators_from_household_surveys', ['element_code'], unique=False)
+    op.create_index('ix_3d8f4b0e_Survey Code_survey_code', 'indicators_from_household_surveys', ['survey_code'], unique=False)
+    op.create_index('ix_6a0f2550_Flag_flag', 'indicators_from_household_surveys', ['flag'], unique=False)
+    op.create_index('ix_b701fbd2_Element Code_element_code', 'indicators_from_household_surveys', ['element_code'], unique=False)
+    op.create_index('ix_b8f62461_Indicator Code_indicator_code', 'indicators_from_household_surveys', ['indicator_code'], unique=False)
     op.create_table('individual_quantitative_dietary_data_food_and_diet',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('survey_code', sa.String(), nullable=False),
@@ -1183,12 +1183,12 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['survey_code'], ['surveys.survey_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_06d32cc0_Indicator Code_indicator_code', 'individual_quantitative_dietary_data_food_and_diet', ['indicator_code'], unique=False)
-    op.create_index('ix_0aaf6439_Element Code_element_code', 'individual_quantitative_dietary_data_food_and_diet', ['element_code'], unique=False)
-    op.create_index('ix_307c61d7_Flag_flag', 'individual_quantitative_dietary_data_food_and_diet', ['flag'], unique=False)
-    op.create_index('ix_bf9e4c46_Sex Code_sex_code', 'individual_quantitative_dietary_data_food_and_diet', ['sex_code'], unique=False)
-    op.create_index('ix_cf4857b5_Population Age Group Code_population_age_group_code', 'individual_quantitative_dietary_data_food_and_diet', ['population_age_group_code'], unique=False)
-    op.create_index('ix_d6945dbc_Survey Code_survey_code', 'individual_quantitative_dietary_data_food_and_diet', ['survey_code'], unique=False)
+    op.create_index('ix_3ea1461e_Survey Code_survey_code', 'individual_quantitative_dietary_data_food_and_diet', ['survey_code'], unique=False)
+    op.create_index('ix_52e4f0bb_Population Age Group Code_population_age_group_code', 'individual_quantitative_dietary_data_food_and_diet', ['population_age_group_code'], unique=False)
+    op.create_index('ix_6cb1f854_Sex Code_sex_code', 'individual_quantitative_dietary_data_food_and_diet', ['sex_code'], unique=False)
+    op.create_index('ix_75ce8cac_Indicator Code_indicator_code', 'individual_quantitative_dietary_data_food_and_diet', ['indicator_code'], unique=False)
+    op.create_index('ix_8e2ba35d_Flag_flag', 'individual_quantitative_dietary_data_food_and_diet', ['flag'], unique=False)
+    op.create_index('ix_c55fc4f5_Element Code_element_code', 'individual_quantitative_dietary_data_food_and_diet', ['element_code'], unique=False)
     op.create_table('inputs_fertilizers_archive',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1207,10 +1207,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2f064dc6_Flag_flag', 'inputs_fertilizers_archive', ['flag'], unique=False)
-    op.create_index('ix_859b66ea_Element Code_element_code', 'inputs_fertilizers_archive', ['element_code'], unique=False)
-    op.create_index('ix_872395b7_Area Code_area_code', 'inputs_fertilizers_archive', ['area_code'], unique=False)
-    op.create_index('ix_94b103cc_Item Code_item_code', 'inputs_fertilizers_archive', ['item_code'], unique=False)
+    op.create_index('ix_146a5098_Element Code_element_code', 'inputs_fertilizers_archive', ['element_code'], unique=False)
+    op.create_index('ix_2a1776e0_Item Code_item_code', 'inputs_fertilizers_archive', ['item_code'], unique=False)
+    op.create_index('ix_8528c9b5_Area Code_area_code', 'inputs_fertilizers_archive', ['area_code'], unique=False)
+    op.create_index('ix_ed03dde3_Flag_flag', 'inputs_fertilizers_archive', ['flag'], unique=False)
     op.create_table('inputs_fertilizers_nutrient',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1230,10 +1230,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_5467c131_Flag_flag', 'inputs_fertilizers_nutrient', ['flag'], unique=False)
-    op.create_index('ix_8cc812e7_Element Code_element_code', 'inputs_fertilizers_nutrient', ['element_code'], unique=False)
-    op.create_index('ix_a8baa73a_Item Code_item_code', 'inputs_fertilizers_nutrient', ['item_code'], unique=False)
-    op.create_index('ix_dd45322e_Area Code_area_code', 'inputs_fertilizers_nutrient', ['area_code'], unique=False)
+    op.create_index('ix_0fceeb39_Area Code_area_code', 'inputs_fertilizers_nutrient', ['area_code'], unique=False)
+    op.create_index('ix_3110ffad_Element Code_element_code', 'inputs_fertilizers_nutrient', ['element_code'], unique=False)
+    op.create_index('ix_5ab2d644_Item Code_item_code', 'inputs_fertilizers_nutrient', ['item_code'], unique=False)
+    op.create_index('ix_fc17e3e1_Flag_flag', 'inputs_fertilizers_nutrient', ['flag'], unique=False)
     op.create_table('inputs_fertilizers_product',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1252,10 +1252,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_12e49d35_Area Code_area_code', 'inputs_fertilizers_product', ['area_code'], unique=False)
-    op.create_index('ix_753ad911_Flag_flag', 'inputs_fertilizers_product', ['flag'], unique=False)
-    op.create_index('ix_93af7877_Item Code_item_code', 'inputs_fertilizers_product', ['item_code'], unique=False)
-    op.create_index('ix_f3974e0e_Element Code_element_code', 'inputs_fertilizers_product', ['element_code'], unique=False)
+    op.create_index('ix_460da5d5_Item Code_item_code', 'inputs_fertilizers_product', ['item_code'], unique=False)
+    op.create_index('ix_4d6e51e9_Element Code_element_code', 'inputs_fertilizers_product', ['element_code'], unique=False)
+    op.create_index('ix_7cbf2a5c_Area Code_area_code', 'inputs_fertilizers_product', ['area_code'], unique=False)
+    op.create_index('ix_ba27dd69_Flag_flag', 'inputs_fertilizers_product', ['flag'], unique=False)
     op.create_table('inputs_land_use',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1275,10 +1275,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_6c5d7bf4_Area Code_area_code', 'inputs_land_use', ['area_code'], unique=False)
-    op.create_index('ix_83662620_Element Code_element_code', 'inputs_land_use', ['element_code'], unique=False)
-    op.create_index('ix_a9b8df6e_Item Code_item_code', 'inputs_land_use', ['item_code'], unique=False)
-    op.create_index('ix_ff85f44c_Flag_flag', 'inputs_land_use', ['flag'], unique=False)
+    op.create_index('ix_2d411bf5_Area Code_area_code', 'inputs_land_use', ['area_code'], unique=False)
+    op.create_index('ix_4607c19b_Item Code_item_code', 'inputs_land_use', ['item_code'], unique=False)
+    op.create_index('ix_4c4c8cf9_Element Code_element_code', 'inputs_land_use', ['element_code'], unique=False)
+    op.create_index('ix_8ed49010_Flag_flag', 'inputs_land_use', ['flag'], unique=False)
     op.create_table('inputs_pesticides_trade',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1297,10 +1297,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2bd9ac03_Area Code_area_code', 'inputs_pesticides_trade', ['area_code'], unique=False)
-    op.create_index('ix_d7ef48a2_Element Code_element_code', 'inputs_pesticides_trade', ['element_code'], unique=False)
-    op.create_index('ix_d8b19ee4_Flag_flag', 'inputs_pesticides_trade', ['flag'], unique=False)
-    op.create_index('ix_ec7453e7_Item Code_item_code', 'inputs_pesticides_trade', ['item_code'], unique=False)
+    op.create_index('ix_07d5ce65_Item Code_item_code', 'inputs_pesticides_trade', ['item_code'], unique=False)
+    op.create_index('ix_b3028334_Area Code_area_code', 'inputs_pesticides_trade', ['area_code'], unique=False)
+    op.create_index('ix_bf4ca1c4_Flag_flag', 'inputs_pesticides_trade', ['flag'], unique=False)
+    op.create_index('ix_c01def28_Element Code_element_code', 'inputs_pesticides_trade', ['element_code'], unique=False)
     op.create_table('inputs_pesticides_use',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1320,10 +1320,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2a7dbe01_Flag_flag', 'inputs_pesticides_use', ['flag'], unique=False)
-    op.create_index('ix_5f315358_Area Code_area_code', 'inputs_pesticides_use', ['area_code'], unique=False)
-    op.create_index('ix_967074f0_Item Code_item_code', 'inputs_pesticides_use', ['item_code'], unique=False)
-    op.create_index('ix_e8dee45f_Element Code_element_code', 'inputs_pesticides_use', ['element_code'], unique=False)
+    op.create_index('ix_56a35d72_Element Code_element_code', 'inputs_pesticides_use', ['element_code'], unique=False)
+    op.create_index('ix_7b3fa3be_Item Code_item_code', 'inputs_pesticides_use', ['item_code'], unique=False)
+    op.create_index('ix_a4d5b6ff_Flag_flag', 'inputs_pesticides_use', ['flag'], unique=False)
+    op.create_index('ix_ea7449b0_Area Code_area_code', 'inputs_pesticides_use', ['area_code'], unique=False)
     op.create_table('investment_capital_stock',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1343,10 +1343,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_16ea2510_Element Code_element_code', 'investment_capital_stock', ['element_code'], unique=False)
-    op.create_index('ix_29ea78d3_Area Code_area_code', 'investment_capital_stock', ['area_code'], unique=False)
-    op.create_index('ix_70ac613d_Item Code_item_code', 'investment_capital_stock', ['item_code'], unique=False)
-    op.create_index('ix_974a5d01_Flag_flag', 'investment_capital_stock', ['flag'], unique=False)
+    op.create_index('ix_37d4e50e_Area Code_area_code', 'investment_capital_stock', ['area_code'], unique=False)
+    op.create_index('ix_a33ef11a_Flag_flag', 'investment_capital_stock', ['flag'], unique=False)
+    op.create_index('ix_a681a22f_Item Code_item_code', 'investment_capital_stock', ['item_code'], unique=False)
+    op.create_index('ix_be77cabf_Element Code_element_code', 'investment_capital_stock', ['element_code'], unique=False)
     op.create_table('investment_country_investment_statistics_profile',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1366,10 +1366,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_32d13ad5_Flag_flag', 'investment_country_investment_statistics_profile', ['flag'], unique=False)
-    op.create_index('ix_5600c8ef_Element Code_element_code', 'investment_country_investment_statistics_profile', ['element_code'], unique=False)
-    op.create_index('ix_6e43e63b_Item Code_item_code', 'investment_country_investment_statistics_profile', ['item_code'], unique=False)
-    op.create_index('ix_824822f1_Area Code_area_code', 'investment_country_investment_statistics_profile', ['area_code'], unique=False)
+    op.create_index('ix_6854f7bd_Element Code_element_code', 'investment_country_investment_statistics_profile', ['element_code'], unique=False)
+    op.create_index('ix_7b86d389_Item Code_item_code', 'investment_country_investment_statistics_profile', ['item_code'], unique=False)
+    op.create_index('ix_beb2e935_Area Code_area_code', 'investment_country_investment_statistics_profile', ['area_code'], unique=False)
+    op.create_index('ix_e207790c_Flag_flag', 'investment_country_investment_statistics_profile', ['flag'], unique=False)
     op.create_table('investment_credit_agriculture',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1388,10 +1388,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_04c35927_Item Code_item_code', 'investment_credit_agriculture', ['item_code'], unique=False)
-    op.create_index('ix_558d52bc_Flag_flag', 'investment_credit_agriculture', ['flag'], unique=False)
-    op.create_index('ix_d3cb7472_Area Code_area_code', 'investment_credit_agriculture', ['area_code'], unique=False)
-    op.create_index('ix_e4512500_Element Code_element_code', 'investment_credit_agriculture', ['element_code'], unique=False)
+    op.create_index('ix_27b5b4f5_Element Code_element_code', 'investment_credit_agriculture', ['element_code'], unique=False)
+    op.create_index('ix_4b87a45d_Flag_flag', 'investment_credit_agriculture', ['flag'], unique=False)
+    op.create_index('ix_fb957bc2_Area Code_area_code', 'investment_credit_agriculture', ['area_code'], unique=False)
+    op.create_index('ix_feabef76_Item Code_item_code', 'investment_credit_agriculture', ['item_code'], unique=False)
     op.create_table('investment_foreign_direct_investment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1411,10 +1411,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_09dc06e0_Element Code_element_code', 'investment_foreign_direct_investment', ['element_code'], unique=False)
-    op.create_index('ix_3526020c_Item Code_item_code', 'investment_foreign_direct_investment', ['item_code'], unique=False)
-    op.create_index('ix_6e3f938b_Flag_flag', 'investment_foreign_direct_investment', ['flag'], unique=False)
-    op.create_index('ix_f371e59c_Area Code_area_code', 'investment_foreign_direct_investment', ['area_code'], unique=False)
+    op.create_index('ix_2076e88c_Area Code_area_code', 'investment_foreign_direct_investment', ['area_code'], unique=False)
+    op.create_index('ix_3d7d8e55_Element Code_element_code', 'investment_foreign_direct_investment', ['element_code'], unique=False)
+    op.create_index('ix_4d600ec7_Flag_flag', 'investment_foreign_direct_investment', ['flag'], unique=False)
+    op.create_index('ix_be1ca335_Item Code_item_code', 'investment_foreign_direct_investment', ['item_code'], unique=False)
     op.create_table('investment_government_expenditure',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1434,10 +1434,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_4d80aaa2_Item Code_item_code', 'investment_government_expenditure', ['item_code'], unique=False)
-    op.create_index('ix_b37afb50_Flag_flag', 'investment_government_expenditure', ['flag'], unique=False)
-    op.create_index('ix_c737db49_Element Code_element_code', 'investment_government_expenditure', ['element_code'], unique=False)
-    op.create_index('ix_d1ecaf76_Area Code_area_code', 'investment_government_expenditure', ['area_code'], unique=False)
+    op.create_index('ix_6e2e5166_Flag_flag', 'investment_government_expenditure', ['flag'], unique=False)
+    op.create_index('ix_8f5ada77_Area Code_area_code', 'investment_government_expenditure', ['area_code'], unique=False)
+    op.create_index('ix_9a7054da_Element Code_element_code', 'investment_government_expenditure', ['element_code'], unique=False)
+    op.create_index('ix_e4c3d378_Item Code_item_code', 'investment_government_expenditure', ['item_code'], unique=False)
     op.create_table('investment_machinery',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1457,10 +1457,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_72437657_Item Code_item_code', 'investment_machinery', ['item_code'], unique=False)
-    op.create_index('ix_82fb552a_Area Code_area_code', 'investment_machinery', ['area_code'], unique=False)
-    op.create_index('ix_881e48ef_Flag_flag', 'investment_machinery', ['flag'], unique=False)
-    op.create_index('ix_9c0d2b00_Element Code_element_code', 'investment_machinery', ['element_code'], unique=False)
+    op.create_index('ix_3c994975_Area Code_area_code', 'investment_machinery', ['area_code'], unique=False)
+    op.create_index('ix_733e00ae_Item Code_item_code', 'investment_machinery', ['item_code'], unique=False)
+    op.create_index('ix_c3aee707_Element Code_element_code', 'investment_machinery', ['element_code'], unique=False)
+    op.create_index('ix_f9295731_Flag_flag', 'investment_machinery', ['flag'], unique=False)
     op.create_table('investment_machinery_archive',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1479,10 +1479,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_3ad2bfcd_Flag_flag', 'investment_machinery_archive', ['flag'], unique=False)
-    op.create_index('ix_a290d952_Element Code_element_code', 'investment_machinery_archive', ['element_code'], unique=False)
-    op.create_index('ix_adc1be6d_Item Code_item_code', 'investment_machinery_archive', ['item_code'], unique=False)
-    op.create_index('ix_ee4c10b7_Area Code_area_code', 'investment_machinery_archive', ['area_code'], unique=False)
+    op.create_index('ix_ce38c829_Area Code_area_code', 'investment_machinery_archive', ['area_code'], unique=False)
+    op.create_index('ix_d8fe6325_Element Code_element_code', 'investment_machinery_archive', ['element_code'], unique=False)
+    op.create_index('ix_f01e05a2_Flag_flag', 'investment_machinery_archive', ['flag'], unique=False)
+    op.create_index('ix_f6a0498d_Item Code_item_code', 'investment_machinery_archive', ['item_code'], unique=False)
     op.create_table('macro_statistics_key_indicators',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1502,10 +1502,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_077173ee_Element Code_element_code', 'macro_statistics_key_indicators', ['element_code'], unique=False)
-    op.create_index('ix_118796cf_Area Code_area_code', 'macro_statistics_key_indicators', ['area_code'], unique=False)
-    op.create_index('ix_a2b970ac_Item Code_item_code', 'macro_statistics_key_indicators', ['item_code'], unique=False)
-    op.create_index('ix_fb5e1303_Flag_flag', 'macro_statistics_key_indicators', ['flag'], unique=False)
+    op.create_index('ix_1fc4ed71_Flag_flag', 'macro_statistics_key_indicators', ['flag'], unique=False)
+    op.create_index('ix_ac7ad387_Item Code_item_code', 'macro_statistics_key_indicators', ['item_code'], unique=False)
+    op.create_index('ix_c26d3d31_Area Code_area_code', 'macro_statistics_key_indicators', ['area_code'], unique=False)
+    op.create_index('ix_e1328923_Element Code_element_code', 'macro_statistics_key_indicators', ['element_code'], unique=False)
     op.create_table('minimum_dietary_diversity_for_women_mdd_w_food_and_diet',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('survey_code', sa.String(), nullable=False),
@@ -1526,10 +1526,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['survey_code'], ['surveys.survey_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_008e609d_Survey Code_survey_code', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['survey_code'], unique=False)
-    op.create_index('ix_296e03d5_Element Code_element_code', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['element_code'], unique=False)
-    op.create_index('ix_a41f1944_Flag_flag', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['flag'], unique=False)
-    op.create_index('ix_a5995f98_Indicator Code_indicator_code', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['indicator_code'], unique=False)
+    op.create_index('ix_a9d19986_Flag_flag', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['flag'], unique=False)
+    op.create_index('ix_c1c063df_Survey Code_survey_code', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['survey_code'], unique=False)
+    op.create_index('ix_cc31e2f2_Indicator Code_indicator_code', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['indicator_code'], unique=False)
+    op.create_index('ix_e4e45c94_Element Code_element_code', 'minimum_dietary_diversity_for_women_mdd_w_food_and_diet', ['element_code'], unique=False)
     op.create_table('population',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1549,10 +1549,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_29eb97e3_Element Code_element_code', 'population', ['element_code'], unique=False)
-    op.create_index('ix_66f38403_Area Code_area_code', 'population', ['area_code'], unique=False)
-    op.create_index('ix_e7c36d0f_Item Code_item_code', 'population', ['item_code'], unique=False)
-    op.create_index('ix_eea20f57_Flag_flag', 'population', ['flag'], unique=False)
+    op.create_index('ix_13008dbb_Area Code_area_code', 'population', ['area_code'], unique=False)
+    op.create_index('ix_323f9786_Element Code_element_code', 'population', ['element_code'], unique=False)
+    op.create_index('ix_67bc8511_Item Code_item_code', 'population', ['item_code'], unique=False)
+    op.create_index('ix_95623fe2_Flag_flag', 'population', ['flag'], unique=False)
     op.create_table('prices',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1573,10 +1573,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_8d12d3b1_Item Code_item_code', 'prices', ['item_code'], unique=False)
-    op.create_index('ix_9da3c53d_Element Code_element_code', 'prices', ['element_code'], unique=False)
-    op.create_index('ix_eadd2758_Area Code_area_code', 'prices', ['area_code'], unique=False)
-    op.create_index('ix_fe4fc4b4_Flag_flag', 'prices', ['flag'], unique=False)
+    op.create_index('ix_134fa6c7_Area Code_area_code', 'prices', ['area_code'], unique=False)
+    op.create_index('ix_164c973e_Element Code_element_code', 'prices', ['element_code'], unique=False)
+    op.create_index('ix_d13e2157_Item Code_item_code', 'prices', ['item_code'], unique=False)
+    op.create_index('ix_f1c9b22e_Flag_flag', 'prices', ['flag'], unique=False)
     op.create_table('prices_archive',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1595,10 +1595,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_49d2c06a_Element Code_element_code', 'prices_archive', ['element_code'], unique=False)
-    op.create_index('ix_7f66285b_Area Code_area_code', 'prices_archive', ['area_code'], unique=False)
-    op.create_index('ix_ceb00202_Item Code_item_code', 'prices_archive', ['item_code'], unique=False)
-    op.create_index('ix_ec01a6e0_Flag_flag', 'prices_archive', ['flag'], unique=False)
+    op.create_index('ix_5a8c113a_Element Code_element_code', 'prices_archive', ['element_code'], unique=False)
+    op.create_index('ix_8187807a_Flag_flag', 'prices_archive', ['flag'], unique=False)
+    op.create_index('ix_9ae7d019_Item Code_item_code', 'prices_archive', ['item_code'], unique=False)
+    op.create_index('ix_fd5cbf18_Area Code_area_code', 'prices_archive', ['area_code'], unique=False)
     op.create_table('production_crops_livestock',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1618,10 +1618,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_3c151e88_Item Code_item_code', 'production_crops_livestock', ['item_code'], unique=False)
-    op.create_index('ix_414c2aa8_Flag_flag', 'production_crops_livestock', ['flag'], unique=False)
-    op.create_index('ix_c0084a35_Element Code_element_code', 'production_crops_livestock', ['element_code'], unique=False)
-    op.create_index('ix_fe01c146_Area Code_area_code', 'production_crops_livestock', ['area_code'], unique=False)
+    op.create_index('ix_4deeacc0_Flag_flag', 'production_crops_livestock', ['flag'], unique=False)
+    op.create_index('ix_4f8ca13d_Element Code_element_code', 'production_crops_livestock', ['element_code'], unique=False)
+    op.create_index('ix_af9ae6b8_Area Code_area_code', 'production_crops_livestock', ['area_code'], unique=False)
+    op.create_index('ix_e642f296_Item Code_item_code', 'production_crops_livestock', ['item_code'], unique=False)
     op.create_table('production_indices',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1640,10 +1640,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_01ebaf25_Area Code_area_code', 'production_indices', ['area_code'], unique=False)
-    op.create_index('ix_1951fe59_Flag_flag', 'production_indices', ['flag'], unique=False)
-    op.create_index('ix_3280329c_Element Code_element_code', 'production_indices', ['element_code'], unique=False)
-    op.create_index('ix_e4a65b07_Item Code_item_code', 'production_indices', ['item_code'], unique=False)
+    op.create_index('ix_6d6bbb71_Area Code_area_code', 'production_indices', ['area_code'], unique=False)
+    op.create_index('ix_7a076a73_Item Code_item_code', 'production_indices', ['item_code'], unique=False)
+    op.create_index('ix_c5ad5504_Element Code_element_code', 'production_indices', ['element_code'], unique=False)
+    op.create_index('ix_eaf54bc0_Flag_flag', 'production_indices', ['flag'], unique=False)
     op.create_table('sdg_bulk_downloads',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1664,10 +1664,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_2a8be2f7_Area Code_area_code', 'sdg_bulk_downloads', ['area_code'], unique=False)
-    op.create_index('ix_36ff2f27_Flag_flag', 'sdg_bulk_downloads', ['flag'], unique=False)
-    op.create_index('ix_58ad6002_Item Code_item_code', 'sdg_bulk_downloads', ['item_code'], unique=False)
-    op.create_index('ix_9a436c4c_Element Code_element_code', 'sdg_bulk_downloads', ['element_code'], unique=False)
+    op.create_index('ix_88b2c2be_Element Code_element_code', 'sdg_bulk_downloads', ['element_code'], unique=False)
+    op.create_index('ix_96c2e734_Area Code_area_code', 'sdg_bulk_downloads', ['area_code'], unique=False)
+    op.create_index('ix_ea0b8134_Item Code_item_code', 'sdg_bulk_downloads', ['item_code'], unique=False)
+    op.create_index('ix_fa5d69a4_Flag_flag', 'sdg_bulk_downloads', ['flag'], unique=False)
     op.create_table('sua_crops_livestock',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1687,10 +1687,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['item_code'], ['item_codes.item_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_28192184_Item Code_item_code', 'sua_crops_livestock', ['item_code'], unique=False)
-    op.create_index('ix_6bdb177d_Flag_flag', 'sua_crops_livestock', ['flag'], unique=False)
-    op.create_index('ix_b25f391f_Area Code_area_code', 'sua_crops_livestock', ['area_code'], unique=False)
-    op.create_index('ix_ecaabb97_Element Code_element_code', 'sua_crops_livestock', ['element_code'], unique=False)
+    op.create_index('ix_4b5f6a17_Area Code_area_code', 'sua_crops_livestock', ['area_code'], unique=False)
+    op.create_index('ix_cbeec31f_Flag_flag', 'sua_crops_livestock', ['flag'], unique=False)
+    op.create_index('ix_d9805259_Element Code_element_code', 'sua_crops_livestock', ['element_code'], unique=False)
+    op.create_index('ix_d9ffe5b4_Item Code_item_code', 'sua_crops_livestock', ['item_code'], unique=False)
     op.create_table('supply_utilization_accounts_food_and_diet',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('area_code', sa.String(), nullable=False),
@@ -1712,365 +1712,365 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['indicator_code'], ['indicators.indicator_code'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('ix_0d06dad8_Element Code_element_code', 'supply_utilization_accounts_food_and_diet', ['element_code'], unique=False)
-    op.create_index('ix_28c78bfd_Flag_flag', 'supply_utilization_accounts_food_and_diet', ['flag'], unique=False)
-    op.create_index('ix_66d0e13b_Indicator Code_indicator_code', 'supply_utilization_accounts_food_and_diet', ['indicator_code'], unique=False)
-    op.create_index('ix_8a654481_Area Code_area_code', 'supply_utilization_accounts_food_and_diet', ['area_code'], unique=False)
+    op.create_index('ix_89dff6b4_Flag_flag', 'supply_utilization_accounts_food_and_diet', ['flag'], unique=False)
+    op.create_index('ix_c12a94e9_Element Code_element_code', 'supply_utilization_accounts_food_and_diet', ['element_code'], unique=False)
+    op.create_index('ix_e0dae77a_Indicator Code_indicator_code', 'supply_utilization_accounts_food_and_diet', ['indicator_code'], unique=False)
+    op.create_index('ix_fdb2230d_Area Code_area_code', 'supply_utilization_accounts_food_and_diet', ['area_code'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_index('ix_8a654481_Area Code_area_code', table_name='supply_utilization_accounts_food_and_diet')
-    op.drop_index('ix_66d0e13b_Indicator Code_indicator_code', table_name='supply_utilization_accounts_food_and_diet')
-    op.drop_index('ix_28c78bfd_Flag_flag', table_name='supply_utilization_accounts_food_and_diet')
-    op.drop_index('ix_0d06dad8_Element Code_element_code', table_name='supply_utilization_accounts_food_and_diet')
+    op.drop_index('ix_fdb2230d_Area Code_area_code', table_name='supply_utilization_accounts_food_and_diet')
+    op.drop_index('ix_e0dae77a_Indicator Code_indicator_code', table_name='supply_utilization_accounts_food_and_diet')
+    op.drop_index('ix_c12a94e9_Element Code_element_code', table_name='supply_utilization_accounts_food_and_diet')
+    op.drop_index('ix_89dff6b4_Flag_flag', table_name='supply_utilization_accounts_food_and_diet')
     op.drop_table('supply_utilization_accounts_food_and_diet')
-    op.drop_index('ix_ecaabb97_Element Code_element_code', table_name='sua_crops_livestock')
-    op.drop_index('ix_b25f391f_Area Code_area_code', table_name='sua_crops_livestock')
-    op.drop_index('ix_6bdb177d_Flag_flag', table_name='sua_crops_livestock')
-    op.drop_index('ix_28192184_Item Code_item_code', table_name='sua_crops_livestock')
+    op.drop_index('ix_d9ffe5b4_Item Code_item_code', table_name='sua_crops_livestock')
+    op.drop_index('ix_d9805259_Element Code_element_code', table_name='sua_crops_livestock')
+    op.drop_index('ix_cbeec31f_Flag_flag', table_name='sua_crops_livestock')
+    op.drop_index('ix_4b5f6a17_Area Code_area_code', table_name='sua_crops_livestock')
     op.drop_table('sua_crops_livestock')
-    op.drop_index('ix_9a436c4c_Element Code_element_code', table_name='sdg_bulk_downloads')
-    op.drop_index('ix_58ad6002_Item Code_item_code', table_name='sdg_bulk_downloads')
-    op.drop_index('ix_36ff2f27_Flag_flag', table_name='sdg_bulk_downloads')
-    op.drop_index('ix_2a8be2f7_Area Code_area_code', table_name='sdg_bulk_downloads')
+    op.drop_index('ix_fa5d69a4_Flag_flag', table_name='sdg_bulk_downloads')
+    op.drop_index('ix_ea0b8134_Item Code_item_code', table_name='sdg_bulk_downloads')
+    op.drop_index('ix_96c2e734_Area Code_area_code', table_name='sdg_bulk_downloads')
+    op.drop_index('ix_88b2c2be_Element Code_element_code', table_name='sdg_bulk_downloads')
     op.drop_table('sdg_bulk_downloads')
-    op.drop_index('ix_e4a65b07_Item Code_item_code', table_name='production_indices')
-    op.drop_index('ix_3280329c_Element Code_element_code', table_name='production_indices')
-    op.drop_index('ix_1951fe59_Flag_flag', table_name='production_indices')
-    op.drop_index('ix_01ebaf25_Area Code_area_code', table_name='production_indices')
+    op.drop_index('ix_eaf54bc0_Flag_flag', table_name='production_indices')
+    op.drop_index('ix_c5ad5504_Element Code_element_code', table_name='production_indices')
+    op.drop_index('ix_7a076a73_Item Code_item_code', table_name='production_indices')
+    op.drop_index('ix_6d6bbb71_Area Code_area_code', table_name='production_indices')
     op.drop_table('production_indices')
-    op.drop_index('ix_fe01c146_Area Code_area_code', table_name='production_crops_livestock')
-    op.drop_index('ix_c0084a35_Element Code_element_code', table_name='production_crops_livestock')
-    op.drop_index('ix_414c2aa8_Flag_flag', table_name='production_crops_livestock')
-    op.drop_index('ix_3c151e88_Item Code_item_code', table_name='production_crops_livestock')
+    op.drop_index('ix_e642f296_Item Code_item_code', table_name='production_crops_livestock')
+    op.drop_index('ix_af9ae6b8_Area Code_area_code', table_name='production_crops_livestock')
+    op.drop_index('ix_4f8ca13d_Element Code_element_code', table_name='production_crops_livestock')
+    op.drop_index('ix_4deeacc0_Flag_flag', table_name='production_crops_livestock')
     op.drop_table('production_crops_livestock')
-    op.drop_index('ix_ec01a6e0_Flag_flag', table_name='prices_archive')
-    op.drop_index('ix_ceb00202_Item Code_item_code', table_name='prices_archive')
-    op.drop_index('ix_7f66285b_Area Code_area_code', table_name='prices_archive')
-    op.drop_index('ix_49d2c06a_Element Code_element_code', table_name='prices_archive')
+    op.drop_index('ix_fd5cbf18_Area Code_area_code', table_name='prices_archive')
+    op.drop_index('ix_9ae7d019_Item Code_item_code', table_name='prices_archive')
+    op.drop_index('ix_8187807a_Flag_flag', table_name='prices_archive')
+    op.drop_index('ix_5a8c113a_Element Code_element_code', table_name='prices_archive')
     op.drop_table('prices_archive')
-    op.drop_index('ix_fe4fc4b4_Flag_flag', table_name='prices')
-    op.drop_index('ix_eadd2758_Area Code_area_code', table_name='prices')
-    op.drop_index('ix_9da3c53d_Element Code_element_code', table_name='prices')
-    op.drop_index('ix_8d12d3b1_Item Code_item_code', table_name='prices')
+    op.drop_index('ix_f1c9b22e_Flag_flag', table_name='prices')
+    op.drop_index('ix_d13e2157_Item Code_item_code', table_name='prices')
+    op.drop_index('ix_164c973e_Element Code_element_code', table_name='prices')
+    op.drop_index('ix_134fa6c7_Area Code_area_code', table_name='prices')
     op.drop_table('prices')
-    op.drop_index('ix_eea20f57_Flag_flag', table_name='population')
-    op.drop_index('ix_e7c36d0f_Item Code_item_code', table_name='population')
-    op.drop_index('ix_66f38403_Area Code_area_code', table_name='population')
-    op.drop_index('ix_29eb97e3_Element Code_element_code', table_name='population')
+    op.drop_index('ix_95623fe2_Flag_flag', table_name='population')
+    op.drop_index('ix_67bc8511_Item Code_item_code', table_name='population')
+    op.drop_index('ix_323f9786_Element Code_element_code', table_name='population')
+    op.drop_index('ix_13008dbb_Area Code_area_code', table_name='population')
     op.drop_table('population')
-    op.drop_index('ix_a5995f98_Indicator Code_indicator_code', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
-    op.drop_index('ix_a41f1944_Flag_flag', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
-    op.drop_index('ix_296e03d5_Element Code_element_code', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
-    op.drop_index('ix_008e609d_Survey Code_survey_code', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
+    op.drop_index('ix_e4e45c94_Element Code_element_code', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
+    op.drop_index('ix_cc31e2f2_Indicator Code_indicator_code', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
+    op.drop_index('ix_c1c063df_Survey Code_survey_code', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
+    op.drop_index('ix_a9d19986_Flag_flag', table_name='minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
     op.drop_table('minimum_dietary_diversity_for_women_mdd_w_food_and_diet')
-    op.drop_index('ix_fb5e1303_Flag_flag', table_name='macro_statistics_key_indicators')
-    op.drop_index('ix_a2b970ac_Item Code_item_code', table_name='macro_statistics_key_indicators')
-    op.drop_index('ix_118796cf_Area Code_area_code', table_name='macro_statistics_key_indicators')
-    op.drop_index('ix_077173ee_Element Code_element_code', table_name='macro_statistics_key_indicators')
+    op.drop_index('ix_e1328923_Element Code_element_code', table_name='macro_statistics_key_indicators')
+    op.drop_index('ix_c26d3d31_Area Code_area_code', table_name='macro_statistics_key_indicators')
+    op.drop_index('ix_ac7ad387_Item Code_item_code', table_name='macro_statistics_key_indicators')
+    op.drop_index('ix_1fc4ed71_Flag_flag', table_name='macro_statistics_key_indicators')
     op.drop_table('macro_statistics_key_indicators')
-    op.drop_index('ix_ee4c10b7_Area Code_area_code', table_name='investment_machinery_archive')
-    op.drop_index('ix_adc1be6d_Item Code_item_code', table_name='investment_machinery_archive')
-    op.drop_index('ix_a290d952_Element Code_element_code', table_name='investment_machinery_archive')
-    op.drop_index('ix_3ad2bfcd_Flag_flag', table_name='investment_machinery_archive')
+    op.drop_index('ix_f6a0498d_Item Code_item_code', table_name='investment_machinery_archive')
+    op.drop_index('ix_f01e05a2_Flag_flag', table_name='investment_machinery_archive')
+    op.drop_index('ix_d8fe6325_Element Code_element_code', table_name='investment_machinery_archive')
+    op.drop_index('ix_ce38c829_Area Code_area_code', table_name='investment_machinery_archive')
     op.drop_table('investment_machinery_archive')
-    op.drop_index('ix_9c0d2b00_Element Code_element_code', table_name='investment_machinery')
-    op.drop_index('ix_881e48ef_Flag_flag', table_name='investment_machinery')
-    op.drop_index('ix_82fb552a_Area Code_area_code', table_name='investment_machinery')
-    op.drop_index('ix_72437657_Item Code_item_code', table_name='investment_machinery')
+    op.drop_index('ix_f9295731_Flag_flag', table_name='investment_machinery')
+    op.drop_index('ix_c3aee707_Element Code_element_code', table_name='investment_machinery')
+    op.drop_index('ix_733e00ae_Item Code_item_code', table_name='investment_machinery')
+    op.drop_index('ix_3c994975_Area Code_area_code', table_name='investment_machinery')
     op.drop_table('investment_machinery')
-    op.drop_index('ix_d1ecaf76_Area Code_area_code', table_name='investment_government_expenditure')
-    op.drop_index('ix_c737db49_Element Code_element_code', table_name='investment_government_expenditure')
-    op.drop_index('ix_b37afb50_Flag_flag', table_name='investment_government_expenditure')
-    op.drop_index('ix_4d80aaa2_Item Code_item_code', table_name='investment_government_expenditure')
+    op.drop_index('ix_e4c3d378_Item Code_item_code', table_name='investment_government_expenditure')
+    op.drop_index('ix_9a7054da_Element Code_element_code', table_name='investment_government_expenditure')
+    op.drop_index('ix_8f5ada77_Area Code_area_code', table_name='investment_government_expenditure')
+    op.drop_index('ix_6e2e5166_Flag_flag', table_name='investment_government_expenditure')
     op.drop_table('investment_government_expenditure')
-    op.drop_index('ix_f371e59c_Area Code_area_code', table_name='investment_foreign_direct_investment')
-    op.drop_index('ix_6e3f938b_Flag_flag', table_name='investment_foreign_direct_investment')
-    op.drop_index('ix_3526020c_Item Code_item_code', table_name='investment_foreign_direct_investment')
-    op.drop_index('ix_09dc06e0_Element Code_element_code', table_name='investment_foreign_direct_investment')
+    op.drop_index('ix_be1ca335_Item Code_item_code', table_name='investment_foreign_direct_investment')
+    op.drop_index('ix_4d600ec7_Flag_flag', table_name='investment_foreign_direct_investment')
+    op.drop_index('ix_3d7d8e55_Element Code_element_code', table_name='investment_foreign_direct_investment')
+    op.drop_index('ix_2076e88c_Area Code_area_code', table_name='investment_foreign_direct_investment')
     op.drop_table('investment_foreign_direct_investment')
-    op.drop_index('ix_e4512500_Element Code_element_code', table_name='investment_credit_agriculture')
-    op.drop_index('ix_d3cb7472_Area Code_area_code', table_name='investment_credit_agriculture')
-    op.drop_index('ix_558d52bc_Flag_flag', table_name='investment_credit_agriculture')
-    op.drop_index('ix_04c35927_Item Code_item_code', table_name='investment_credit_agriculture')
+    op.drop_index('ix_feabef76_Item Code_item_code', table_name='investment_credit_agriculture')
+    op.drop_index('ix_fb957bc2_Area Code_area_code', table_name='investment_credit_agriculture')
+    op.drop_index('ix_4b87a45d_Flag_flag', table_name='investment_credit_agriculture')
+    op.drop_index('ix_27b5b4f5_Element Code_element_code', table_name='investment_credit_agriculture')
     op.drop_table('investment_credit_agriculture')
-    op.drop_index('ix_824822f1_Area Code_area_code', table_name='investment_country_investment_statistics_profile')
-    op.drop_index('ix_6e43e63b_Item Code_item_code', table_name='investment_country_investment_statistics_profile')
-    op.drop_index('ix_5600c8ef_Element Code_element_code', table_name='investment_country_investment_statistics_profile')
-    op.drop_index('ix_32d13ad5_Flag_flag', table_name='investment_country_investment_statistics_profile')
+    op.drop_index('ix_e207790c_Flag_flag', table_name='investment_country_investment_statistics_profile')
+    op.drop_index('ix_beb2e935_Area Code_area_code', table_name='investment_country_investment_statistics_profile')
+    op.drop_index('ix_7b86d389_Item Code_item_code', table_name='investment_country_investment_statistics_profile')
+    op.drop_index('ix_6854f7bd_Element Code_element_code', table_name='investment_country_investment_statistics_profile')
     op.drop_table('investment_country_investment_statistics_profile')
-    op.drop_index('ix_974a5d01_Flag_flag', table_name='investment_capital_stock')
-    op.drop_index('ix_70ac613d_Item Code_item_code', table_name='investment_capital_stock')
-    op.drop_index('ix_29ea78d3_Area Code_area_code', table_name='investment_capital_stock')
-    op.drop_index('ix_16ea2510_Element Code_element_code', table_name='investment_capital_stock')
+    op.drop_index('ix_be77cabf_Element Code_element_code', table_name='investment_capital_stock')
+    op.drop_index('ix_a681a22f_Item Code_item_code', table_name='investment_capital_stock')
+    op.drop_index('ix_a33ef11a_Flag_flag', table_name='investment_capital_stock')
+    op.drop_index('ix_37d4e50e_Area Code_area_code', table_name='investment_capital_stock')
     op.drop_table('investment_capital_stock')
-    op.drop_index('ix_e8dee45f_Element Code_element_code', table_name='inputs_pesticides_use')
-    op.drop_index('ix_967074f0_Item Code_item_code', table_name='inputs_pesticides_use')
-    op.drop_index('ix_5f315358_Area Code_area_code', table_name='inputs_pesticides_use')
-    op.drop_index('ix_2a7dbe01_Flag_flag', table_name='inputs_pesticides_use')
+    op.drop_index('ix_ea7449b0_Area Code_area_code', table_name='inputs_pesticides_use')
+    op.drop_index('ix_a4d5b6ff_Flag_flag', table_name='inputs_pesticides_use')
+    op.drop_index('ix_7b3fa3be_Item Code_item_code', table_name='inputs_pesticides_use')
+    op.drop_index('ix_56a35d72_Element Code_element_code', table_name='inputs_pesticides_use')
     op.drop_table('inputs_pesticides_use')
-    op.drop_index('ix_ec7453e7_Item Code_item_code', table_name='inputs_pesticides_trade')
-    op.drop_index('ix_d8b19ee4_Flag_flag', table_name='inputs_pesticides_trade')
-    op.drop_index('ix_d7ef48a2_Element Code_element_code', table_name='inputs_pesticides_trade')
-    op.drop_index('ix_2bd9ac03_Area Code_area_code', table_name='inputs_pesticides_trade')
+    op.drop_index('ix_c01def28_Element Code_element_code', table_name='inputs_pesticides_trade')
+    op.drop_index('ix_bf4ca1c4_Flag_flag', table_name='inputs_pesticides_trade')
+    op.drop_index('ix_b3028334_Area Code_area_code', table_name='inputs_pesticides_trade')
+    op.drop_index('ix_07d5ce65_Item Code_item_code', table_name='inputs_pesticides_trade')
     op.drop_table('inputs_pesticides_trade')
-    op.drop_index('ix_ff85f44c_Flag_flag', table_name='inputs_land_use')
-    op.drop_index('ix_a9b8df6e_Item Code_item_code', table_name='inputs_land_use')
-    op.drop_index('ix_83662620_Element Code_element_code', table_name='inputs_land_use')
-    op.drop_index('ix_6c5d7bf4_Area Code_area_code', table_name='inputs_land_use')
+    op.drop_index('ix_8ed49010_Flag_flag', table_name='inputs_land_use')
+    op.drop_index('ix_4c4c8cf9_Element Code_element_code', table_name='inputs_land_use')
+    op.drop_index('ix_4607c19b_Item Code_item_code', table_name='inputs_land_use')
+    op.drop_index('ix_2d411bf5_Area Code_area_code', table_name='inputs_land_use')
     op.drop_table('inputs_land_use')
-    op.drop_index('ix_f3974e0e_Element Code_element_code', table_name='inputs_fertilizers_product')
-    op.drop_index('ix_93af7877_Item Code_item_code', table_name='inputs_fertilizers_product')
-    op.drop_index('ix_753ad911_Flag_flag', table_name='inputs_fertilizers_product')
-    op.drop_index('ix_12e49d35_Area Code_area_code', table_name='inputs_fertilizers_product')
+    op.drop_index('ix_ba27dd69_Flag_flag', table_name='inputs_fertilizers_product')
+    op.drop_index('ix_7cbf2a5c_Area Code_area_code', table_name='inputs_fertilizers_product')
+    op.drop_index('ix_4d6e51e9_Element Code_element_code', table_name='inputs_fertilizers_product')
+    op.drop_index('ix_460da5d5_Item Code_item_code', table_name='inputs_fertilizers_product')
     op.drop_table('inputs_fertilizers_product')
-    op.drop_index('ix_dd45322e_Area Code_area_code', table_name='inputs_fertilizers_nutrient')
-    op.drop_index('ix_a8baa73a_Item Code_item_code', table_name='inputs_fertilizers_nutrient')
-    op.drop_index('ix_8cc812e7_Element Code_element_code', table_name='inputs_fertilizers_nutrient')
-    op.drop_index('ix_5467c131_Flag_flag', table_name='inputs_fertilizers_nutrient')
+    op.drop_index('ix_fc17e3e1_Flag_flag', table_name='inputs_fertilizers_nutrient')
+    op.drop_index('ix_5ab2d644_Item Code_item_code', table_name='inputs_fertilizers_nutrient')
+    op.drop_index('ix_3110ffad_Element Code_element_code', table_name='inputs_fertilizers_nutrient')
+    op.drop_index('ix_0fceeb39_Area Code_area_code', table_name='inputs_fertilizers_nutrient')
     op.drop_table('inputs_fertilizers_nutrient')
-    op.drop_index('ix_94b103cc_Item Code_item_code', table_name='inputs_fertilizers_archive')
-    op.drop_index('ix_872395b7_Area Code_area_code', table_name='inputs_fertilizers_archive')
-    op.drop_index('ix_859b66ea_Element Code_element_code', table_name='inputs_fertilizers_archive')
-    op.drop_index('ix_2f064dc6_Flag_flag', table_name='inputs_fertilizers_archive')
+    op.drop_index('ix_ed03dde3_Flag_flag', table_name='inputs_fertilizers_archive')
+    op.drop_index('ix_8528c9b5_Area Code_area_code', table_name='inputs_fertilizers_archive')
+    op.drop_index('ix_2a1776e0_Item Code_item_code', table_name='inputs_fertilizers_archive')
+    op.drop_index('ix_146a5098_Element Code_element_code', table_name='inputs_fertilizers_archive')
     op.drop_table('inputs_fertilizers_archive')
-    op.drop_index('ix_d6945dbc_Survey Code_survey_code', table_name='individual_quantitative_dietary_data_food_and_diet')
-    op.drop_index('ix_cf4857b5_Population Age Group Code_population_age_group_code', table_name='individual_quantitative_dietary_data_food_and_diet')
-    op.drop_index('ix_bf9e4c46_Sex Code_sex_code', table_name='individual_quantitative_dietary_data_food_and_diet')
-    op.drop_index('ix_307c61d7_Flag_flag', table_name='individual_quantitative_dietary_data_food_and_diet')
-    op.drop_index('ix_0aaf6439_Element Code_element_code', table_name='individual_quantitative_dietary_data_food_and_diet')
-    op.drop_index('ix_06d32cc0_Indicator Code_indicator_code', table_name='individual_quantitative_dietary_data_food_and_diet')
+    op.drop_index('ix_c55fc4f5_Element Code_element_code', table_name='individual_quantitative_dietary_data_food_and_diet')
+    op.drop_index('ix_8e2ba35d_Flag_flag', table_name='individual_quantitative_dietary_data_food_and_diet')
+    op.drop_index('ix_75ce8cac_Indicator Code_indicator_code', table_name='individual_quantitative_dietary_data_food_and_diet')
+    op.drop_index('ix_6cb1f854_Sex Code_sex_code', table_name='individual_quantitative_dietary_data_food_and_diet')
+    op.drop_index('ix_52e4f0bb_Population Age Group Code_population_age_group_code', table_name='individual_quantitative_dietary_data_food_and_diet')
+    op.drop_index('ix_3ea1461e_Survey Code_survey_code', table_name='individual_quantitative_dietary_data_food_and_diet')
     op.drop_table('individual_quantitative_dietary_data_food_and_diet')
-    op.drop_index('ix_e45f9c40_Element Code_element_code', table_name='indicators_from_household_surveys')
-    op.drop_index('ix_c79e00b4_Survey Code_survey_code', table_name='indicators_from_household_surveys')
-    op.drop_index('ix_7b6007bc_Flag_flag', table_name='indicators_from_household_surveys')
-    op.drop_index('ix_337f0c6d_Indicator Code_indicator_code', table_name='indicators_from_household_surveys')
+    op.drop_index('ix_b8f62461_Indicator Code_indicator_code', table_name='indicators_from_household_surveys')
+    op.drop_index('ix_b701fbd2_Element Code_element_code', table_name='indicators_from_household_surveys')
+    op.drop_index('ix_6a0f2550_Flag_flag', table_name='indicators_from_household_surveys')
+    op.drop_index('ix_3d8f4b0e_Survey Code_survey_code', table_name='indicators_from_household_surveys')
     op.drop_table('indicators_from_household_surveys')
-    op.drop_index('ix_bfd105f3_Element Code_element_code', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
-    op.drop_index('ix_ad526796_Survey Code_survey_code', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
-    op.drop_index('ix_7a58db07_Flag_flag', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
-    op.drop_index('ix_373cfabf_Indicator Code_indicator_code', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
+    op.drop_index('ix_e953f509_Flag_flag', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
+    op.drop_index('ix_865b1658_Indicator Code_indicator_code', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
+    op.drop_index('ix_8595d109_Survey Code_survey_code', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
+    op.drop_index('ix_53209f5f_Element Code_element_code', table_name='household_consumption_and_expenditure_surveys_food_and_diet')
     op.drop_table('household_consumption_and_expenditure_surveys_food_and_diet')
-    op.drop_index('ix_cd2f4857_Flag_flag', table_name='forestry_trade_flows')
-    op.drop_index('ix_aeb02e6d_Item Code_item_code', table_name='forestry_trade_flows')
-    op.drop_index('ix_6fae2eb5_Element Code_element_code', table_name='forestry_trade_flows')
+    op.drop_index('ix_aabae6f7_Flag_flag', table_name='forestry_trade_flows')
+    op.drop_index('ix_56b55d0b_Item Code_item_code', table_name='forestry_trade_flows')
+    op.drop_index('ix_025fecd4_Element Code_element_code', table_name='forestry_trade_flows')
     op.drop_table('forestry_trade_flows')
-    op.drop_index('ix_b778552e_Element Code_element_code', table_name='forestry_pulp_paper_survey')
-    op.drop_index('ix_27182241_Area Code_area_code', table_name='forestry_pulp_paper_survey')
-    op.drop_index('ix_249074d4_Flag_flag', table_name='forestry_pulp_paper_survey')
-    op.drop_index('ix_2306438e_Item Code_item_code', table_name='forestry_pulp_paper_survey')
+    op.drop_index('ix_fa6958bf_Flag_flag', table_name='forestry_pulp_paper_survey')
+    op.drop_index('ix_e166cabe_Item Code_item_code', table_name='forestry_pulp_paper_survey')
+    op.drop_index('ix_d74fafe5_Area Code_area_code', table_name='forestry_pulp_paper_survey')
+    op.drop_index('ix_74f6a314_Element Code_element_code', table_name='forestry_pulp_paper_survey')
     op.drop_table('forestry_pulp_paper_survey')
-    op.drop_index('ix_c40c7b46_Area Code_area_code', table_name='forestry')
-    op.drop_index('ix_c0e0f0f9_Flag_flag', table_name='forestry')
-    op.drop_index('ix_2664c991_Item Code_item_code', table_name='forestry')
-    op.drop_index('ix_0a939b03_Element Code_element_code', table_name='forestry')
+    op.drop_index('ix_f20e0739_Element Code_element_code', table_name='forestry')
+    op.drop_index('ix_6aa81552_Flag_flag', table_name='forestry')
+    op.drop_index('ix_63ba15b6_Item Code_item_code', table_name='forestry')
+    op.drop_index('ix_2307e0c0_Area Code_area_code', table_name='forestry')
     op.drop_table('forestry')
-    op.drop_index('ix_b5649e43_Item Code_item_code', table_name='food_security_data')
-    op.drop_index('ix_a6d7becf_Element Code_element_code', table_name='food_security_data')
-    op.drop_index('ix_2c540e20_Flag_flag', table_name='food_security_data')
-    op.drop_index('ix_2b0d74a7_Area Code_area_code', table_name='food_security_data')
+    op.drop_index('ix_aca04cbf_Item Code_item_code', table_name='food_security_data')
+    op.drop_index('ix_8c3612d2_Element Code_element_code', table_name='food_security_data')
+    op.drop_index('ix_2a301922_Flag_flag', table_name='food_security_data')
+    op.drop_index('ix_24d7e95c_Area Code_area_code', table_name='food_security_data')
     op.drop_table('food_security_data')
-    op.drop_index('ix_e707192d_Element Code_element_code', table_name='food_balance_sheets_historic')
-    op.drop_index('ix_bf4a0ce3_Area Code_area_code', table_name='food_balance_sheets_historic')
-    op.drop_index('ix_84085f90_Flag_flag', table_name='food_balance_sheets_historic')
-    op.drop_index('ix_2b434386_Item Code_item_code', table_name='food_balance_sheets_historic')
+    op.drop_index('ix_da79af32_Area Code_area_code', table_name='food_balance_sheets_historic')
+    op.drop_index('ix_d2a12532_Item Code_item_code', table_name='food_balance_sheets_historic')
+    op.drop_index('ix_b2e6d711_Flag_flag', table_name='food_balance_sheets_historic')
+    op.drop_index('ix_6ec049ed_Element Code_element_code', table_name='food_balance_sheets_historic')
     op.drop_table('food_balance_sheets_historic')
-    op.drop_index('ix_9be7c68b_Element Code_element_code', table_name='food_balance_sheets')
-    op.drop_index('ix_8c41667e_Area Code_area_code', table_name='food_balance_sheets')
-    op.drop_index('ix_1ae68a55_Flag_flag', table_name='food_balance_sheets')
-    op.drop_index('ix_0584fad5_Item Code_item_code', table_name='food_balance_sheets')
+    op.drop_index('ix_d5efe10a_Area Code_area_code', table_name='food_balance_sheets')
+    op.drop_index('ix_cda2e808_Element Code_element_code', table_name='food_balance_sheets')
+    op.drop_index('ix_bb430966_Item Code_item_code', table_name='food_balance_sheets')
+    op.drop_index('ix_0a45cdc0_Flag_flag', table_name='food_balance_sheets')
     op.drop_table('food_balance_sheets')
-    op.drop_index('ix_faf4ed17_Flag_flag', table_name='food_and_diet_individual_quantitative_dietary_data')
-    op.drop_index('ix_f98e3843_Survey Code_survey_code', table_name='food_and_diet_individual_quantitative_dietary_data')
-    op.drop_index('ix_84527f86_Indicator Code_indicator_code', table_name='food_and_diet_individual_quantitative_dietary_data')
-    op.drop_index('ix_612a5db2_Sex Code_sex_code', table_name='food_and_diet_individual_quantitative_dietary_data')
-    op.drop_index('ix_601904be_Element Code_element_code', table_name='food_and_diet_individual_quantitative_dietary_data')
+    op.drop_index('ix_f7f1b51b_Survey Code_survey_code', table_name='food_and_diet_individual_quantitative_dietary_data')
+    op.drop_index('ix_a1954fc6_Element Code_element_code', table_name='food_and_diet_individual_quantitative_dietary_data')
+    op.drop_index('ix_65f490ef_Indicator Code_indicator_code', table_name='food_and_diet_individual_quantitative_dietary_data')
+    op.drop_index('ix_5c9500ab_Sex Code_sex_code', table_name='food_and_diet_individual_quantitative_dietary_data')
+    op.drop_index('ix_14dadf26_Flag_flag', table_name='food_and_diet_individual_quantitative_dietary_data')
     op.drop_table('food_and_diet_individual_quantitative_dietary_data')
-    op.drop_index('ix_caae1702_Flag_flag', table_name='food_aid_shipments_wfp')
-    op.drop_index('ix_540294f2_Element Code_element_code', table_name='food_aid_shipments_wfp')
-    op.drop_index('ix_4fb24158_Item Code_item_code', table_name='food_aid_shipments_wfp')
+    op.drop_index('ix_94a67500_Flag_flag', table_name='food_aid_shipments_wfp')
+    op.drop_index('ix_7b8cd660_Element Code_element_code', table_name='food_aid_shipments_wfp')
+    op.drop_index('ix_0db6f830_Item Code_item_code', table_name='food_aid_shipments_wfp')
     op.drop_table('food_aid_shipments_wfp')
-    op.drop_index('ix_b55aebd4_Flag_flag', table_name='fertilizers_detailed_trade_matrix')
-    op.drop_index('ix_9c4fb35f_Element Code_element_code', table_name='fertilizers_detailed_trade_matrix')
-    op.drop_index('ix_31f0c116_Item Code_item_code', table_name='fertilizers_detailed_trade_matrix')
+    op.drop_index('ix_c4d998e8_Element Code_element_code', table_name='fertilizers_detailed_trade_matrix')
+    op.drop_index('ix_7666c02b_Flag_flag', table_name='fertilizers_detailed_trade_matrix')
+    op.drop_index('ix_15097f19_Item Code_item_code', table_name='fertilizers_detailed_trade_matrix')
     op.drop_table('fertilizers_detailed_trade_matrix')
-    op.drop_index('ix_e8fa2bd2_ISO Currency Code_iso_currency_code', table_name='exchange_rate')
-    op.drop_index('ix_e1b826bb_Area Code_area_code', table_name='exchange_rate')
-    op.drop_index('ix_30342b8e_Element Code_element_code', table_name='exchange_rate')
-    op.drop_index('ix_16903fbe_Flag_flag', table_name='exchange_rate')
+    op.drop_index('ix_97bc48f6_Flag_flag', table_name='exchange_rate')
+    op.drop_index('ix_5a5831fd_Area Code_area_code', table_name='exchange_rate')
+    op.drop_index('ix_0c0692f3_ISO Currency Code_iso_currency_code', table_name='exchange_rate')
+    op.drop_index('ix_0b4d7b87_Element Code_element_code', table_name='exchange_rate')
     op.drop_table('exchange_rate')
-    op.drop_index('ix_f9249e38_Element Code_element_code', table_name='environment_temperature_change')
-    op.drop_index('ix_c21354a8_Flag_flag', table_name='environment_temperature_change')
-    op.drop_index('ix_51f62d5b_Area Code_area_code', table_name='environment_temperature_change')
+    op.drop_index('ix_e859aa2f_Element Code_element_code', table_name='environment_temperature_change')
+    op.drop_index('ix_204e88cc_Flag_flag', table_name='environment_temperature_change')
+    op.drop_index('ix_145bdef1_Area Code_area_code', table_name='environment_temperature_change')
     op.drop_table('environment_temperature_change')
-    op.drop_index('ix_c40bc0fd_Item Code_item_code', table_name='environment_soil_nutrient_budget')
-    op.drop_index('ix_b7f205da_Area Code_area_code', table_name='environment_soil_nutrient_budget')
-    op.drop_index('ix_428191e4_Element Code_element_code', table_name='environment_soil_nutrient_budget')
-    op.drop_index('ix_2df9c895_Flag_flag', table_name='environment_soil_nutrient_budget')
+    op.drop_index('ix_f84a092f_Area Code_area_code', table_name='environment_soil_nutrient_budget')
+    op.drop_index('ix_f52185d3_Flag_flag', table_name='environment_soil_nutrient_budget')
+    op.drop_index('ix_dfa76342_Element Code_element_code', table_name='environment_soil_nutrient_budget')
+    op.drop_index('ix_3e160a4d_Item Code_item_code', table_name='environment_soil_nutrient_budget')
     op.drop_table('environment_soil_nutrient_budget')
-    op.drop_index('ix_a271c429_Area Code_area_code', table_name='environment_pesticides')
-    op.drop_index('ix_89ad0e5a_Flag_flag', table_name='environment_pesticides')
-    op.drop_index('ix_81b05128_Item Code_item_code', table_name='environment_pesticides')
-    op.drop_index('ix_6dcf8bf3_Element Code_element_code', table_name='environment_pesticides')
+    op.drop_index('ix_fa8000f6_Element Code_element_code', table_name='environment_pesticides')
+    op.drop_index('ix_d88c8786_Item Code_item_code', table_name='environment_pesticides')
+    op.drop_index('ix_2813ba43_Flag_flag', table_name='environment_pesticides')
+    op.drop_index('ix_1e4e1979_Area Code_area_code', table_name='environment_pesticides')
     op.drop_table('environment_pesticides')
-    op.drop_index('ix_7c460bdf_Element Code_element_code', table_name='environment_livestock_patterns')
-    op.drop_index('ix_76211800_Flag_flag', table_name='environment_livestock_patterns')
-    op.drop_index('ix_6d53a9a2_Area Code_area_code', table_name='environment_livestock_patterns')
-    op.drop_index('ix_6a988710_Item Code_item_code', table_name='environment_livestock_patterns')
+    op.drop_index('ix_cb13b7a0_Element Code_element_code', table_name='environment_livestock_patterns')
+    op.drop_index('ix_4309e11a_Area Code_area_code', table_name='environment_livestock_patterns')
+    op.drop_index('ix_2a535fff_Item Code_item_code', table_name='environment_livestock_patterns')
+    op.drop_index('ix_26a8b1a9_Flag_flag', table_name='environment_livestock_patterns')
     op.drop_table('environment_livestock_patterns')
-    op.drop_index('ix_dba55e3f_Area Code_area_code', table_name='environment_livestock_manure')
-    op.drop_index('ix_cb778fbe_Item Code_item_code', table_name='environment_livestock_manure')
-    op.drop_index('ix_60744642_Flag_flag', table_name='environment_livestock_manure')
-    op.drop_index('ix_53ba60aa_Element Code_element_code', table_name='environment_livestock_manure')
+    op.drop_index('ix_ead2ad49_Item Code_item_code', table_name='environment_livestock_manure')
+    op.drop_index('ix_d0e23b5d_Area Code_area_code', table_name='environment_livestock_manure')
+    op.drop_index('ix_b8e48b4f_Flag_flag', table_name='environment_livestock_manure')
+    op.drop_index('ix_4bba1308_Element Code_element_code', table_name='environment_livestock_manure')
     op.drop_table('environment_livestock_manure')
-    op.drop_index('ix_f45eeb2e_Area Code_area_code', table_name='environment_land_use')
-    op.drop_index('ix_a861e85f_Element Code_element_code', table_name='environment_land_use')
-    op.drop_index('ix_90cd1354_Flag_flag', table_name='environment_land_use')
-    op.drop_index('ix_5e883f55_Item Code_item_code', table_name='environment_land_use')
+    op.drop_index('ix_f65727ae_Flag_flag', table_name='environment_land_use')
+    op.drop_index('ix_b501aff8_Element Code_element_code', table_name='environment_land_use')
+    op.drop_index('ix_39b71383_Item Code_item_code', table_name='environment_land_use')
+    op.drop_index('ix_1403d47a_Area Code_area_code', table_name='environment_land_use')
     op.drop_table('environment_land_use')
-    op.drop_index('ix_cc897cb7_Item Code_item_code', table_name='environment_land_cover')
-    op.drop_index('ix_b938604a_Area Code_area_code', table_name='environment_land_cover')
-    op.drop_index('ix_644cacd8_Flag_flag', table_name='environment_land_cover')
-    op.drop_index('ix_24995947_Element Code_element_code', table_name='environment_land_cover')
+    op.drop_index('ix_afd0f571_Flag_flag', table_name='environment_land_cover')
+    op.drop_index('ix_85534abb_Area Code_area_code', table_name='environment_land_cover')
+    op.drop_index('ix_186354bb_Element Code_element_code', table_name='environment_land_cover')
+    op.drop_index('ix_0c7442c2_Item Code_item_code', table_name='environment_land_cover')
     op.drop_table('environment_land_cover')
-    op.drop_index('ix_e954e9b6_Flag_flag', table_name='environment_food_waste_disposal')
-    op.drop_index('ix_20294c70_Area Code_area_code', table_name='environment_food_waste_disposal')
-    op.drop_index('ix_08e7ab8e_Item Code_item_code', table_name='environment_food_waste_disposal')
-    op.drop_index('ix_04d8ce9d_Element Code_element_code', table_name='environment_food_waste_disposal')
+    op.drop_index('ix_96c1c624_Item Code_item_code', table_name='environment_food_waste_disposal')
+    op.drop_index('ix_36ee2371_Area Code_area_code', table_name='environment_food_waste_disposal')
+    op.drop_index('ix_111ec736_Flag_flag', table_name='environment_food_waste_disposal')
+    op.drop_index('ix_020340cd_Element Code_element_code', table_name='environment_food_waste_disposal')
     op.drop_table('environment_food_waste_disposal')
-    op.drop_index('ix_449f94b6_Flag_flag', table_name='environment_emissions_intensities')
-    op.drop_index('ix_289f8685_Area Code_area_code', table_name='environment_emissions_intensities')
-    op.drop_index('ix_2186dc6e_Element Code_element_code', table_name='environment_emissions_intensities')
-    op.drop_index('ix_19a302b6_Item Code_item_code', table_name='environment_emissions_intensities')
+    op.drop_index('ix_cbce30af_Area Code_area_code', table_name='environment_emissions_intensities')
+    op.drop_index('ix_9fb9ca4e_Element Code_element_code', table_name='environment_emissions_intensities')
+    op.drop_index('ix_6df31535_Flag_flag', table_name='environment_emissions_intensities')
+    op.drop_index('ix_1c80edca_Item Code_item_code', table_name='environment_emissions_intensities')
     op.drop_table('environment_emissions_intensities')
-    op.drop_index('ix_cd0328e3_Area Code_area_code', table_name='environment_emissions_by_sector')
-    op.drop_index('ix_822f03b6_Element Code_element_code', table_name='environment_emissions_by_sector')
-    op.drop_index('ix_3c4e2b41_Item Code_item_code', table_name='environment_emissions_by_sector')
-    op.drop_index('ix_0e8546e1_Flag_flag', table_name='environment_emissions_by_sector')
+    op.drop_index('ix_f9bdaf4c_Element Code_element_code', table_name='environment_emissions_by_sector')
+    op.drop_index('ix_e9dc9737_Flag_flag', table_name='environment_emissions_by_sector')
+    op.drop_index('ix_d833193e_Area Code_area_code', table_name='environment_emissions_by_sector')
+    op.drop_index('ix_d55120ce_Item Code_item_code', table_name='environment_emissions_by_sector')
     op.drop_table('environment_emissions_by_sector')
-    op.drop_index('ix_d5c334ca_Flag_flag', table_name='environment_cropland_nutrient_budget')
-    op.drop_index('ix_721f4f78_Area Code_area_code', table_name='environment_cropland_nutrient_budget')
-    op.drop_index('ix_26457d3d_Item Code_item_code', table_name='environment_cropland_nutrient_budget')
-    op.drop_index('ix_0f933228_Element Code_element_code', table_name='environment_cropland_nutrient_budget')
+    op.drop_index('ix_e0d57afe_Item Code_item_code', table_name='environment_cropland_nutrient_budget')
+    op.drop_index('ix_8469c7bd_Element Code_element_code', table_name='environment_cropland_nutrient_budget')
+    op.drop_index('ix_28da192a_Area Code_area_code', table_name='environment_cropland_nutrient_budget')
+    op.drop_index('ix_1237c52f_Flag_flag', table_name='environment_cropland_nutrient_budget')
     op.drop_table('environment_cropland_nutrient_budget')
-    op.drop_index('ix_b79cd879_Item Code_item_code', table_name='environment_bioenergy')
-    op.drop_index('ix_9c7a914a_Element Code_element_code', table_name='environment_bioenergy')
-    op.drop_index('ix_7cb69d8a_Area Code_area_code', table_name='environment_bioenergy')
-    op.drop_index('ix_73f0dd02_Flag_flag', table_name='environment_bioenergy')
+    op.drop_index('ix_fef0ddd7_Flag_flag', table_name='environment_bioenergy')
+    op.drop_index('ix_aaeaba81_Item Code_item_code', table_name='environment_bioenergy')
+    op.drop_index('ix_84842140_Element Code_element_code', table_name='environment_bioenergy')
+    op.drop_index('ix_7e1d57d4_Area Code_area_code', table_name='environment_bioenergy')
     op.drop_table('environment_bioenergy')
-    op.drop_index('ix_fb6d17df_Area Code_area_code', table_name='employment_indicators_rural')
-    op.drop_index('ix_a7241904_Flag_flag', table_name='employment_indicators_rural')
-    op.drop_index('ix_9dfd1ef5_Element Code_element_code', table_name='employment_indicators_rural')
-    op.drop_index('ix_86a03db8_Source Code_source_code', table_name='employment_indicators_rural')
-    op.drop_index('ix_72c1e493_Sex Code_sex_code', table_name='employment_indicators_rural')
-    op.drop_index('ix_0451f7c0_Indicator Code_indicator_code', table_name='employment_indicators_rural')
+    op.drop_index('ix_c9ffa430_Source Code_source_code', table_name='employment_indicators_rural')
+    op.drop_index('ix_b9c95237_Element Code_element_code', table_name='employment_indicators_rural')
+    op.drop_index('ix_aa29dd06_Flag_flag', table_name='employment_indicators_rural')
+    op.drop_index('ix_973d28bc_Area Code_area_code', table_name='employment_indicators_rural')
+    op.drop_index('ix_77441e2b_Sex Code_sex_code', table_name='employment_indicators_rural')
+    op.drop_index('ix_5aa5a543_Indicator Code_indicator_code', table_name='employment_indicators_rural')
     op.drop_table('employment_indicators_rural')
-    op.drop_index('ix_f55a6c60_Flag_flag', table_name='employment_indicators_agriculture')
-    op.drop_index('ix_f25e110a_Source Code_source_code', table_name='employment_indicators_agriculture')
-    op.drop_index('ix_c54e65df_Element Code_element_code', table_name='employment_indicators_agriculture')
-    op.drop_index('ix_73dbf5af_Area Code_area_code', table_name='employment_indicators_agriculture')
-    op.drop_index('ix_70deede2_Sex Code_sex_code', table_name='employment_indicators_agriculture')
-    op.drop_index('ix_1b9fe9ef_Indicator Code_indicator_code', table_name='employment_indicators_agriculture')
+    op.drop_index('ix_d8aaea4a_Area Code_area_code', table_name='employment_indicators_agriculture')
+    op.drop_index('ix_4758d8ad_Flag_flag', table_name='employment_indicators_agriculture')
+    op.drop_index('ix_41a38e7b_Source Code_source_code', table_name='employment_indicators_agriculture')
+    op.drop_index('ix_3ee471c3_Element Code_element_code', table_name='employment_indicators_agriculture')
+    op.drop_index('ix_2c462c42_Sex Code_sex_code', table_name='employment_indicators_agriculture')
+    op.drop_index('ix_1f8ab1fd_Indicator Code_indicator_code', table_name='employment_indicators_agriculture')
     op.drop_table('employment_indicators_agriculture')
-    op.drop_index('ix_cc21f066_Element Code_element_code', table_name='emissions_totals')
-    op.drop_index('ix_8a866963_Flag_flag', table_name='emissions_totals')
-    op.drop_index('ix_684fa8e1_Source Code_source_code', table_name='emissions_totals')
-    op.drop_index('ix_51fb9333_Area Code_area_code', table_name='emissions_totals')
-    op.drop_index('ix_4d41dacd_Item Code_item_code', table_name='emissions_totals')
+    op.drop_index('ix_c2519387_Source Code_source_code', table_name='emissions_totals')
+    op.drop_index('ix_72f7da99_Element Code_element_code', table_name='emissions_totals')
+    op.drop_index('ix_459ea025_Flag_flag', table_name='emissions_totals')
+    op.drop_index('ix_41393f6a_Area Code_area_code', table_name='emissions_totals')
+    op.drop_index('ix_3b822a73_Item Code_item_code', table_name='emissions_totals')
     op.drop_table('emissions_totals')
-    op.drop_index('ix_d0c63361_Flag_flag', table_name='emissions_pre_post_production')
-    op.drop_index('ix_97a94cde_Area Code_area_code', table_name='emissions_pre_post_production')
-    op.drop_index('ix_7821e131_Item Code_item_code', table_name='emissions_pre_post_production')
-    op.drop_index('ix_6e4ee49b_Element Code_element_code', table_name='emissions_pre_post_production')
+    op.drop_index('ix_d1d5b7fe_Flag_flag', table_name='emissions_pre_post_production')
+    op.drop_index('ix_af66ee6c_Area Code_area_code', table_name='emissions_pre_post_production')
+    op.drop_index('ix_a72270ff_Item Code_item_code', table_name='emissions_pre_post_production')
+    op.drop_index('ix_09205d6f_Element Code_element_code', table_name='emissions_pre_post_production')
     op.drop_table('emissions_pre_post_production')
-    op.drop_index('ix_e84c42c4_Area Code_area_code', table_name='emissions_livestock')
-    op.drop_index('ix_e07bb2cc_Source Code_source_code', table_name='emissions_livestock')
-    op.drop_index('ix_c7f7e342_Flag_flag', table_name='emissions_livestock')
-    op.drop_index('ix_89806e40_Item Code_item_code', table_name='emissions_livestock')
-    op.drop_index('ix_0627acae_Element Code_element_code', table_name='emissions_livestock')
+    op.drop_index('ix_9bf69cd2_Flag_flag', table_name='emissions_livestock')
+    op.drop_index('ix_8aa49385_Item Code_item_code', table_name='emissions_livestock')
+    op.drop_index('ix_6825ff88_Element Code_element_code', table_name='emissions_livestock')
+    op.drop_index('ix_1dea71f6_Source Code_source_code', table_name='emissions_livestock')
+    op.drop_index('ix_144e09a9_Area Code_area_code', table_name='emissions_livestock')
     op.drop_table('emissions_livestock')
-    op.drop_index('ix_ca10bd81_Item Code_item_code', table_name='emissions_land_use_forests')
-    op.drop_index('ix_afe7f35d_Source Code_source_code', table_name='emissions_land_use_forests')
-    op.drop_index('ix_a5073284_Flag_flag', table_name='emissions_land_use_forests')
-    op.drop_index('ix_7d2885bb_Area Code_area_code', table_name='emissions_land_use_forests')
-    op.drop_index('ix_48dc5e1e_Element Code_element_code', table_name='emissions_land_use_forests')
+    op.drop_index('ix_e9d7c715_Flag_flag', table_name='emissions_land_use_forests')
+    op.drop_index('ix_cd5c4b55_Element Code_element_code', table_name='emissions_land_use_forests')
+    op.drop_index('ix_333d8b13_Item Code_item_code', table_name='emissions_land_use_forests')
+    op.drop_index('ix_2e19528b_Source Code_source_code', table_name='emissions_land_use_forests')
+    op.drop_index('ix_0340d81c_Area Code_area_code', table_name='emissions_land_use_forests')
     op.drop_table('emissions_land_use_forests')
-    op.drop_index('ix_dcbf23fd_Element Code_element_code', table_name='emissions_land_use_fires')
-    op.drop_index('ix_b582dbb6_Item Code_item_code', table_name='emissions_land_use_fires')
-    op.drop_index('ix_8f618455_Source Code_source_code', table_name='emissions_land_use_fires')
-    op.drop_index('ix_581d9176_Area Code_area_code', table_name='emissions_land_use_fires')
-    op.drop_index('ix_00c54731_Flag_flag', table_name='emissions_land_use_fires')
+    op.drop_index('ix_d98fd2e5_Element Code_element_code', table_name='emissions_land_use_fires')
+    op.drop_index('ix_7cbeb5f1_Source Code_source_code', table_name='emissions_land_use_fires')
+    op.drop_index('ix_5c39f4a0_Item Code_item_code', table_name='emissions_land_use_fires')
+    op.drop_index('ix_253b5673_Flag_flag', table_name='emissions_land_use_fires')
+    op.drop_index('ix_0c354f5f_Area Code_area_code', table_name='emissions_land_use_fires')
     op.drop_table('emissions_land_use_fires')
-    op.drop_index('ix_ae3eba26_Area Code_area_code', table_name='emissions_drained_organic_soils')
-    op.drop_index('ix_a6d3a25f_Element Code_element_code', table_name='emissions_drained_organic_soils')
-    op.drop_index('ix_a606e8d3_Source Code_source_code', table_name='emissions_drained_organic_soils')
-    op.drop_index('ix_8746e455_Flag_flag', table_name='emissions_drained_organic_soils')
-    op.drop_index('ix_17f1d007_Item Code_item_code', table_name='emissions_drained_organic_soils')
+    op.drop_index('ix_c54a8fc4_Element Code_element_code', table_name='emissions_drained_organic_soils')
+    op.drop_index('ix_aded033e_Item Code_item_code', table_name='emissions_drained_organic_soils')
+    op.drop_index('ix_46c4cdc1_Flag_flag', table_name='emissions_drained_organic_soils')
+    op.drop_index('ix_148087fe_Area Code_area_code', table_name='emissions_drained_organic_soils')
+    op.drop_index('ix_0114c1ce_Source Code_source_code', table_name='emissions_drained_organic_soils')
     op.drop_table('emissions_drained_organic_soils')
-    op.drop_index('ix_a0cc5fcc_Area Code_area_code', table_name='emissions_crops')
-    op.drop_index('ix_47e08b77_Flag_flag', table_name='emissions_crops')
-    op.drop_index('ix_3d973727_Item Code_item_code', table_name='emissions_crops')
-    op.drop_index('ix_2b8cd71f_Element Code_element_code', table_name='emissions_crops')
-    op.drop_index('ix_055bb391_Source Code_source_code', table_name='emissions_crops')
+    op.drop_index('ix_fc4c56bd_Area Code_area_code', table_name='emissions_crops')
+    op.drop_index('ix_ba54107d_Source Code_source_code', table_name='emissions_crops')
+    op.drop_index('ix_442563e6_Flag_flag', table_name='emissions_crops')
+    op.drop_index('ix_309e6d41_Element Code_element_code', table_name='emissions_crops')
+    op.drop_index('ix_1fdc10a5_Item Code_item_code', table_name='emissions_crops')
     op.drop_table('emissions_crops')
-    op.drop_index('ix_9a4adc61_Element Code_element_code', table_name='emissions_agriculture_energy')
-    op.drop_index('ix_75638e7f_Flag_flag', table_name='emissions_agriculture_energy')
-    op.drop_index('ix_38a66191_Area Code_area_code', table_name='emissions_agriculture_energy')
-    op.drop_index('ix_2c711312_Item Code_item_code', table_name='emissions_agriculture_energy')
+    op.drop_index('ix_f939c693_Element Code_element_code', table_name='emissions_agriculture_energy')
+    op.drop_index('ix_dcce060a_Flag_flag', table_name='emissions_agriculture_energy')
+    op.drop_index('ix_c94d659e_Item Code_item_code', table_name='emissions_agriculture_energy')
+    op.drop_index('ix_3cc242ac_Area Code_area_code', table_name='emissions_agriculture_energy')
     op.drop_table('emissions_agriculture_energy')
-    op.drop_index('ix_6a410a0f_Purpose Code_purpose_code', table_name='development_assistance_to_agriculture')
-    op.drop_index('ix_4f3b987f_Flag_flag', table_name='development_assistance_to_agriculture')
-    op.drop_index('ix_1d35fe67_Item Code_item_code', table_name='development_assistance_to_agriculture')
-    op.drop_index('ix_10f4ddee_Element Code_element_code', table_name='development_assistance_to_agriculture')
+    op.drop_index('ix_c467ddc1_Purpose Code_purpose_code', table_name='development_assistance_to_agriculture')
+    op.drop_index('ix_6c917440_Item Code_item_code', table_name='development_assistance_to_agriculture')
+    op.drop_index('ix_63a5cfe6_Flag_flag', table_name='development_assistance_to_agriculture')
+    op.drop_index('ix_0c5daf94_Element Code_element_code', table_name='development_assistance_to_agriculture')
     op.drop_table('development_assistance_to_agriculture')
-    op.drop_index('ix_dc32ae5c_Element Code_element_code', table_name='deflators')
-    op.drop_index('ix_bfee0715_Item Code_item_code', table_name='deflators')
-    op.drop_index('ix_a7b15fce_Flag_flag', table_name='deflators')
-    op.drop_index('ix_5175388b_Area Code_area_code', table_name='deflators')
+    op.drop_index('ix_cdd6c0f7_Flag_flag', table_name='deflators')
+    op.drop_index('ix_a3edf42f_Area Code_area_code', table_name='deflators')
+    op.drop_index('ix_301f01c6_Item Code_item_code', table_name='deflators')
+    op.drop_index('ix_114fdc0e_Element Code_element_code', table_name='deflators')
     op.drop_table('deflators')
-    op.drop_index('ix_b52ffd9f_Flag_flag', table_name='cost_affordability_healthy_diet_co_ahd')
-    op.drop_index('ix_a01a371c_Area Code_area_code', table_name='cost_affordability_healthy_diet_co_ahd')
-    op.drop_index('ix_1da90657_Release Code_release_code', table_name='cost_affordability_healthy_diet_co_ahd')
-    op.drop_index('ix_19f84612_Item Code_item_code', table_name='cost_affordability_healthy_diet_co_ahd')
-    op.drop_index('ix_086a236a_Element Code_element_code', table_name='cost_affordability_healthy_diet_co_ahd')
+    op.drop_index('ix_d78ae165_Item Code_item_code', table_name='cost_affordability_healthy_diet_co_ahd')
+    op.drop_index('ix_d152f719_Element Code_element_code', table_name='cost_affordability_healthy_diet_co_ahd')
+    op.drop_index('ix_c585479b_Release Code_release_code', table_name='cost_affordability_healthy_diet_co_ahd')
+    op.drop_index('ix_28f921a0_Flag_flag', table_name='cost_affordability_healthy_diet_co_ahd')
+    op.drop_index('ix_232b5b19_Area Code_area_code', table_name='cost_affordability_healthy_diet_co_ahd')
     op.drop_table('cost_affordability_healthy_diet_co_ahd')
-    op.drop_index('ix_9edb4b9c_Item Code_item_code', table_name='consumer_price_indices')
-    op.drop_index('ix_72415e86_Flag_flag', table_name='consumer_price_indices')
-    op.drop_index('ix_49c37209_Area Code_area_code', table_name='consumer_price_indices')
-    op.drop_index('ix_0af151fe_Element Code_element_code', table_name='consumer_price_indices')
+    op.drop_index('ix_e4c8c245_Flag_flag', table_name='consumer_price_indices')
+    op.drop_index('ix_9208fbcb_Area Code_area_code', table_name='consumer_price_indices')
+    op.drop_index('ix_8ec3fd3a_Item Code_item_code', table_name='consumer_price_indices')
+    op.drop_index('ix_71ac2edc_Element Code_element_code', table_name='consumer_price_indices')
     op.drop_table('consumer_price_indices')
-    op.drop_index('ix_5dc492c5_Element Code_element_code', table_name='commodity_balances_non_food_2013_old_methodology')
-    op.drop_index('ix_3944ebaa_Area Code_area_code', table_name='commodity_balances_non_food_2013_old_methodology')
-    op.drop_index('ix_1f157388_Flag_flag', table_name='commodity_balances_non_food_2013_old_methodology')
-    op.drop_index('ix_1b59678f_Item Code_item_code', table_name='commodity_balances_non_food_2013_old_methodology')
+    op.drop_index('ix_ed6f466a_Area Code_area_code', table_name='commodity_balances_non_food_2013_old_methodology')
+    op.drop_index('ix_e569ed92_Item Code_item_code', table_name='commodity_balances_non_food_2013_old_methodology')
+    op.drop_index('ix_be1fb920_Flag_flag', table_name='commodity_balances_non_food_2013_old_methodology')
+    op.drop_index('ix_24c4e3d7_Element Code_element_code', table_name='commodity_balances_non_food_2013_old_methodology')
     op.drop_table('commodity_balances_non_food_2013_old_methodology')
-    op.drop_index('ix_e199afa8_Item Code_item_code', table_name='commodity_balances_non_food_2010')
-    op.drop_index('ix_a67bfd34_Area Code_area_code', table_name='commodity_balances_non_food_2010')
-    op.drop_index('ix_6495338e_Flag_flag', table_name='commodity_balances_non_food_2010')
-    op.drop_index('ix_49d8dd2b_Element Code_element_code', table_name='commodity_balances_non_food_2010')
+    op.drop_index('ix_8fde6a84_Area Code_area_code', table_name='commodity_balances_non_food_2010')
+    op.drop_index('ix_8be99632_Item Code_item_code', table_name='commodity_balances_non_food_2010')
+    op.drop_index('ix_69b390a1_Element Code_element_code', table_name='commodity_balances_non_food_2010')
+    op.drop_index('ix_6893c503_Flag_flag', table_name='commodity_balances_non_food_2010')
     op.drop_table('commodity_balances_non_food_2010')
-    op.drop_index('ix_8e316e2d_Item Code_item_code', table_name='commodity_balances_non_food')
-    op.drop_index('ix_1da7f234_Flag_flag', table_name='commodity_balances_non_food')
-    op.drop_index('ix_10d751fe_Element Code_element_code', table_name='commodity_balances_non_food')
-    op.drop_index('ix_0b5c7737_Area Code_area_code', table_name='commodity_balances_non_food')
+    op.drop_index('ix_a050cfe1_Area Code_area_code', table_name='commodity_balances_non_food')
+    op.drop_index('ix_96eb360e_Element Code_element_code', table_name='commodity_balances_non_food')
+    op.drop_index('ix_726af37f_Flag_flag', table_name='commodity_balances_non_food')
+    op.drop_index('ix_32eb2a2b_Item Code_item_code', table_name='commodity_balances_non_food')
     op.drop_table('commodity_balances_non_food')
-    op.drop_index('ix_b4be9a4e_Item Code_item_code', table_name='climate_change_emissions_indicators')
-    op.drop_index('ix_ae95f134_Element Code_element_code', table_name='climate_change_emissions_indicators')
-    op.drop_index('ix_56010ac9_Area Code_area_code', table_name='climate_change_emissions_indicators')
-    op.drop_index('ix_10023ccf_Flag_flag', table_name='climate_change_emissions_indicators')
+    op.drop_index('ix_b826087a_Area Code_area_code', table_name='climate_change_emissions_indicators')
+    op.drop_index('ix_63fa5604_Flag_flag', table_name='climate_change_emissions_indicators')
+    op.drop_index('ix_2ea3409e_Element Code_element_code', table_name='climate_change_emissions_indicators')
+    op.drop_index('ix_185fb556_Item Code_item_code', table_name='climate_change_emissions_indicators')
     op.drop_table('climate_change_emissions_indicators')
-    op.drop_index('ix_6ceb7808_Item Code_item_code', table_name='asti_researchers')
-    op.drop_index('ix_638aaed8_Flag_flag', table_name='asti_researchers')
-    op.drop_index('ix_18715b33_Area Code_area_code', table_name='asti_researchers')
-    op.drop_index('ix_000da19f_Element Code_element_code', table_name='asti_researchers')
+    op.drop_index('ix_fd087521_Flag_flag', table_name='asti_researchers')
+    op.drop_index('ix_7ff29eca_Area Code_area_code', table_name='asti_researchers')
+    op.drop_index('ix_6a3e2299_Item Code_item_code', table_name='asti_researchers')
+    op.drop_index('ix_34512d8d_Element Code_element_code', table_name='asti_researchers')
     op.drop_table('asti_researchers')
-    op.drop_index('ix_d35cdedb_Area Code_area_code', table_name='asti_expenditures')
-    op.drop_index('ix_c79f23ca_Flag_flag', table_name='asti_expenditures')
-    op.drop_index('ix_c597eac8_Element Code_element_code', table_name='asti_expenditures')
-    op.drop_index('ix_26ca2ca8_Item Code_item_code', table_name='asti_expenditures')
+    op.drop_index('ix_df3fe6ff_Item Code_item_code', table_name='asti_expenditures')
+    op.drop_index('ix_b9e7965f_Flag_flag', table_name='asti_expenditures')
+    op.drop_index('ix_185773a2_Element Code_element_code', table_name='asti_expenditures')
+    op.drop_index('ix_14ec76fa_Area Code_area_code', table_name='asti_expenditures')
     op.drop_table('asti_expenditures')
     op.drop_table('surveys')
     op.drop_table('sources')
