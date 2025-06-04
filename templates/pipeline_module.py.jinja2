@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for
 from {{ project_name }}.src.db.database import run_with_session
-from {{ project_name }}.src.db.pipelines import {{ model_name }}
+from .{{ table_name }}_model import {{ model_name }}
 
 CSV = [
     {% for csv_file in csv_files %}
@@ -80,12 +80,12 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     print("Handling FK/PK mismatch...")
 
     # Deduplicate .1 columns
-    duplicate_columns = [col for col in df.columns if col.endswith('.1')]
-    for dup_col in duplicate_columns:
-        original_col = dup_col.replace('.1', '')
-        if original_col in df.columns:
-            print(f"Dropping duplicate column: {dup_col}, keeping: {original_col}")
-            df = df.drop(columns=[dup_col])
+    # duplicate_columns = [col for col in df.columns if col.endswith('.1')]
+    # for dup_col in duplicate_columns:
+    #     original_col = dup_col.replace('.1', '')
+    #     if original_col in df.columns:
+    #         print(f"Dropping duplicate column: {dup_col}, keeping: {original_col}")
+    #         df = df.drop(columns=[dup_col])
 
     # Create the synthetic PK column that the model expects
     df['{{ specs.found_fk_column }}'] = df['{{ specs.original_pk_column }}'].copy()

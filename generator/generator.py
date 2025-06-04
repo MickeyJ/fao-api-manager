@@ -118,17 +118,17 @@ class Generator:
     def _generate_pipeline_init(self, pipeline_name, modules):
         """Generate __init__.py for pipeline"""
         content = self.template_renderer.render_pipeline_init_template(directory_name=pipeline_name, modules=modules)
-        self.file_generator.write_file(self.paths.db_pipelines / pipeline_name / "__init__.py", content)
+        self.file_generator.write_file_cache(self.paths.db_pipelines / pipeline_name / "__init__.py", content)
 
     def _generate_pipeline_main(self, pipeline_name, modules):
         """Generate __main__.py for pipeline"""
         # Deduplicate module names
-        module_names = list(set(module["module_name"] for module in modules))
+        module_names = sorted(list(set(module["module_name"] for module in modules)))
 
         content = self.template_renderer.render_pipeline_main_template(
             pipeline_name=pipeline_name, modules=module_names
         )
-        self.file_generator.write_file(self.paths.db_pipelines / pipeline_name / "__main__.py", content)
+        self.file_generator.write_file_cache(self.paths.db_pipelines / pipeline_name / "__main__.py", content)
 
     def _generate_all_pipelines_main(self):
         """Generate db/pipelines/__main__.py that runs all pipelines"""
@@ -136,7 +136,7 @@ class Generator:
 
         content = self.template_renderer.render_pipelines_main_template(pipeline_names=pipeline_names)
 
-        self.file_generator.write_file(self.paths.db_pipelines / "__main__.py", content)
+        self.file_generator.write_file_cache(self.paths.db_pipelines / "__main__.py", content)
 
     def _generate_models_init(self):
         """Generate db/models/__init__.py with all model imports"""
@@ -152,7 +152,7 @@ class Generator:
                 )
 
         content = self.template_renderer.render_models_init_template(imports=imports)
-        self.file_generator.write_file(self.paths.db_pipelines / "__init__.py", content)
+        self.file_generator.write_file_cache(self.paths.db_pipelines / "__init__.py", content)
 
     def _generate_modules_and_models(self, pipeline_name, pipeline_dir, model_dir, modules):
         """Generate both pipeline modules and model files"""
@@ -167,7 +167,7 @@ class Generator:
                 specs=module["specs"],
             )
 
-            self.file_generator.write_file(pipeline_dir / f"{module_name}.py", pipeline_content)
+            self.file_generator.write_file_cache(pipeline_dir / f"{module_name}.py", pipeline_content)
 
             # Generate model file (areas.py in model_dir)
             model_content = self.template_renderer.render_model_template(
@@ -176,7 +176,7 @@ class Generator:
                 csv_analysis=module["csv_analysis"],
                 specs=module["specs"],
             )
-            self.file_generator.write_file(pipeline_dir / f"{module_name}.model.py", model_content)
+            self.file_generator.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
 
             # Generate analysis JSON
             self.file_generator.write_json_file(
@@ -246,7 +246,7 @@ class Generator:
     def _generate_project_main(self):
         """Generate database.py for db"""
         content = self.template_renderer.render_project_main_template()
-        self.file_generator.write_file("__main__.py", content)
+        self.file_generator.write_file_cache("__main__.py", content)
 
     def _generate_empty_init_files(self):
         """Generate __init__.py for root, src"""

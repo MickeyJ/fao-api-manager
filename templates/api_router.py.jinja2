@@ -3,8 +3,18 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, text
 from typing import Optional
 from {{ project_name }}.src.db.database import get_db
-from .. import current_version_prefix
 from {{ project_name }}.src.db.pipelines import {{ router.model }}
+from .. import current_version_prefix
+{% if router.specs.foreign_keys %}
+# Import core/lookup tables for joins
+{% set imported_tables = [] %}
+{% for fk in router.specs.foreign_keys %}
+{% if fk.table_name not in imported_tables %}
+from {{ project_name }}.src.db.pipelines import {{ fk.table_name | replace('_', ' ') | title | replace(' ', '') }}
+{% set _ = imported_tables.append(fk.table_name) %}
+{% endif %}
+{% endfor %}
+{% endif %}
 
 router = APIRouter(
     prefix="/{{ router.name }}",
@@ -12,14 +22,54 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.get("/{{ router.name}}")
-def get_{{ router.name}}(db: Session = Depends(get_db)):
-
-    query = (
-        select({{ router.model }})
-    )
-
-    results = db.execute(query).mappings().all()
-
-    return {"{{ router.name}}": [dict(item) for item in results]}
-
+@router.get("/{{ router.name }}")
+def get_{{ router.name }}(
+    limit: int = Query(100, le=1000, ge=1, description="Maximum records to return"),
+    offset: int = Query(0, ge=0, description="Number of records to skip"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get {{ router.name.replace('_', ' ') }} data with all related information from lookup tables.
+    """
+    
+    # Build query - select all columns from main table
+    query = select({{ router.model }})
+    
+    {% if router.specs.foreign_keys %}
+    # Add joins for all foreign key relationships
+    {% for fk in router.specs.foreign_keys %}
+    {% set table_class = fk.table_name | replace('_', ' ') | title | replace(' ', '') %}
+    query = query.outerjoin({{ table_class }}, {{ router.model }}.{{ fk.column_name }} == {{ table_class }}.{{ fk.column_name }})
+    query = query.add_columns({{ table_class }})
+    {% endfor %}
+    {% endif %}
+    
+    # Get total count before pagination
+    count_query = select(func.count()).select_from({{ router.model }})
+    total_count = db.execute(count_query).scalar()
+    
+    # Apply pagination
+    query = query.offset(offset).limit(limit)
+    
+    # Execute query
+    results = db.execute(query).all()
+    
+    # Format results
+    data = []
+    for row in results:
+        item = {}
+        # Add all columns from all tables in the row
+        for table_data in row:
+            if hasattr(table_data, '__table__'):
+                table_name = table_data.__table__.name
+                for column in table_data.__table__.columns:
+                    col_name = f"{table_name}_{column.name}" if table_name != "{{ router.name }}" else column.name
+                    item[col_name] = getattr(table_data, column.name)
+        data.append(item)
+    
+    return {
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+        "data": data
+    }

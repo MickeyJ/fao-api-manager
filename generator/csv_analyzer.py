@@ -172,7 +172,7 @@ class CSVAnalyzer:
 
         return {
             "column_name": column_name,
-            "csv_column_name": column_name.replace(".1", ""),
+            "csv_column_name": column_name,
             "sql_column_name": sql_column_name,
             "sql_table_name": table_name,
             "sample_values": sample_values,
@@ -185,9 +185,7 @@ class CSVAnalyzer:
 
     def _format_column_name(self, column_name: str) -> str:
         """Convert CSV column name to database-friendly name"""
-        return (
-            column_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_").replace(".1", "")
-        )
+        return column_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_")
 
     def _infer_sql_type(self, column_name: str, series) -> str:
         """Infer SQLAlchemy column type with foolproof cross-file logic"""

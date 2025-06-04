@@ -36,7 +36,8 @@ endif
 	use-remote-db use-local-db db-init db-upgrade db-revision  \
 	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
 	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test \
-	run-pipelines
+	run-pipelines \
+	api
 
 # =-=-=--=-=-=-=-=-=-=
 #  Python Environment
@@ -168,3 +169,6 @@ pipe-reset-and-test: rm-codebase generate
 run-pipelines:
 	@echo "Running all pipelines..."
 	$(ACTIVATE) $(PYTHON) -m fao.src.db.pipelines
+
+api:
+	$(ACTIVATE) $(PYTHON) -m fao.src.api
