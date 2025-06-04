@@ -45,12 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Include all routers with v1 prefix
-app.include_router(analysis.router, prefix=f"/{current_version_prefix}")
-app.include_router(visualizations.router, prefix=f"/{current_version_prefix}")
-app.include_router(data.router, prefix=f"/{current_version_prefix}")
-
 {% for router in routers %}
 app.include_router({{ router.name }}.router, prefix=f"/{current_version_prefix}")
 {% endfor %}

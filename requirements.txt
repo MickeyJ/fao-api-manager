@@ -6,100 +6,88 @@
 #
 alembic==1.16.1
     # via -r requirements.in
-black==25.1.0
-    # via -r requirements.in
+annotated-types==0.7.0
+    # via pydantic
+anyio==4.9.0
+    # via starlette
+certifi==2025.4.26
+    # via requests
+charset-normalizer==3.4.2
+    # via requests
 click==8.2.1
-    # via
-    #   -r requirements.in
-    #   black
-    #   djlint
+    # via uvicorn
 colorama==0.4.6
-    # via
-    #   click
-    #   djlint
-    #   tqdm
-cssbeautifier==1.15.4
-    # via djlint
-djlint==1.36.4
-    # via -r requirements.in
+    # via click
 dotenv==0.9.9
     # via -r requirements.in
-editorconfig==0.17.0
-    # via
-    #   cssbeautifier
-    #   jsbeautifier
+exceptiongroup==1.3.0
+    # via anyio
+fastapi==0.115.12
+    # via -r requirements.in
 greenlet==3.2.2
     # via sqlalchemy
+h11==0.16.0
+    # via uvicorn
+idna==3.10
+    # via
+    #   anyio
+    #   requests
 jinja2==3.1.6
     # via -r requirements.in
-jsbeautifier==1.15.4
-    # via
-    #   cssbeautifier
-    #   djlint
-json5==0.12.0
-    # via djlint
 mako==1.3.10
     # via alembic
-markdown-it-py==3.0.0
-    # via rich
 markupsafe==3.0.2
     # via
     #   jinja2
     #   mako
-mdurl==0.1.2
-    # via markdown-it-py
-mypy-extensions==1.1.0
-    # via black
 numpy==2.2.6
     # via pandas
-packaging==25.0
-    # via black
 pandas==2.2.3
     # via -r requirements.in
-pathspec==0.12.1
-    # via
-    #   black
-    #   djlint
-platformdirs==4.3.8
-    # via black
-psycopg2==2.9.10
+psycopg2-binary==2.9.10
     # via -r requirements.in
-pygments==2.19.1
-    # via rich
+pydantic==2.11.5
+    # via fastapi
+pydantic-core==2.33.2
+    # via pydantic
 python-dateutil==2.9.0.post0
     # via pandas
 python-dotenv==1.1.0
-    # via dotenv
+    # via
+    #   -r requirements.in
+    #   dotenv
 pytz==2025.2
     # via pandas
-pyyaml==6.0.2
-    # via djlint
-regex==2024.11.6
-    # via djlint
-rich==14.0.0
+requests==2.32.3
     # via -r requirements.in
 six==1.17.0
-    # via
-    #   cssbeautifier
-    #   jsbeautifier
-    #   python-dateutil
+    # via python-dateutil
+sniffio==1.3.1
+    # via anyio
 sqlalchemy==2.0.41
     # via
     #   -r requirements.in
     #   alembic
+starlette==0.46.2
+    # via fastapi
 tomli==2.2.1
-    # via
-    #   alembic
-    #   black
-    #   djlint
-tqdm==4.67.1
-    # via djlint
+    # via alembic
 typing-extensions==4.13.2
     # via
     #   alembic
-    #   black
-    #   djlint
-    #   rich
+    #   anyio
+    #   exceptiongroup
+    #   fastapi
+    #   pydantic
+    #   pydantic-core
     #   sqlalchemy
+    #   typing-inspection
+    #   uvicorn
+typing-inspection==0.4.1
+    # via pydantic
 tzdata==2025.2
     # via pandas
+urllib3==2.4.0
+    # via requests
+uvicorn==0.34.3
+    # via -r requirements.in

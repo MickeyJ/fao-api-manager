@@ -4,6 +4,7 @@ import zipfile
 from pathlib import Path
 from typing import Dict
 from io import StringIO
+from collections import Counter
 import pandas as pd
 from .structure import Structure
 from .scanner import Scanner
@@ -27,6 +28,28 @@ class CSVAnalyzer:
         self.file_generator = file_generator
         # Use shared cache or create new one
         self.cache = shared_cache or CSVCache()
+        self.column_type_registry = {}
+
+    def register_column_evidence(self, column_name: str, evidence: Dict):
+        """Collect type evidence for a column across multiple files"""
+        if column_name not in self.column_type_registry:
+            self.column_type_registry[column_name] = {
+                "patterns_seen": [],
+                "non_empty_samples": [],
+                "files_seen": 0,
+                "empty_files": 0,
+                "series_lengths": [],
+            }
+
+        registry = self.column_type_registry[column_name]
+        registry["files_seen"] += 1
+
+        if evidence["is_empty"]:
+            registry["empty_files"] += 1
+        else:
+            registry["patterns_seen"].append(evidence["inferred_type"])
+            registry["non_empty_samples"].extend(evidence["sample_values"][:5])  # Keep samples small
+            registry["series_lengths"].append(evidence["series_length"])
 
     def analyze_csv_from_zip(self, zip_path: Path, csv_filename: str) -> Dict:
         """Analyze a CSV file directly from inside a ZIP with caching"""
@@ -167,32 +190,115 @@ class CSVAnalyzer:
         )
 
     def _infer_sql_type(self, column_name: str, series) -> str:
-        """Infer SQLAlchemy column type from data patterns"""
-        # Drop nulls for analysis
+        """Infer SQLAlchemy column type with foolproof cross-file logic"""
         clean_series = series.dropna()
 
+        # If empty, check registry first
         if len(clean_series) == 0:
+            registry_type = self._get_type_from_registry_or_default(column_name)
+
+            # Still register this as evidence (empty file)
+            evidence = {"is_empty": True, "sample_values": [], "inferred_type": registry_type, "series_length": 0}
+            self.register_column_evidence(column_name, evidence)
+
+            return registry_type
+
+        # Determine type from current series
+        current_type = self._determine_type_from_series(column_name, clean_series)
+
+        # Register evidence
+        evidence = {
+            "is_empty": False,
+            "sample_values": clean_series.head(10).tolist(),
+            "inferred_type": current_type,
+            "series_length": len(clean_series),
+        }
+        self.register_column_evidence(column_name, evidence)
+
+        return current_type
+
+    def _get_type_from_registry_or_default(self, column_name: str) -> str:
+        """Get type from registry when current series is empty"""
+        if column_name in self.column_type_registry:
+            registry = self.column_type_registry[column_name]
+            patterns = registry["patterns_seen"]
+
+            if patterns:
+                # Use most common type seen in other files
+                most_common_type = Counter(patterns).most_common(1)[0][0]
+                # print(f"Column '{column_name}' is empty, using registry type: {most_common_type}")
+                return most_common_type
+
+        # Smart defaults for known FAO patterns
+        smart_default = self._get_smart_default(column_name)
+        print(f"Column '{column_name}' is empty, using smart default: {smart_default}")
+        return smart_default
+
+    def _get_smart_default(self, column_name: str) -> str:
+        """Smart defaults based on FAO column naming patterns"""
+        lower_name = column_name.lower()
+
+        if "code" in lower_name:
+            return "Integer"
+        if "year" in lower_name:
+            return "Integer"
+        if any(pattern in lower_name for pattern in ["value", "price", "amount", "quantity", "rate"]):
+            return "Float"
+        if "flag" in lower_name:
             return "String"
 
-        # Check for specific FAO patterns first
+        return "String"
+
+    def _determine_type_from_series(self, column_name: str, clean_series) -> str:
+        """Determine type from actual data FIRST, then fall back to name patterns"""
+
+        result = "String"
+
+        # Special reliable cases first
         if self._is_year_column(column_name, clean_series):
-            return "Integer"
+            result = "Integer"
+            return result
 
-        if self._is_code_column(column_name):
-            return "Integer"  # Most FAO codes are integers
-
-        if self._is_value_column(column_name):
-            return "Float"
-
-        # General pattern matching
+        # PRIORITIZE ACTUAL DATA PATTERNS
         if self._is_integer_pattern(clean_series):
-            return "Integer"
+            result = "Integer"
+            return result
 
         if self._is_float_pattern(clean_series):
-            return "Float"
+            result = "Float"
+            return result
 
-        # Default to String
-        return "String"
+        if self._is_string_pattern(clean_series):
+            return "String"
+
+        # FALLBACK TO NAME-BASED PATTERNS
+        if self._is_value_column(column_name):
+            result = "Float"
+            return result
+
+        if self._is_code_column(column_name):
+            result = "Integer"
+            return result
+
+        return result
+
+    def _is_string_pattern(self, series) -> bool:
+        """Check if series contains obvious string values that can't be numeric"""
+        try:
+            clean_values = self._clean_quoted_values(series)
+            sample_values = clean_values.dropna().head(10)
+
+            if len(sample_values) == 0:
+                return False
+
+            # If ANY value contains letters, it's obviously a string
+            for value in sample_values:
+                if any(c.isalpha() for c in str(value)):
+                    return True
+
+            return False
+        except:
+            return False
 
     def _is_year_column(self, column_name: str, series) -> bool:
         """Check if this looks like a year column"""
@@ -208,7 +314,6 @@ class CSVAnalyzer:
 
     def _is_code_column(self, column_name: str) -> bool:
         """Check if this looks like an area/item/element code"""
-
         if "code" in column_name.lower():
             return True
         return False
@@ -248,11 +353,4 @@ class CSVAnalyzer:
             return len(valid_numbers) / len(series) > 0.8
         except:
             pass
-        return False
-
-    def _could_be_fk(self, column_name: str, series) -> bool:
-        """Check if this column could be a foreign key based on patterns"""
-        # Check if it matches any known foreign key patterns
-        if len(series) < 10 and any(char.isdigit() for char in series):
-            return True
         return False

@@ -58,7 +58,7 @@ class {{ model_name }}(Base):
     {% if specs.foreign_keys %}
     __table_args__ = (
         {% for fk in specs.foreign_keys %}
-        Index("ix_{{ table_name }}_{{ fk.column_name }}", "{{ fk.column_name }}"),
+        Index("ix_{{ fk.index_hash }}_{{ fk.column_name }}", "{{ fk.column_name }}"),
         {% endfor %}
     )
     {% endif %}

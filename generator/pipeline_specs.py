@@ -1,4 +1,4 @@
-from . import logger, to_snake_case
+from . import logger, to_snake_case, safe_index_name
 import json
 import pandas as pd
 from pathlib import Path
@@ -173,7 +173,8 @@ class PipelineSpecs:
                             {
                                 "table_name": core_module_name,
                                 "column_name": to_snake_case(found_column),
-                                "actual_column_name": found_column,  # Store the actual dataset column name
+                                "actual_column_name": found_column,
+                                "index_hash": safe_index_name(f"{core_module_name}", found_column),
                             }
                         )
 
@@ -200,15 +201,8 @@ class PipelineSpecs:
                                 core_col.replace(".1", ""), filtered_dataset_columns
                             )
 
-                            if core_col.replace(".1", "") == "Population Age Group":
-                                logger.info(
-                                    f"  🐛 DEBUG: Fuzzy match result for 'Population Age Group': {found_dataset_col}"
-                                )
-
                             if found_dataset_col and found_dataset_col not in pipeline_info["exclude_columns"]:
                                 pipeline_info["exclude_columns"].append(found_dataset_col)
-                                if core_col.replace(".1", "") == "Population Age Group":  # Add this too
-                                    logger.info(f"  🐛 DEBUG: Added 'Population Age Group' to exclude_columns")
 
                     # Set mismatch flag only if there's actually a mismatch
                     if found_column != pk_column:
@@ -359,6 +353,10 @@ class PipelineSpecs:
         core_file_info = specs_output["core_file_info"]
         dataset_file_info = specs_output["dataset_file_info"]
 
+        # Start synthetic PKs at a high number to avoid conflicts
+        SYNTHETIC_PK_START = 12_345_678
+        global_synthetic_counter = SYNTHETIC_PK_START
+
         for core_module_name, core_info in core_file_info.items():
             conflicts = core_info.get("conflicts", [])
             if not conflicts:
@@ -367,12 +365,10 @@ class PipelineSpecs:
             logger.info(f"📝 Resolving {len(conflicts)} conflicts for {core_module_name}")
 
             # Read combined data to find max PK
-            combined_df = self._get_combined_core_data(core_module_name, core_info)
             pk_column = core_info["pk_column"]
-            max_pk = int(combined_df[pk_column].max())
+            # combined_df = self._get_combined_core_data(core_module_name, core_info)
+            # max_pk = int(combined_df[pk_column].max())
 
-            # Create synthetic PK mappings
-            synthetic_counter = 1
             conflict_mappings = {}
 
             for conflict in conflicts:
@@ -384,9 +380,9 @@ class PipelineSpecs:
                 value_mapping = {conflict_values[0]: original_pk}
 
                 for conflict_value in conflict_values[1:]:
-                    synthetic_pk = max_pk + synthetic_counter
-                    value_mapping[conflict_value] = synthetic_pk
-                    synthetic_counter += 1
+                    value_mapping[conflict_value] = global_synthetic_counter
+                    print(f"  Synthetic PK: {conflict_value} -> {global_synthetic_counter}")
+                    global_synthetic_counter += 1
 
                 conflict_mappings[original_pk] = {"column": conflict_column, "value_mapping": value_mapping}
 
@@ -465,9 +461,20 @@ class PipelineSpecs:
         cache_keys = core_info["cache_keys"]
         all_dfs = []
 
+        print(f"\n🔍 Combining data for core module: {core_module_name} {core_info}\n")
+        conflict_csv_files = list(
+            set([filename for conflict in core_info["conflicts"] for filename in conflict["source_dataset"]])
+        )
+
         for cache_key in cache_keys:
             # Parse cache key: "ZipName:CSVFileName"
             zip_name, csv_filename = cache_key.split(":", 1)
+
+            print(f"\n  Reading {csv_filename} from {conflict_csv_files}\n")
+
+            if csv_filename not in conflict_csv_files:
+                logger.info(f"    ❌ Skipping {csv_filename} as it is not in conflict CSV files")
+                continue
 
             # Find the zip file path
             zip_path = None

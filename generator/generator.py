@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict, Literal
 from pathlib import Path
 from dataclasses import dataclass
@@ -84,6 +85,7 @@ class Generator:
             self._generate_pipeline_and_models(pipeline_name, modules)
         self._generate_all_pipelines_main()
         self._generate_models_init()
+        self._generate_api_routers()
 
     def _group_modules_by_pipeline(self) -> None:
         """Group modules by their pipeline name"""
@@ -175,6 +177,49 @@ class Generator:
                 self.paths.project / pipeline_dir / f"{module_name}.json",
                 module["csv_analysis"],
             )
+
+    def _generate_api_routers(self):
+        """Generate API routers for each pipeline"""
+        api_routers = self._format_api_routers()
+
+        # print(json.dumps(api_routers, indent=2))
+
+        content = self.template_renderer.render_api_main_template(routers=api_routers)
+        self.file_generator.write_file(self.paths.api / "__main__.py", content)
+
+        content = self.template_renderer.render_api_init_template()
+        self.file_generator.write_file(self.paths.api / "__init__.py", content)
+
+        for router in api_routers:
+            router_dir = router["router_dir"]
+            self.file_generator.create_dir(router_dir)
+
+            content = self.template_renderer.render_api_router_template(router=router)
+            self.file_generator.write_file(self.paths.api_routers / f"{router['name']}.py", content)
+
+        # # Generate __init__.py for routers
+        # init_content = self.template_renderer.render_api_routers_init_template(routers=api_routers)
+        # self.file_generator.write_file(self.paths.api_routers / "__init__.py", init_content)
+
+    def _format_api_routers(self) -> list[dict]:
+        """Format API routers by generating __init__.py"""
+        api_routers = []
+        for module in self.all_modules:
+            pipeline_name = module["pipeline_name"]
+            module_name = module["module_name"]
+
+            api_routers.append(
+                {
+                    "name": module_name,
+                    "model": module["model_name"],
+                    "router_dir": f"{self.paths.api_routers}",
+                    "router_name": f"{module_name}_router",
+                    "csv_analysis": module["csv_analysis"],
+                    "specs": module["specs"],
+                }
+            )
+
+        return api_routers
 
     def _generate_directories(self):
         self.file_generator.create_dir(self.paths.src)

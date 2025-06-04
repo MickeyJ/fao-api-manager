@@ -33,7 +33,8 @@ endif
 	initialize requirements install \
 	generator generate-test csv-analysis optimizer \
 	run-all-pipelines \
-	use-remote-db use-local-db db-init db-upgrade db-revision create-test-db drop-test-db reset-test-db reset-db \
+	use-remote-db use-local-db db-init db-upgrade db-revision  \
+	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
 	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test
 
 # =-=-=--=-=-=-=-=-=-=
@@ -117,16 +118,25 @@ db-revision:
 	@echo "Upgrading database..."
 	alembic revision --autogenerate -m "${message}" 
 
-create-test-db: use-local-db-admin
-	@echo "Creating test database and setting permissions..."
+create-db:
+	make use-local-db-admin
+	@echo "Creating database..."
+	$(MAKE) create-test-db
+	@echo "Database created with permissions"
+
+create-test-db:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_database.sql
-	@echo "Test database 'fao' created with permissions"
 	make use-local-db
 
-drop-test-db: use-local-db-admin
-	@echo "Dropping test database..."
+drop-db:
+	make use-local-db-admin
+	@echo "Dropping database..."
+	$(MAKE) drop-test-db
+	@echo "Database 'fao' dropped"
+	make use-local-db
+
+drop-test-db:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -c "DROP DATABASE IF EXISTS fao;"
-	@echo "Test database 'fao' dropped"
 	make use-local-db
 
 reset-test-db: drop-test-db create-test-db
@@ -146,8 +156,10 @@ clear-all-tables:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/clear_all_tables.sql
 
 rm-codebase:
-	@echo "Removing pipelines..."
-	rm -rf fao
+	@echo "Removing generated code and cache..."
+	rm -rf fao \
+	analysis/csv_analysis_cache.json \
+	analysis/pipeline_spec.json
 
 db-reset-and-test: clear-all-tables rm-codebase generate
 pipe-reset-and-test: rm-codebase generate

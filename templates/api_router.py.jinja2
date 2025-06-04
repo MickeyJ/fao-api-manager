@@ -4,11 +4,7 @@ from sqlalchemy import select, func, or_, text
 from typing import Optional
 from {{ project_name }}.src.db.database import get_db
 from .. import current_version_prefix
-from {{ project_name }}.src.db.models import (
-  {% for model in router.models %}
-  {{ model.name }},
-  {% endfor %}
-)
+from {{ project_name }}.src.db.models import {{ router.model }}
 
 router = APIRouter(
     prefix="/{{ router.name }}",
@@ -19,5 +15,11 @@ router = APIRouter(
 @router.get("/{{ router.name}}")
 def get_{{ router.name}}(db: Session = Depends(get_db)):
 
-    return {"{{ router.name}}": "Unimplemented {{ router.name }} endpoint"}
+    query = (
+        select({{ router.model }})
+    )
+
+    results = db.execute(query).mappings().all()
+
+    return {"{{ router.name}}": [dict(item) for item in results]}
 

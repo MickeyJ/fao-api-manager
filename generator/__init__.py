@@ -1,5 +1,4 @@
-import re
-import logging
+import re, hashlib, logging, random, string
 
 SMALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\small"
 MEDIUM_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\medium"
@@ -14,6 +13,18 @@ ZIP_PATH = ALL_ZIP_EXAMPLE
 
 logging.basicConfig(level=logging.INFO, format="%(filename)s:%(lineno)d - %(message)s")
 logger = logging.getLogger(__name__)
+
+
+def random_string(length=8):
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for i in range(length))
+
+
+def safe_index_name(table_name, column_name):
+    # Always fits in 63 chars: ix_ + 8 hash chars + _ + column (max 50)
+    table_hash = hashlib.md5(table_name.encode() + random_string().encode()).hexdigest()[:8]
+    col_part = column_name[:50]  # Ensure total < 63
+    return f"{table_hash}_{col_part}"
 
 
 def clean_text(text):

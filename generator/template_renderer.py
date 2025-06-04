@@ -73,6 +73,29 @@ class TemplateRenderer:
             project_name=self.project_name,
         )
 
+    def render_api_router_template(self, router: dict) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("api_router.py.jinja2")
+        return template.render(
+            router=router,
+            project_name=self.project_name,
+        )
+
+    def render_api_main_template(self, routers: list[dict]) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("api__main__.py.jinja2")
+        return template.render(
+            routers=routers,
+            project_name=self.project_name,
+        )
+
+    def render_api_init_template(self) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("api__init__.py.jinja2")
+        return template.render(
+            project_name=self.project_name,
+        )
+
     def render_database_template(
         self,
     ) -> str:
