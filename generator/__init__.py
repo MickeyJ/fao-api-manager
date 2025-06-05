@@ -11,7 +11,7 @@ ZIP_PATH = ALL_ZIP_EXAMPLE
 # for handler in logging.root.handlers[:]:
 #     logging.root.removeHandler(handler)
 
-logging.basicConfig(level=logging.INFO, format="%(filename)s:%(lineno)d - %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(lineno)d: %(message)s")
 logger = logging.getLogger(__name__)
 
 

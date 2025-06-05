@@ -5,6 +5,7 @@ from generator.scanner import Scanner
 from generator.csv_analyzer import CSVAnalyzer
 from generator.generator import Generator
 from generator.pipeline_specs import PipelineSpecs
+from generator.lookup_extractor import LookupExtractor
 
 from . import ZIP_PATH
 
@@ -13,7 +14,7 @@ def all_csv_analysis():
     """Scan for duplicate files across all ZIP files"""
     structure = Structure()
     file_scanner = FileGenerator(output_dir="./analysis")
-    scanner = Scanner(ZIP_PATH)
+    scanner = Scanner(ZIP_PATH, structure)
     csv_analyzer = CSVAnalyzer(structure, scanner, file_scanner)
 
     print("Scanning for duplicate files...")
@@ -29,11 +30,11 @@ def all_csv_analysis():
 #     results = run_optimization_analysis(ZIP_PATH)
 
 
-
 def test():
     """Test function to run the generator"""
-    # generator = Generator("./db", ZIP_PATH)
-    # generator.generate()
+    extractor = LookupExtractor(ZIP_PATH)
+    extractor.extract_all_zips()
+    extractor.scan_datasets()
     # print("Test completed successfully.")
     raise NotImplementedError("Tests not yet implemented.")
 

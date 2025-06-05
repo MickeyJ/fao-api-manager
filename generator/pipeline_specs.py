@@ -1,4 +1,4 @@
-from . import logger, to_snake_case, safe_index_name
+from . import logger, to_snake_case, safe_index_name, snake_to_pascal_case
 import json
 import pandas as pd
 from pathlib import Path
@@ -120,6 +120,7 @@ class PipelineSpecs:
                                 "module_name": module_name,
                                 "columns_signature": columns_signature,
                                 "is_core_file": True,
+                                "model_name": snake_to_pascal_case(module_name),
                                 "column_count": column_count,
                                 "has_pk": has_pk,
                                 "pk_score": pk_score if has_pk else 0,
@@ -172,6 +173,8 @@ class PipelineSpecs:
                         pipeline_info["foreign_keys"].append(
                             {
                                 "table_name": core_module_name,
+                                "model_name": core_info["model_name"],
+                                "pipeline_name": "core",
                                 "column_name": to_snake_case(found_column),
                                 "actual_column_name": found_column,
                                 "index_hash": safe_index_name(f"{core_module_name}", found_column),

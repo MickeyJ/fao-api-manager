@@ -35,12 +35,19 @@ class TemplateRenderer:
         template = self.jinja_env.get_template("pipelines__main__.py.jinja2")
         return template.render(pipeline_names=pipeline_names, project_name=self.project_name)  # Named parameters
 
-    def render_models_init_template(
+    def render_pipelines_init_template(
+        self,
+    ) -> str:
+        """Render __init__.py template"""
+        template = self.jinja_env.get_template("pipelines__init__.py.jinja2")
+        return template.render(project_name=self.project_name)
+
+    def render_all_model_imports_template(
         self,
         imports: list[Dict],
     ) -> str:
         """Render __init__.py template"""
-        template = self.jinja_env.get_template("models__init__.py.jinja2")
+        template = self.jinja_env.get_template("all_model_imports.py.jinja2")
         return template.render(imports=imports, project_name=self.project_name)
 
     def render_module_template(

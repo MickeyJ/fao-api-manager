@@ -13,7 +13,7 @@ from . import ZIP_PATH, to_snake_case
 class Scanner:
     """Scanner for FAO ZIP files in a specified directory"""
 
-    def __init__(self, zip_directory: str, structure: Structure):
+    def __init__(self, zip_directory: str | Path, structure: Structure):
         self.zip_dir = Path(zip_directory)
         self.structure = structure
 

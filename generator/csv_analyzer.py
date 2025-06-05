@@ -10,7 +10,7 @@ from .structure import Structure
 from .scanner import Scanner
 from .file_generator import FileGenerator
 from .csv_cache import CSVCache
-from . import logger
+from . import logger, snake_to_pascal_case
 
 
 class CSVAnalyzer:
@@ -29,6 +29,10 @@ class CSVAnalyzer:
         # Use shared cache or create new one
         self.cache = shared_cache or CSVCache()
         self.column_type_registry = {}
+        self.save_file = Path("./analysis/all_csv_file_analysis.json")
+
+        if not self.save_file.exists():
+            self.analyze_files()
 
     def register_column_evidence(self, column_name: str, evidence: Dict):
         """Collect type evidence for a column across multiple files"""
@@ -117,10 +121,12 @@ class CSVAnalyzer:
 
                 for csv_filename in csv_files:
                     normalized_name = self.structure.extract_module_name(csv_filename)
+                    model_name = snake_to_pascal_case(normalized_name)
 
                     if normalized_name not in all_files:
                         all_files[normalized_name] = {
                             "normalized_name": normalized_name,
+                            "model_name": model_name,
                             "csv_filename": csv_filename,
                             "occurrence_count": 0,
                             "occurrences": [],
@@ -135,6 +141,7 @@ class CSVAnalyzer:
 
                     occurrence = {
                         "csv_filename": csv_filename,
+                        "model_name": model_name,
                         "row_count": csv_analysis["row_count"],
                         "column_count": csv_analysis["column_count"],
                         "columns": csv_analysis["columns"],
@@ -144,10 +151,7 @@ class CSVAnalyzer:
                     all_files[normalized_name]["occurrences"].append(occurrence)
 
         # Save results
-        self.file_generator.write_json_file(
-            self.file_generator.output_dir / "all_csv_file_analysis.json",
-            all_files,
-        )
+        self.file_generator.write_json_file(self.save_file, all_files)
 
         # Log cache stats
         cache_stats = self.cache.get_cache_stats()
@@ -175,6 +179,7 @@ class CSVAnalyzer:
             "csv_column_name": column_name,
             "sql_column_name": sql_column_name,
             "sql_table_name": table_name,
+            "model_name": snake_to_pascal_case(table_name),
             "sample_values": sample_values,
             "null_count": null_count,
             "non_null_count": non_null_count,

@@ -31,7 +31,7 @@ endif
 .PHONY: \
 	venv env-status \
 	initialize requirements install \
-	generator generate-test csv-analysis optimizer \
+	generator test csv-analysis optimizer \
 	run-all-pipelines \
 	use-remote-db use-local-db db-init db-upgrade db-revision  \
 	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
@@ -74,7 +74,7 @@ generate:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON)  -m generator --all
 
-generate-test:
+test:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON)  -m generator --test
 
@@ -118,7 +118,7 @@ db-upgrade:
 
 db-revision:
 	@echo "Upgrading database..."
-	alembic revision --autogenerate -m "${message}" 
+	alembic revision --autogenerate -m "${msg}" 
 
 create-db:
 	make use-local-db-admin

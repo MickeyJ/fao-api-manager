@@ -25,7 +25,7 @@ class ProjectPath:
 
 
 class Generator:
-    def __init__(self, output_dir: str, input_dir: str):
+    def __init__(self, output_dir: str | Path, input_dir: str):
         self.project_name = clean_text(output_dir)
         self.paths = ProjectPath(Path(output_dir))
         self.input_dir = input_dir
@@ -87,7 +87,8 @@ class Generator:
         for pipeline_name, modules in self.pipelines.items():
             self._generate_pipeline_and_models(pipeline_name, modules)
         self._generate_all_pipelines_main()
-        self._generate_models_init()
+        self._generate_pipelines_init()
+        self.generate_all_model_imports_file()
         self._generate_api_routers()
 
     def _group_modules_by_pipeline(self) -> None:
@@ -138,7 +139,13 @@ class Generator:
 
         self.file_generator.write_file_cache(self.paths.db_pipelines / "__main__.py", content)
 
-    def _generate_models_init(self):
+    def _generate_pipelines_init(self):
+        """Generate db/models/__init__.py with all model imports"""
+
+        content = self.template_renderer.render_pipelines_init_template()
+        self.file_generator.write_file_cache(self.paths.db_pipelines / "__init__.py", content)
+
+    def generate_all_model_imports_file(self):
         """Generate db/models/__init__.py with all model imports"""
         imports = []
         for pipeline_name, modules in self.pipelines.items():
@@ -151,8 +158,8 @@ class Generator:
                     }
                 )
 
-        content = self.template_renderer.render_models_init_template(imports=imports)
-        self.file_generator.write_file_cache(self.paths.db_pipelines / "__init__.py", content)
+        content = self.template_renderer.render_all_model_imports_template(imports=imports)
+        self.file_generator.write_file_cache("all_model_imports.py", content)
 
     def _generate_modules_and_models(self, pipeline_name, pipeline_dir, model_dir, modules):
         """Generate both pipeline modules and model files"""
@@ -191,17 +198,17 @@ class Generator:
         # print(json.dumps(api_routers, indent=2))
 
         content = self.template_renderer.render_api_main_template(routers=api_routers)
-        self.file_generator.write_file(self.paths.api / "__main__.py", content)
+        self.file_generator.write_file_cache(self.paths.api / "__main__.py", content)
 
         content = self.template_renderer.render_api_init_template()
-        self.file_generator.write_file(self.paths.api / "__init__.py", content)
+        self.file_generator.write_file_cache(self.paths.api / "__init__.py", content)
 
         for router in api_routers:
             router_dir = router["router_dir"]
             self.file_generator.create_dir(router_dir)
 
             content = self.template_renderer.render_api_router_template(router=router)
-            self.file_generator.write_file(self.paths.api_routers / f"{router['name']}.py", content)
+            self.file_generator.write_file_cache(self.paths.api_routers / f"{router['name']}.py", content)
 
         # # Generate __init__.py for routers
         # init_content = self.template_renderer.render_api_routers_init_template(routers=api_routers)
@@ -218,6 +225,7 @@ class Generator:
                 {
                     "name": module_name,
                     "model": module["model_name"],
+                    "pipeline_name": pipeline_name,
                     "router_dir": f"{self.paths.api_routers}",
                     "router_name": f"{module_name}_router",
                     "csv_analysis": module["csv_analysis"],
@@ -260,24 +268,24 @@ class Generator:
         templates = self.template_renderer.render_env_templates()
 
         for template in templates:
-            self.file_generator.write_file(template["file_name"], template["content"])
+            self.file_generator.write_file_cache(template["file_name"], template["content"])
 
     def _generate_makefile(self):
         """Generate database.py for db"""
         content = self.template_renderer.render_makefile_template()
-        self.file_generator.write_file("Makefile", content)
+        self.file_generator.write_file_cache("Makefile", content)
 
     def _generate_requirements_file(self):
         """Generate database.py for db"""
         content = self.template_renderer.render_requirements_template()
-        self.file_generator.write_file("requirements.in", content)
+        self.file_generator.write_file_cache("requirements.in", content)
 
     def _generate_database_file(self):
         """Generate database.py for db"""
         content = self.template_renderer.render_database_template()
-        self.file_generator.write_file(self.paths.db / "database.py", content)
+        self.file_generator.write_file_cache(self.paths.db / "database.py", content)
 
     def _generate_database_utils_file(self):
         """Generate utils.py for db"""
         content = self.template_renderer.render_database_utils_template()
-        self.file_generator.write_file(self.paths.db / "utils.py", content)
+        self.file_generator.write_file_cache(self.paths.db / "utils.py", content)
