@@ -33,10 +33,9 @@ def all_csv_analysis():
 def test():
     """Test function to run the generator"""
     extractor = LookupExtractor(ZIP_PATH)
-    extractor.extract_all_zips()
-    extractor.scan_datasets()
+    extractor.run()
     # print("Test completed successfully.")
-    raise NotImplementedError("Tests not yet implemented.")
+    # raise NotImplementedError("Tests not yet implemented.")
 
 
 def generate_all():
