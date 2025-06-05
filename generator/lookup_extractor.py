@@ -16,12 +16,10 @@ class LookupExtractor:
 
     def run(self):
         """Main entry point - extract and analyze everything"""
-        logger.info("🚀 Starting lookup extraction process...")
+        logger.info("🚀 Starting lookup data extraction process...")
 
-        # Step 1: Extract all ZIPs
         self.extract_all_zips()
-        self.extract_all_lookups()
-        # self.test_extraction()
+        self.create_all_synth_lookups()
 
     def extract_all_zips(self):
         """Extract all ZIP files to their current directory"""
@@ -31,9 +29,9 @@ class LookupExtractor:
 
                 if extract_dir.exists():
                     """If the directory already exists, we assume it's already extracted"""
-                    # logger.info(f"✅ Already extracted: {zip_path.name}")
+                    logger.info(f"✅ Already extracted: {zip_path.name}")
                 else:
-                    # logger.info(f"📦 Extracting: {zip_path.name}")
+                    logger.info(f"📦 Extracting: {zip_path.name}")
                     with zipfile.ZipFile(zip_path, "r") as zf:
                         zf.extractall(extract_dir)
 
@@ -43,7 +41,7 @@ class LookupExtractor:
         # Extract ALL zips for now to ensure we don't miss anything
         return name.endswith(".zip")
 
-    def extract_all_lookups(self):
+    def create_all_synth_lookups(self):
         """Extract all lookup data - prioritizing values found in datasets"""
         logger.info("🔍 Starting full lookup extraction...")
 
@@ -51,20 +49,20 @@ class LookupExtractor:
         lookup_data = {}
         for key, mapping in LOOKUP_MAPPINGS.items():
             lookup_name = mapping["lookup_name"]
-            lookup_data[lookup_name] = {"core": {}, "additional": {}}
+            lookup_data[lookup_name] = {"rows": []}
 
         # PHASE 1: Process dataset files FIRST (these are the values actually used)
-        logger.info("\n📊 Phase 1: Extracting lookups from dataset files...")
-        self._process_dataset_files(lookup_data)
+        logger.info("\n📊 Phase 1: Extracting lookups from all csv files...")
+        self._process_all_csv_files(lookup_data)
 
         # Log what we found
         for lookup_name, data in lookup_data.items():
-            if data["core"]:
-                logger.info(f"  Found {len(data['core'])} {lookup_name} from datasets")
+            if data["rows"]:  # Changed from data["core"]
+                logger.info(f"  Found {len(data['rows'])} rows for {lookup_name}")
 
         # PHASE 2: Supplement with lookup CSV files (better descriptions, additional columns)
-        logger.info("\n📋 Phase 2: Supplementing from lookup CSV files...")
-        self._process_lookup_files(lookup_data)
+        # logger.info("\n📋 Phase 2: Supplementing from lookup CSV files...")
+        # self._process_lookup_files(lookup_data)
 
         # Save synthetic CSV files
         self._save_synthetic_csvs(lookup_data)
@@ -102,129 +100,107 @@ class LookupExtractor:
             extract_cols = [pk_col, desc_col] + list(found_additional.values())
             unique_data = df[extract_cols].drop_duplicates()
 
+            # Initialize rows list if not exists
+            if "rows" not in lookup_data[lookup_name]:
+                lookup_data[lookup_name]["rows"] = []
+
             new_entries = 0
             for _, row in unique_data.iterrows():
+                # Build row dictionary with actual column names from the mapping
+                row_dict = {}
+
+                # Primary key
                 pk_value = str(row[pk_col]).strip()
-                desc_value = str(row[desc_col]).strip()
-
                 if pk_value and pk_value != "nan":
-                    # Store core data
-                    if pk_value not in lookup_data[lookup_name]["core"]:
-                        new_entries += 1
-                    lookup_data[lookup_name]["core"][pk_value] = desc_value
+                    row_dict[pk_col] = pk_value
 
-                    # Store additional columns
-                    if pk_value not in lookup_data[lookup_name]["additional"]:
-                        lookup_data[lookup_name]["additional"][pk_value] = {}
+                    # Description
+                    desc_value = str(row[desc_col]).strip()
+                    row_dict[desc_col] = desc_value
 
+                    # Additional columns
                     for output_col, input_col in found_additional.items():
                         value = str(row[input_col]).strip()
                         if value and value != "nan":
-                            lookup_data[lookup_name]["additional"][pk_value][output_col] = value
+                            row_dict[output_col] = value
+
+                    # Add row to list
+                    lookup_data[lookup_name]["rows"].append(row_dict)
+                    new_entries += 1
 
             if new_entries > 0:
-                logger.debug(f"  ✓ Found {new_entries} new {lookup_name}")
+                logger.debug(f"  ✓ Found {new_entries} rows for {lookup_name}")
 
-    def _process_lookup_files(self, lookup_data: Dict):
-        """Process dedicated lookup CSV files like AreaCodes.csv"""
-        lookup_file_patterns = {
-            "areas": ["areacodes", "area_codes"],
-            "items": ["itemcodes", "item_codes"],
-            "elements": ["elements"],
-            "flags": ["flags"],
-            "currencies": ["currencys", "currencies"],  # Handle typo
-            "sources": ["sources"],
-            "purposes": ["purposes"],
-            "indicators": ["indicators"],
-            "surveys": ["surveys"],
-            "sex": ["sex"],
-            "population_age_groups": ["population_age_group", "populationagegroup"],
-            "food_groups": ["foodgroups", "food_groups"],
-            "donors": ["donors"],
-            "geographic_levels": ["geographiclevels", "geographic_levels"],
-        }
+    # def _process_lookup_files(self, lookup_data: Dict):
+    #     """Process dedicated lookup CSV files like AreaCodes.csv"""
 
-        for extract_dir in self.zip_dir.iterdir():
-            if extract_dir.is_dir() and not extract_dir.name.startswith("."):
-                for csv_file in extract_dir.rglob("*.csv"):
-                    file_lower = csv_file.name.lower()
+    #     for extract_dir in self.zip_dir.iterdir():
+    #         if extract_dir.is_dir() and not extract_dir.name.startswith("."):
+    #             for csv_file in extract_dir.rglob("*.csv"):
+    #                 file_lower = csv_file.name.lower()
 
-                    # Check if this is a lookup file
-                    for lookup_type, patterns in lookup_file_patterns.items():
-                        if any(pattern in file_lower for pattern in patterns):
-                            logger.info(f"  📄 Found {lookup_type} file: {csv_file.name}")
-                            self._process_single_lookup_file(csv_file, lookup_type, lookup_data)
-                            break
+    #                 # Check if this matches any lookup pattern
+    #                 for lookup_key, mapping in LOOKUP_MAPPINGS.items():
+    #                     lookup_name = mapping["lookup_name"]
 
-    def _process_single_lookup_file(self, csv_file: Path, lookup_type: str, lookup_data: Dict):
-        """Process a single lookup CSV file"""
-        # Find the mapping
-        mapping = None
-        for key, map_data in LOOKUP_MAPPINGS.items():
-            if map_data["lookup_name"] == lookup_type:
-                mapping = map_data
-                break
+    #                     # Check if the file name contains the lookup name
+    #                     if lookup_name in file_lower:
+    #                         logger.info(f"  📄 Found {lookup_name} file: {csv_file.name}")
+    #                         self._process_single_lookup_file(csv_file, lookup_name, lookup_data)
+    #                         break
 
-        if not mapping:
-            logger.warning(f"    ⚠️  No mapping found for {lookup_type}")
-            return
+    # def _process_single_lookup_file(self, csv_file: Path, lookup_type: str, lookup_data: Dict):
+    #     """Process a single lookup CSV file"""
+    #     # Find the mapping
+    #     mapping = None
+    #     for key, map_data in LOOKUP_MAPPINGS.items():
+    #         if map_data["lookup_name"] == lookup_type:
+    #             mapping = map_data
+    #             break
 
-        encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
+    #     if not mapping:
+    #         logger.warning(f"    ⚠️  No mapping found for {lookup_type}")
+    #         return
 
-        for encoding in encodings:
-            try:
-                df = pd.read_csv(csv_file, dtype=str, encoding=encoding)
-                df.columns = df.columns.str.strip()
+    #     encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
 
-                # Process all rows (not just unique pairs)
-                self._extract_with_additional_columns(df, mapping, lookup_data, csv_file)
+    #     for encoding in encodings:
+    #         try:
+    #             df = pd.read_csv(csv_file, dtype=str, encoding=encoding)
+    #             df.columns = df.columns.str.strip()
 
-                logger.info(f"    ✓ Processed {len(df)} rows")
-                break
+    #             # Process all rows (not just unique pairs)
+    #             self._extract_with_additional_columns(df, mapping, lookup_data, csv_file)
 
-            except UnicodeDecodeError:
-                continue
-            except Exception as e:
-                logger.warning(f"    ⚠️  Error: {e}")
-                break
+    #             logger.info(f"    ✓ Processed {len(df)} rows")
+    #             break
 
-    def _process_dataset_files(self, lookup_data: Dict):
+    #         except UnicodeDecodeError:
+    #             continue
+    #         except Exception as e:
+    #             logger.critical(f"    ⚠️  Error: {e}")
+    #             raise e
+
+    def _process_all_csv_files(self, lookup_data: Dict):
         """Process dataset files for any additional lookup values"""
         # This is your existing extraction logic
         total_files = 0
         for extract_dir in self.zip_dir.iterdir():
-            if extract_dir.is_dir() and not extract_dir.name.startswith("."):
+            if (
+                extract_dir.is_dir()
+                and not extract_dir.name.startswith(".")
+                and not extract_dir.name.startswith("synthetic_lookups")
+            ):
+                logger.info(f"  📁 {extract_dir.name}")
                 for csv_file in extract_dir.rglob("*.csv"):
-                    # Skip if this is a lookup file
-                    # Skip if this is a lookup file
-                    lookup_patterns = [
-                        "areacodes",
-                        "area_codes",
-                        "elements",
-                        "flags",
-                        "currencys",
-                        "itemcodes",
-                        "item_codes",
-                        "sources",
-                        "purposes",
-                        "indicators",
-                        "surveys",
-                        "sex",
-                        "population",
-                        "foodgroups",
-                        "food_groups",
-                        "donors",
-                        "geographiclevels",
-                        "geographic_levels",
-                    ]
-                    if any(pattern in csv_file.name.lower() for pattern in lookup_patterns):
-                        continue
 
                     # Process dataset file
                     encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
 
+                    logger.info(f"      🧻 {csv_file.name}")
                     for encoding in encodings:
                         try:
+
                             df = pd.read_csv(csv_file, dtype=str, encoding=encoding)
                             df.columns = df.columns.str.strip()
 
@@ -232,15 +208,15 @@ class LookupExtractor:
                                 self._extract_with_additional_columns(df, mapping, lookup_data, csv_file)
 
                             total_files += 1
-                            if total_files % 50 == 0:
-                                logger.info(f"  ⏳ Processed {total_files} dataset files...")
+                            if total_files % 25 == 0:
+                                logger.info(f"  ⏳ Processed {total_files} dataset files...\n")
                             break
 
                         except UnicodeDecodeError:
                             continue
                         except Exception as e:
-                            logger.warning(f"  ⚠️  Error: {e}")
-                            break
+                            logger.critical(f"  ⚠️  Error: {e}")
+                            raise e
 
         logger.info(f"  ✅ Processed {total_files} dataset files")
 
@@ -255,22 +231,27 @@ class LookupExtractor:
             lookup_name = mapping["lookup_name"]
             data = lookup_data[lookup_name]
 
-            if data["core"]:
-                # Build DataFrame
-                rows = []
+            if data["rows"]:
+                # Create DataFrame from rows
+                df = pd.DataFrame(data["rows"])
+
+                # Rename columns to standardized output names
                 output_cols = mapping["output_columns"]
+                rename_map = {}
 
-                for pk, desc in data["core"].items():
-                    row = {output_cols["pk"]: pk, output_cols["desc"]: desc}
+                # Find and rename the PK and description columns
+                for col in df.columns:
+                    if col in mapping["primary_key_variations"]:
+                        rename_map[col] = output_cols["pk"]
+                    elif col in mapping["description_variations"]:
+                        rename_map[col] = output_cols["desc"]
 
-                    # Add additional columns
-                    if pk in data["additional"]:
-                        row.update(data["additional"][pk])
+                df = df.rename(columns=rename_map)
 
-                    rows.append(row)
+                # Drop complete duplicate rows
+                df = df.drop_duplicates()
 
-                # Create DataFrame with proper column order
-                df = pd.DataFrame(rows)
+                # Order columns: PK, Description, then additional columns
                 columns = [output_cols["pk"], output_cols["desc"]]
 
                 # Add additional columns in order
@@ -278,7 +259,12 @@ class LookupExtractor:
                     if add_col in df.columns:
                         columns.append(add_col)
 
-                # Save to CSV
+                # Add any other columns that might exist
+                for col in df.columns:
+                    if col not in columns:
+                        columns.append(col)
+
+                # Save to CSV with proper column order
                 output_file = output_dir / f"{lookup_name}.csv"
                 df[columns].to_csv(output_file, index=False)
 
@@ -290,8 +276,8 @@ class LookupExtractor:
 # In lookup_extractor.py, add after the class definition starts:
 
 LOOKUP_MAPPINGS = {
-    "areas": {
-        "lookup_name": "areas",
+    "area_codes": {
+        "lookup_name": "area_codes",
         "primary_key_variations": ["Area Code"],
         "description_variations": ["Area"],
         "output_columns": {"pk": "Area Code", "desc": "Area"},
@@ -299,8 +285,8 @@ LOOKUP_MAPPINGS = {
             "Area Code (M49)": ["Area Code (M49)", "M49 Code"],
         },
     },
-    "items": {
-        "lookup_name": "items",
+    "item_codes": {
+        "lookup_name": "item_codes",
         "primary_key_variations": ["Item Code"],
         "description_variations": ["Item"],
         "output_columns": {"pk": "Item Code", "desc": "Item"},
@@ -324,8 +310,8 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Population Age Group Code", "desc": "Population Age Group"},
         "additional_columns": {},
     },
-    "sex": {
-        "lookup_name": "sex",
+    "sexs": {
+        "lookup_name": "sexs",
         "primary_key_variations": ["Sex Code"],
         "description_variations": ["Sex"],
         "output_columns": {"pk": "Sex Code", "desc": "Sex"},
@@ -357,6 +343,13 @@ LOOKUP_MAPPINGS = {
         "primary_key_variations": ["Survey Code"],
         "description_variations": ["Survey"],
         "output_columns": {"pk": "Survey Code", "desc": "Survey"},
+        "additional_columns": {},
+    },
+    "releases": {
+        "lookup_name": "releases",
+        "primary_key_variations": ["Release Code"],
+        "description_variations": ["Release"],
+        "output_columns": {"pk": "Release Code", "desc": "Release"},
         "additional_columns": {},
     },
     "indicators": {
