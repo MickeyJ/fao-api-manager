@@ -177,7 +177,7 @@ class PipelineSpecs:
                                 "pipeline_name": "core",
                                 "column_name": to_snake_case(found_column),
                                 "actual_column_name": found_column,
-                                "index_hash": safe_index_name(f"{core_module_name}", found_column),
+                                "index_hash": safe_index_name(f"{core_module_name}{pipeline_name}", found_column),
                             }
                         )
 
