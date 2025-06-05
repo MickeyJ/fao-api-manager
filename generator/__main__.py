@@ -1,12 +1,14 @@
-import argparse
+import argparse, json
+from pathlib import Path
 from generator.structure import Structure
 from generator.file_generator import FileGenerator
 from generator.scanner import Scanner
 from generator.csv_analyzer import CSVAnalyzer
 from generator.generator import Generator
 from generator.pipeline_specs import PipelineSpecs
-from generator.lookup_extractor import LookupExtractor, LOOKUP_MAPPINGS
-from generator.fao_analyzer import FAOAnalyzer
+from generator.fao_reference_data_extractor import FAOReferenceDataExtractor
+from generator.fao_conflict_detector import FAOConflictDetector
+
 
 from . import ZIP_PATH
 
@@ -33,21 +35,43 @@ def all_csv_analysis():
 
 def test():
     """Test the FAO data discovery"""
-    from generator.fao_analyzer import FAOAnalyzer
-    from generator.lookup_extractor import LOOKUP_MAPPINGS
+    from generator.fao_structure_modules import FAOStructureModules
+    from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
+    from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 
-    analyzer = FAOAnalyzer(ZIP_PATH, LOOKUP_MAPPINGS)
-    analyzer.discover_all()
-    output_path = analyzer.save_discovery_results()
+    extractor = FAOReferenceDataExtractor(ZIP_PATH)
+    extractor.run()
 
-    print(f"\n✅ Discovery results saved to: {output_path}")
-    print("Check the JSON file for full details!")
+    structure_modules = FAOStructureModules(ZIP_PATH, LOOKUP_MAPPINGS)
+    structure_modules.run()
+
+    fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS)
+    enhanced_datasets = fk_mapper.enhance_datasets_with_foreign_keys()
+
+    conflict_detector = FAOConflictDetector(structure_modules.results, LOOKUP_MAPPINGS)
+    enhanced_lookups = conflict_detector.enhance_lookups_with_conflicts()
+
+    # Show summary
+    summary = conflict_detector.get_conflict_summary()
+    print(json.dumps(summary, indent=2))
+
+    # Show details for specific lookup
+    conflict_detector.show_conflict_details("area_codes", max_conflicts=5)
+
+    # Get summary
+    summary = conflict_detector.get_conflict_summary()
+    print(json.dumps(summary, indent=2))
+
+    structure_modules.save()
+
+    print(f"\n✅ Dunzo")
+
     # raise NotImplementedError("Tests not yet implemented.")
 
 
 def process_csv():
     """Process lookups from the synthetic_lookups directory"""
-    extractor = LookupExtractor(ZIP_PATH)
+    extractor = FAOReferenceDataExtractor(ZIP_PATH)
     extractor.run()
 
 

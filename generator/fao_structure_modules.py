@@ -5,36 +5,16 @@ from pathlib import Path
 from typing import List, Dict, Optional
 import pandas as pd
 from . import logger, to_snake_case, snake_to_pascal_case
+from .utils.dataclass import FAOLookup, FAODataset
+from .structure import Structure
 
 
-@dataclass
-class FAOLookup:
-    """Represents a lookup table (areas, items, etc.)"""
-
-    name: str  # "areas", "items"
-    primary_key: str  # "Area Code", "Item Code"
-    description_col: str  # "Area", "Item"
-    sql_table_name: str  # snake_case sqlalchemy table name
-    sql_model_name: str  # PascalCase sqlalchemy class name
-    file_path: Path
-    row_count: int = 0
-    columns: List[str] = field(default_factory=list)
+def format_column_name(file_name: str) -> str:
+    """Convert CSV name to database-friendly name"""
+    return file_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_").replace(".", "_")
 
 
-@dataclass
-class FAODataset:
-    """Represents a dataset (prices, production, etc.)"""
-
-    name: str
-    directory: Path
-    sql_table_name: str  # snake_case sqlalchemy table name
-    sql_model_name: str  # PascalCase sqlalchemy class name
-    main_data_file: Path
-    row_count: int = 0
-    columns: List[str] = field(default_factory=list)
-
-
-class FAOAnalyzer:
+class FAOStructureModules:
     """First pass - just discover what files we have"""
 
     def __init__(self, input_dir: str | Path, lookup_mappings: Dict):
@@ -42,12 +22,21 @@ class FAOAnalyzer:
         self.synthetic_lookups_dir = self.input_dir / "synthetic_lookups"
         self.lookup_mappings = lookup_mappings
         self.results = {"lookups": {}, "datasets": {}}
+        self.structure = Structure()
 
-    def save_discovery_results(self) -> Path:
+    def run(self) -> None:
+        """Discover all lookups and datasets"""
+        logger.info("🔍 Starting FAO data discovery...")
+
+        lookups = self._make_lookups()
+        datasets = self._make_datasets()
+
+        self.results = {"lookups": lookups, "datasets": datasets}  # Store in instance
+
+    def save(self) -> Path:
         """Save discovery results to JSON"""
 
         output_path = Path("./analysis/fao_discovery.json")
-
         output_path.parent.mkdir(exist_ok=True)
 
         # Convert to JSON-serializable format
@@ -74,6 +63,20 @@ class FAOAnalyzer:
                     "main_data_file": str(dataset.main_data_file) if dataset.main_data_file else None,
                     "row_count": dataset.row_count,
                     "columns": dataset.columns,
+                    # NEW FK-related fields:
+                    "foreign_keys": [
+                        {
+                            "dataset_fk_csv_column": fk.dataset_fk_csv_column,
+                            "dataset_fk_sql_column": fk.dataset_fk_sql_column,
+                            "lookup_sql_table": fk.lookup_sql_table,
+                            "lookup_sql_model": fk.lookup_sql_model,
+                            "lookup_pk_csv_column": fk.lookup_pk_csv_column,
+                            "lookup_pk_sql_column": fk.lookup_pk_sql_column,
+                        }
+                        for fk in dataset.foreign_keys
+                    ],
+                    "exclude_columns": dataset.exclude_columns,
+                    "sql_all_columns": dataset.sql_all_columns,
                 }
                 for name, dataset in self.results["datasets"].items()
             },
@@ -85,16 +88,7 @@ class FAOAnalyzer:
         logger.info(f"💾 Saved discovery results to {output_path}")
         return output_path
 
-    def discover_all(self) -> None:
-        """Discover all lookups and datasets"""
-        logger.info("🔍 Starting FAO data discovery...")
-
-        lookups = self._discover_lookups()
-        datasets = self._discover_datasets()
-
-        self.results = {"lookups": lookups, "datasets": datasets}  # Store in instance
-
-    def _discover_lookups(self) -> Dict[str, FAOLookup]:
+    def _make_lookups(self) -> Dict[str, FAOLookup]:
         """Discover all synthetic lookup files"""
         lookups = {}
 
@@ -102,6 +96,7 @@ class FAOAnalyzer:
 
         for lookup_key, mapping in self.lookup_mappings.items():
             lookup_name = mapping["lookup_name"]
+
             csv_path = self.synthetic_lookups_dir / f"{lookup_name}.csv"
 
             if csv_path.exists():
@@ -126,7 +121,7 @@ class FAOAnalyzer:
 
         return lookups
 
-    def _discover_datasets(self) -> Dict[str, FAODataset]:
+    def _make_datasets(self) -> Dict[str, FAODataset]:
         """Discover all dataset directories"""
         datasets = {}
 
@@ -140,7 +135,7 @@ class FAOAnalyzer:
 
                 # Check if it looks like a FAO dataset
                 if self._is_fao_dataset(path):
-                    dataset = self._analyze_dataset_dir(path)
+                    dataset = self._extract_dataset_info(path)
                     if dataset:
                         datasets[dataset.name] = dataset
                         logger.info(f"  ✓ Found {dataset.name}: {dataset.row_count} rows")
@@ -152,7 +147,7 @@ class FAOAnalyzer:
         # Look for All_Data CSV files
         return any(f.name for f in path.glob("*.csv") if "all_data" in f.name.lower())
 
-    def _analyze_dataset_dir(self, path: Path) -> Optional[FAODataset]:
+    def _extract_dataset_info(self, path: Path) -> Optional[FAODataset]:
         """Basic analysis of a dataset directory"""
         # Find main data file
         main_file = None
@@ -172,11 +167,13 @@ class FAOAnalyzer:
             logger.error(f"  ✗ Failed to read {path.name}")
             return None
 
+        dataset_name = self.structure.extract_module_name(path.name)
+
         return FAODataset(
-            name=path.name,
+            name=dataset_name,
             directory=path,
-            sql_table_name=to_snake_case(path.name),
-            sql_model_name=snake_to_pascal_case(path.name),
+            sql_table_name=dataset_name,
+            sql_model_name=snake_to_pascal_case(dataset_name),
             main_data_file=main_file,
             row_count=row_count,
             columns=columns,

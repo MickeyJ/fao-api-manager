@@ -114,8 +114,8 @@ class CSVAnalyzer:
         logger.info("🔍 Starting comprehensive file analysis...")
         all_files = {}
 
-        for zip_path in self.scanner.zip_dir.glob("*.zip"):
-            if self.scanner.is_zip(zip_path):
+        for zip_path in self.scanner.input_dir.glob("*.zip"):
+            if self.scanner.is_fao_dataset(zip_path):
                 with zipfile.ZipFile(zip_path, "r") as zf:
                     csv_files = [f for f in zf.namelist() if f.endswith(".csv")]
 

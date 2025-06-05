@@ -6,8 +6,8 @@ import pandas as pd
 from . import logger
 
 
-class LookupExtractor:
-    """Extract lookup tables from dataset files and create synthetic CSVs"""
+class FAOReferenceDataExtractor:
+    """Extract reference data tables from dataset files and create synthetic CSVs"""
 
     def __init__(self, zip_directory: str | Path):
         self.zip_dir = Path(zip_directory)
@@ -131,56 +131,6 @@ class LookupExtractor:
             if new_entries > 0:
                 logger.debug(f"  ✓ Found {new_entries} rows for {lookup_name}")
 
-    # def _process_lookup_files(self, lookup_data: Dict):
-    #     """Process dedicated lookup CSV files like AreaCodes.csv"""
-
-    #     for extract_dir in self.zip_dir.iterdir():
-    #         if extract_dir.is_dir() and not extract_dir.name.startswith("."):
-    #             for csv_file in extract_dir.rglob("*.csv"):
-    #                 file_lower = csv_file.name.lower()
-
-    #                 # Check if this matches any lookup pattern
-    #                 for lookup_key, mapping in LOOKUP_MAPPINGS.items():
-    #                     lookup_name = mapping["lookup_name"]
-
-    #                     # Check if the file name contains the lookup name
-    #                     if lookup_name in file_lower:
-    #                         logger.info(f"  📄 Found {lookup_name} file: {csv_file.name}")
-    #                         self._process_single_lookup_file(csv_file, lookup_name, lookup_data)
-    #                         break
-
-    # def _process_single_lookup_file(self, csv_file: Path, lookup_type: str, lookup_data: Dict):
-    #     """Process a single lookup CSV file"""
-    #     # Find the mapping
-    #     mapping = None
-    #     for key, map_data in LOOKUP_MAPPINGS.items():
-    #         if map_data["lookup_name"] == lookup_type:
-    #             mapping = map_data
-    #             break
-
-    #     if not mapping:
-    #         logger.warning(f"    ⚠️  No mapping found for {lookup_type}")
-    #         return
-
-    #     encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
-
-    #     for encoding in encodings:
-    #         try:
-    #             df = pd.read_csv(csv_file, dtype=str, encoding=encoding)
-    #             df.columns = df.columns.str.strip()
-
-    #             # Process all rows (not just unique pairs)
-    #             self._extract_with_additional_columns(df, mapping, lookup_data, csv_file)
-
-    #             logger.info(f"    ✓ Processed {len(df)} rows")
-    #             break
-
-    #         except UnicodeDecodeError:
-    #             continue
-    #         except Exception as e:
-    #             logger.critical(f"    ⚠️  Error: {e}")
-    #             raise e
-
     def _process_all_csv_files(self, lookup_data: Dict):
         """Process dataset files for any additional lookup values"""
         # This is your existing extraction logic
@@ -193,6 +143,12 @@ class LookupExtractor:
             ):
                 logger.info(f"  📁 {extract_dir.name}")
                 for csv_file in extract_dir.rglob("*.csv"):
+                    dataset_file = csv_file.name.lower().find("all_data") >= 0
+                    flag_file = csv_file.name.lower().find("flags") >= 0
+
+                    # Skip if it's NEITHER a dataset NOR a flag file
+                    if not dataset_file and not flag_file:
+                        continue
 
                     # Process dataset file
                     encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
