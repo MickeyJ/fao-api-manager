@@ -3,6 +3,7 @@ import zipfile, json
 from pathlib import Path
 from typing import Dict, List, Set
 import pandas as pd
+from generator.structure import Structure
 from . import logger
 
 
@@ -12,8 +13,9 @@ class FAOReferenceDataExtractor:
     def __init__(self, zip_directory: str | Path, json_cache_path: Path):
         self.zip_dir = Path(zip_directory)
         self.analysis_dir = Path("./cache")
-        self.extracted_lookups = {}  # Will store discovered lookups
         self.json_cache_path = json_cache_path
+        self.structure = Structure()
+        self.extracted_lookups = {}  # Will store discovered lookups
 
     def run(self):
         """Main entry point - extract and analyze everything"""
@@ -112,6 +114,8 @@ class FAOReferenceDataExtractor:
 
             new_entries = 0
             for _, row in unique_data.iterrows():
+                dataset_name = self.structure.extract_module_name(csv_file.name)
+
                 # Build row dictionary with actual column names from the mapping
                 row_dict = {}
 
@@ -129,6 +133,12 @@ class FAOReferenceDataExtractor:
                         value = str(row[input_col]).strip()
                         if value and value != "nan":
                             row_dict[output_col] = value
+
+                    # ADD SOURCE DATASET COLUMN
+                    row_dict["source_dataset"] = dataset_name
+
+                    # Add row to list
+                    lookup_data[lookup_name]["rows"].append(row_dict)
 
                     # Add row to list
                     lookup_data[lookup_name]["rows"].append(row_dict)
@@ -251,6 +261,7 @@ LOOKUP_MAPPINGS = {
         "additional_columns": {
             "Area Code (M49)": ["Area Code (M49)", "M49 Code"],
         },
+        "hash_columns": ["Area Code", "source_dataset"],
     },
     "item_codes": {
         "lookup_name": "item_codes",
@@ -262,6 +273,7 @@ LOOKUP_MAPPINGS = {
             "Item Code (FBS)": ["Item Code (FBS)"],
             "Item Code (SDG)": ["Item Code (SDG)"],
         },
+        "hash_columns": ["Item Code", "source_dataset"],
     },
     "elements": {
         "lookup_name": "elements",
@@ -269,6 +281,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Element"],
         "output_columns": {"pk": "Element Code", "desc": "Element"},
         "additional_columns": {},
+        "hash_columns": ["Element Code", "source_dataset"],
     },
     "population_groups": {
         "lookup_name": "population_age_groups",
@@ -276,6 +289,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Population Age Group", "Population Group", "Population Age Group.1"],
         "output_columns": {"pk": "Population Age Group Code", "desc": "Population Age Group"},
         "additional_columns": {},
+        "hash_columns": ["Population Age Group Code", "source_dataset"],
     },
     "sexs": {
         "lookup_name": "sexs",
@@ -283,6 +297,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Sex"],
         "output_columns": {"pk": "Sex Code", "desc": "Sex"},
         "additional_columns": {},
+        "hash_columns": ["Sex Code", "source_dataset"],
     },
     "flags": {
         "lookup_name": "flags",
@@ -290,6 +305,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Description"],
         "output_columns": {"pk": "Flag", "desc": "Description"},
         "additional_columns": {},
+        "hash_columns": ["Flag", "source_dataset"],
     },
     "currencies": {
         "lookup_name": "currencies",
@@ -297,6 +313,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Currency"],
         "output_columns": {"pk": "ISO Currency Code", "desc": "Currency"},
         "additional_columns": {},
+        "hash_columns": ["ISO Currency Code", "source_dataset"],
     },
     "sources": {
         "lookup_name": "sources",
@@ -304,6 +321,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Source"],
         "output_columns": {"pk": "Source Code", "desc": "Source"},
         "additional_columns": {},
+        "hash_columns": ["Source Code", "source_dataset"],
     },
     "surveys": {
         "lookup_name": "surveys",
@@ -311,6 +329,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Survey"],
         "output_columns": {"pk": "Survey Code", "desc": "Survey"},
         "additional_columns": {},
+        "hash_columns": ["Survey Code", "source_dataset"],
     },
     "releases": {
         "lookup_name": "releases",
@@ -318,6 +337,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Release"],
         "output_columns": {"pk": "Release Code", "desc": "Release"},
         "additional_columns": {},
+        "hash_columns": ["Release Code", "source_dataset"],
     },
     "indicators": {
         "lookup_name": "indicators",
@@ -325,6 +345,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Indicator"],
         "output_columns": {"pk": "Indicator Code", "desc": "Indicator"},
         "additional_columns": {},
+        "hash_columns": ["Indicator Code", "source_dataset"],
     },
     "purposes": {
         "lookup_name": "purposes",
@@ -332,6 +353,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Purpose"],
         "output_columns": {"pk": "Purpose Code", "desc": "Purpose"},
         "additional_columns": {},
+        "hash_columns": ["Purpose Code", "source_dataset"],
     },
     "donors": {
         "lookup_name": "donors",
@@ -341,6 +363,7 @@ LOOKUP_MAPPINGS = {
         "additional_columns": {
             "Donor Code (M49)": ["Donor Code (M49)"],
         },
+        "hash_columns": ["Donor Code", "source_dataset"],
     },
     "food_groups": {
         "lookup_name": "food_groups",
@@ -348,6 +371,7 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Food Group"],
         "output_columns": {"pk": "Food Group Code", "desc": "Food Group"},
         "additional_columns": {},
+        "hash_columns": ["Food Group Code", "source_dataset"],
     },
     "geographic_levels": {
         "lookup_name": "geographic_levels",
@@ -355,5 +379,6 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Geographic Level"],
         "output_columns": {"pk": "Geographic Level Code", "desc": "Geographic Level"},
         "additional_columns": {},
+        "hash_columns": ["Geographic Level Code", "source_dataset"],
     },
 }

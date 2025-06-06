@@ -15,10 +15,13 @@ from {{ project_name }}.src.db.database import Base
 
 class {{ model_name }}(Base):
     __tablename__ = "{{ table_name }}"
-    {# spacer #}
+    {# readability spacer #}
     {% if specs.is_core_file %}
     # Lookup table - use domain primary key
-    {{ specs.pk_sql_column_name }} = Column(String, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True)
+    # Original FAO code (indexed for queries)
+    {{ specs.pk_sql_column_name }} = Column(String, nullable=False, index=True)
+    {# readability spacer #}
     {% for column in column_analysis %}
     {% if column.sql_column_name != specs.pk_sql_column_name %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
@@ -27,7 +30,7 @@ class {{ model_name }}(Base):
     {% else %} {# not specs.is_core_file #}
     # Dataset table - use auto-increment id
     id = Column(Integer, primary_key=True)
-    {# spacer #}
+    {# readability spacer #}
     {% for column in column_analysis %}
     {% if column.csv_column_name not in specs.exclude_columns %}
     {% set col_name_to_match = column.original_csv_column_name | default(column.csv_column_name) %}
@@ -35,18 +38,24 @@ class {{ model_name }}(Base):
     {% if matching_fks %}
         {% set fk = matching_fks[0] %}
     # Foreign key to {{ fk.table_name }}
-    {{ column.sql_column_name }} = Column(String, ForeignKey("{{ fk.table_name }}.{{ fk.column_name }}"), index=True{% if column.null_count == 0 %}, nullable=False{% endif %})
+    {{ column.sql_column_name }}_id = Column(Integer, ForeignKey("{{ fk.table_name }}.id"), index=True)
+    {{ column.sql_column_name }} = Column(String)  # Keep original code for queries
     {% else %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
     {% endif %}
     {% endif %}
     {% endfor %}
-    {# spacer #}
+    {# readability spacer #}
     {% endif %} {# end specs.is_core_file #}  
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    {% if not specs.is_core_file and specs.foreign_keys %}
+    {% if specs.is_core_file %}
+    # Composite indexes for lookup tables
+    __table_args__ = (
+        Index("ix_{{ table_name[:8] }}_{{ specs.pk_sql_column_name[:8] }}_src", '{{ specs.pk_sql_column_name }}', 'source_dataset', unique=True),
+    )
+    {% elif specs.foreign_keys %}
     # Composite indexes for common query patterns
     __table_args__ = (
         {% for fk in specs.foreign_keys %}

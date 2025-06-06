@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from .structure import Structure
 from .file_generator import FileGenerator
 from .template_renderer import TemplateRenderer
+from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 from . import logger, clean_text, format_column_name, safe_index_name
 
 
@@ -45,8 +46,6 @@ class Generator:
         """Discover modules from all pipelines"""
         from generator.fao_structure_modules import FAOStructureModules
         from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
-        from generator.fao_conflict_detector import FAOConflictDetector
-        from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 
         json_cache_path = Path("./cache/fao_module_cache.json")
         cache_bust = False
@@ -57,11 +56,7 @@ class Generator:
 
         # Add foreign keys
         fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path, cache_bust)
-        fk_mapper.enhance_datasets_with_foreign_keys()
-
-        # Add conflicts
-        conflict_detector = FAOConflictDetector(structure_modules.results, json_cache_path, cache_bust)
-        enhanced_results = conflict_detector.enhance_with_conflicts()
+        enhanced_results = fk_mapper.enhance_datasets_with_foreign_keys()
 
         # Save and use results
         structure_modules.save()
@@ -79,6 +74,7 @@ class Generator:
             full_path = Path(lookup_spec["file_path"])
             relative_path = full_path.relative_to(self.input_dir)
             csv_file_path = relative_path.as_posix()  # This converts to forward slashes
+            lookup_mapping = next((v for k, v in LOOKUP_MAPPINGS.items() if v["lookup_name"] == lookup_name), None)
             module = {
                 "pipeline_name": lookup_name,  # Each lookup gets own pipeline
                 "module_name": lookup_name,
@@ -94,8 +90,7 @@ class Generator:
                     "is_core_file": True,  # Flag as lookup/core
                     "pk_column": lookup_spec["primary_key"],
                     "pk_sql_column_name": format_column_name(lookup_spec["primary_key"]),
-                    "conflicts": lookup_spec.get("conflicts", []),
-                    "has_conflicts": lookup_spec.get("has_conflicts", False),
+                    "hash_columns": lookup_mapping["hash_columns"] if lookup_mapping else [],
                 },
             }
             self.all_modules.append(module)
@@ -138,7 +133,6 @@ class Generator:
                     "is_core_file": False,
                     "foreign_keys": foreign_keys,
                     "exclude_columns": dataset_spec.get("exclude_columns", []),
-                    "conflict_resolutions": dataset_spec.get("conflict_resolutions", {}),
                 },
             }
             self.all_modules.append(module)

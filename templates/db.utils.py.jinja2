@@ -1,5 +1,5 @@
 import pandas as pd
-import zipfile
+import zipfile, hashlib
 from pathlib import Path
 
 
@@ -9,6 +9,35 @@ LARGE_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\large"
 ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
 
 ZIP_PATH = ALL_ZIP_EXAMPLE
+
+
+def generate_numeric_id(row_data: dict, hash_columns: list[str]) -> int:
+    """Generate deterministic numeric ID from specified columns
+    
+    Args:
+        row_data: Dictionary containing the row data
+        hash_columns: List of column names to include in hash
+        
+    Returns:
+        Positive integer suitable for database ID
+    """
+    # Extract values in consistent order
+    values = []
+    for col in sorted(hash_columns):  # Sort for consistency
+        value = str(row_data.get(col, '')).strip()
+        values.append(value)
+    
+    # Create hash string
+    content = '|'.join(values)
+    
+    # Generate hash
+    hash_bytes = hashlib.md5(content.encode('utf-8')).digest()
+    
+    # Convert to positive integer (PostgreSQL INTEGER max is 2147483647)
+    numeric_id = int.from_bytes(hash_bytes[:8], byteorder='big')
+    
+    # Ensure it fits in PostgreSQL INTEGER type
+    return numeric_id % 2147483647
 
 
 def get_csv_path_for(csv_path):

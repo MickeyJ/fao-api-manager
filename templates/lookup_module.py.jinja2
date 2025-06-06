@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for
+from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for, generate_numeric_id
 from {{ project_name }}.src.db.database import run_with_session
 from .{{ table_name }}_model import {{ model_name }}
 
@@ -78,6 +78,10 @@ def insert(df: pd.DataFrame, session: Session):
     records = []
     for _, row in df.iterrows():
         record = {}
+        
+        # Generate hash ID from configured columns
+        hash_columns = {{ specs.hash_columns | tojson }}
+        record['id'] = generate_numeric_id(row.to_dict(), hash_columns)
         {% for column in column_analysis %}
         record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
         {% endfor %}
