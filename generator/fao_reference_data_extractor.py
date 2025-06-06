@@ -197,6 +197,11 @@ class FAOReferenceDataExtractor:
                 # Create DataFrame from rows
                 df = pd.DataFrame(data["rows"])
 
+                # Remove any duplicate columns that pandas created
+                # Keep only columns without .1, .2, etc. suffixes
+                original_cols = [col for col in df.columns if not any(col.endswith(f".{i}") for i in range(1, 10))]
+                df = df[original_cols]
+
                 # Rename columns to standardized output names
                 output_cols = mapping["output_columns"]
                 rename_map = {}

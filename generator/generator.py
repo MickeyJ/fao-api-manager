@@ -1,15 +1,9 @@
-import json
 from typing import List, Dict, Literal
 from pathlib import Path
 from dataclasses import dataclass
-from .scanner import Scanner
 from .structure import Structure
-from .core_pipeline import CorePipeline
-from .dataset_pipelines import DatasetPipelines
-from .csv_analyzer import CSVAnalyzer
 from .file_generator import FileGenerator
 from .template_renderer import TemplateRenderer
-from .pipeline_specs import PipelineSpecs
 from . import logger, clean_text, format_column_name, safe_index_name
 
 
@@ -31,11 +25,8 @@ class Generator:
         self.input_dir = input_dir
         self.structure = Structure()
         self.file_generator = FileGenerator(self.paths.project)
-        self.scanner = Scanner(self.input_dir, self.structure)
         # self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
         self.template_renderer = TemplateRenderer(self.project_name)
-
-        self.all_zip_info = self.scanner.scan_all_zips()
 
         # Will hold all modules from all pipelines
         self.all_modules = []
@@ -44,13 +35,13 @@ class Generator:
     def generate(self) -> None:
         """Main generation workflow"""
         # Step 1: Discover all modules
-        self._discover_modules(self.all_zip_info)
+        self._discover_modules()
 
         # Step 3
         self._generate_directories()
         self._generate_files()
 
-    def _discover_modules(self, all_zip_info: List[Dict]):
+    def _discover_modules(self):
         """Discover modules from all pipelines"""
         from generator.fao_structure_modules import FAOStructureModules
         from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
@@ -77,10 +68,10 @@ class Generator:
 
         # Step 2: Convert to module format
         self._process_lookups(enhanced_results["lookups"])
-        # self._process_datasets(enhanced_results["datasets"])
+        self._process_datasets(enhanced_results["datasets"])
 
-        extraction_manifest = self.scanner.create_extraction_manifest(all_zip_info)
-        self.file_generator.write_json_file(self.paths.project / "extraction_manifest.json", extraction_manifest)
+        # extraction_manifest = self.scanner.create_extraction_manifest(all_zip_info)
+        # self.file_generator.write_json_file(self.paths.project / "extraction_manifest.json", extraction_manifest)
 
     def _process_lookups(self, lookups: Dict):
         """Process lookup modules with conflict handling"""
@@ -116,11 +107,11 @@ class Generator:
                     {
                         "table_name": fk["lookup_sql_table"],
                         "model_name": fk["lookup_sql_model"],
-                        "column_name": format_column_name(fk["dataset_fk_csv_column"]),
+                        "column_name": fk["lookup_pk_sql_column"],
                         "actual_column_name": fk["dataset_fk_csv_column"],
                         "pipeline_name": fk["lookup_sql_table"],  # For imports
                         "index_hash": safe_index_name(
-                            f"{dataset_spec['sql_table_name']}{fk['lookup_sql_table']}", fk["dataset_fk_csv_column"]
+                            f"{dataset_spec['sql_table_name']}{fk['lookup_sql_table']}", fk["lookup_sql_table"]
                         ),
                     }
                 )
@@ -130,8 +121,9 @@ class Generator:
                 "module_name": dataset_name,
                 "model_name": dataset_spec["sql_model_name"],
                 "table_name": dataset_spec["sql_table_name"],
+                "column_analysis": dataset_spec["column_analysis"],
                 "file_info": {
-                    "csv_files": [dataset_spec["main_data_file"]],
+                    "csv_file": dataset_spec["main_data_file"],
                     "csv_filename": Path(dataset_spec["main_data_file"]).name,
                 },
                 "specs": {
@@ -230,27 +222,29 @@ class Generator:
         for module in modules:
             module_name = module["module_name"]
 
-            if module["specs"]["is_core_file"]:
-                # Lookup module
-                pipeline_content = self.template_renderer.render_lookup_module_template(
-                    csv_file=module["file_info"]["csv_file"],  # Singular
-                    model_name=module["model_name"],
-                    table_name=module["table_name"],
-                    column_analysis=module["column_analysis"],
-                    specs=module["specs"],
-                )
-                self.file_generator.write_file_cache(pipeline_dir / f"{module_name}.py", pipeline_content)
-            else:
-                """Dataset module next"""
+            module_template = (
+                self.template_renderer.render_lookup_module_template
+                if module["specs"]["is_core_file"]
+                else self.template_renderer.render_dataset_module_template
+            )
 
-            # # Generate model file (areas.py in model_dir)
-            # model_content = self.template_renderer.render_model_template(
-            #     model_name=module["model_name"],
-            #     table_name=module["table_name"],
-            #     csv_analysis=module["column_analysis"],
-            #     specs=module["specs"],
-            # )
-            # self.file_generator.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
+            pipeline_content = module_template(
+                csv_file=module["file_info"]["csv_file"],  # Singular
+                model_name=module["model_name"],
+                table_name=module["table_name"],
+                column_analysis=module["column_analysis"],
+                specs=module["specs"],
+            )
+            self.file_generator.write_file_cache(pipeline_dir / f"{module_name}.py", pipeline_content)
+
+            # Generate model file (areas.py in model_dir)
+            model_content = self.template_renderer.render_model_template(
+                model_name=module["model_name"],
+                table_name=module["table_name"],
+                column_analysis=module["column_analysis"],
+                specs=module["specs"],
+            )
+            self.file_generator.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
 
             # Generate analysis JSON
             self.file_generator.write_json_file(

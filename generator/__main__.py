@@ -1,45 +1,19 @@
 import argparse, json
 from pathlib import Path
-from generator.structure import Structure
-from generator.file_generator import FileGenerator
-from generator.scanner import Scanner
-from generator.csv_analyzer import CSVAnalyzer
 from generator.generator import Generator
-from generator.pipeline_specs import PipelineSpecs
 from generator.fao_reference_data_extractor import FAOReferenceDataExtractor
 from generator.fao_conflict_detector import FAOConflictDetector
-
-
 from . import ZIP_PATH
 
 
-def all_csv_analysis():
-    """Scan for duplicate files across all ZIP files"""
-    structure = Structure()
-    file_scanner = FileGenerator(output_dir="./analysis")
-    scanner = Scanner(ZIP_PATH, structure)
-    csv_analyzer = CSVAnalyzer(structure, scanner, file_scanner)
-
-    print("Scanning for duplicate files...")
-    similar_files = csv_analyzer.analyze_files()
-
-    # Show results
-    for normalized_name, data in similar_files.items():
-        print(f"\n{normalized_name}: found in {data['occurrence_count']} datasets")
+json_cache_path = Path("./analysis/fao_module_cache.json")
 
 
-# def optimization_analysis():
-#     """Run optimization analysis on the CSV files"""
-#     results = run_optimization_analysis(ZIP_PATH)
-
-
-def test():
+def test_pre_generation():
     """Test the FAO data discovery"""
     from generator.fao_structure_modules import FAOStructureModules
     from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
     from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
-
-    json_cache_path = Path("./analysis/fao_module_cache.json")
 
     # extractor = FAOReferenceDataExtractor(ZIP_PATH, json_cache_path)
     # extractor.run()
@@ -73,7 +47,7 @@ def test():
 
 def process_csv():
     """Process lookups from the synthetic_lookups directory"""
-    extractor = FAOReferenceDataExtractor(ZIP_PATH)
+    extractor = FAOReferenceDataExtractor(ZIP_PATH, json_cache_path)
     extractor.run()
 
 
@@ -84,30 +58,25 @@ def generate_all():
 
 def main():
     parser = argparse.ArgumentParser(description="FAO data pipeline generator")
-    parser.add_argument("--csv_analysis", action="store_true", help="Analyze CSV files")
-    parser.add_argument("--opt_analysis", action="store_true", help="run optimization analysis")
+
     parser.add_argument(
         "--process_csv", action="store_true", help="pre-process CSV files and create core/lookup csv files"
     )
-    parser.add_argument("--test", action="store_true", help="Generate all pipelines")
+    parser.add_argument("--pre_test", action="store_true", help="Generate all pipelines")
     parser.add_argument("--all", action="store_true", help="Generate all pipelines")
 
     args = parser.parse_args()
 
-    if args.csv_analysis:
-        all_csv_analysis()
-    elif args.process_csv:
+    if args.process_csv:
         process_csv()
-    elif args.opt_analysis:
-        PipelineSpecs(ZIP_PATH).create()
-    elif args.test:
-        test()
+    elif args.pre_test:
+        test_pre_generation()
     elif args.all:
         generate_all()
 
     else:
         # Default behavior
-        raise NotImplementedError("available arguments: --analyze | --test | --all")
+        raise NotImplementedError("available arguments: --process_csv | --pre_test | --all")
 
 
 if __name__ == "__main__":

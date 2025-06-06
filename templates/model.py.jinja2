@@ -1,5 +1,6 @@
+# templates/model.py.jinja2
 from sqlalchemy import (
-    {% for sql_type in csv_analysis.column_analysis | map(attribute='inferred_sql_type') | unique  | reject('equalto', 'Integer')%}
+    {% for sql_type in column_analysis | map(attribute='inferred_sql_type') | unique | reject('equalto', 'Integer') %}
     {{ sql_type }},
     {% endfor %}
     Integer,
@@ -11,62 +12,59 @@ from sqlalchemy import (
 )
 from {{ project_name }}.src.db.database import Base
 
+
 class {{ model_name }}(Base):
     __tablename__ = "{{ table_name }}"
-    
-    {% if specs.is_core_file and specs.pk_column %}
-    # Core Model
-        {# Core models use domain primary key #}
-        {% if specs.fk_pk_mismatch %}
-            {# Create the correct primary key manually for mismatch cases #}
+    {# spacer #}
+    {% if specs.is_core_file %}
+    # Lookup table - use domain primary key
     {{ specs.pk_sql_column_name }} = Column(String, primary_key=True, nullable=False)
-            {# Create CSV columns but skip the first (bad) one #}
-            {% for column in csv_analysis.column_analysis[1:] %}
+    {% for column in column_analysis %}
+    {% if column.sql_column_name != specs.pk_sql_column_name %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-            {% endfor %}
-        {% else %}
-            {# Normal case - find the CSV column that matches the primary key #}
-            {% for column in csv_analysis.column_analysis %}
-                {% if column.sql_column_name == specs.pk_sql_column_name %}
-    {{ column.sql_column_name }} = Column(String, primary_key=True{% if column.null_count == 0 %}, nullable=False{% endif %})
-                {% else %}
-    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% else %}
-    # Dataset Model
-        {# Dataset models use auto-increment id and foreign keys #}
-    id = Column(Integer, primary_key=True)
-        {% for column in csv_analysis.column_analysis %}
-            {# Check if this column is a foreign key by matching table name #}
-            {% set matching_fks = specs.foreign_keys | selectattr('actual_column_name', 'equalto', column.csv_column_name) | list %}
-            {% if matching_fks %}
-                {% set fk = matching_fks[0] %}
-    {{ column.sql_column_name }} = Column(String, ForeignKey("{{ fk.table_name }}.{{ fk.column_name }}"){% if column.null_count == 0 %}, nullable=False{% endif %})
-            {% elif not specs.exclude_columns or column.csv_column_name not in specs.exclude_columns %}
-    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-            {% endif %}
-        {% endfor %}
     {% endif %}
-
+    {% endfor %}
+    {% else %} {# not specs.is_core_file #}
+    # Dataset table - use auto-increment id
+    id = Column(Integer, primary_key=True)
+    {# spacer #}
+    {% for column in column_analysis %}
+    {% if column.csv_column_name not in specs.exclude_columns %}
+    {% set col_name_to_match = column.original_csv_column_name | default(column.csv_column_name) %}
+    {% set matching_fks = specs.foreign_keys | selectattr('actual_column_name', 'equalto', col_name_to_match) | list %}
+    {% if matching_fks %}
+        {% set fk = matching_fks[0] %}
+    # Foreign key to {{ fk.table_name }}
+    {{ column.sql_column_name }} = Column(String, ForeignKey("{{ fk.table_name }}.{{ fk.column_name }}"), index=True{% if column.null_count == 0 %}, nullable=False{% endif %})
+    {% else %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    {# spacer #}
+    {% endif %} {# end specs.is_core_file #}  
     created_at = Column(DateTime, default=func.now(), nullable=False)
-    updated_at = Column(
-        DateTime, default=func.now(), onupdate=func.now(), nullable=False
-    )
-
-    {% if specs.foreign_keys %}
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    
+    {% if not specs.is_core_file and specs.foreign_keys %}
+    # Composite indexes for common query patterns
     __table_args__ = (
         {% for fk in specs.foreign_keys %}
-        Index("ix_{{ fk.index_hash }}_{{ fk.column_name }}", "{{ fk.column_name }}"),
+        Index("ix_{{ fk.index_hash }}", "{{ fk.column_name }}"),
         {% endfor %}
     )
     {% endif %}
-
+    
     def __repr__(self):
-        {% if specs.is_core_file and specs.pk_sql_column_name %}
-        return f"<{{ model_name }}({{ specs.pk_sql_column_name }}='{self.{{ specs.pk_sql_column_name }}}')"
+        {% if specs.is_core_file %}
+        return f"<{{ model_name }}({{ specs.pk_sql_column_name }}={self.{{ specs.pk_sql_column_name }}})>"
         {% else %}
-        {% set repr_columns = csv_analysis.column_analysis[:3] %}
-        return f"<{{ model_name }}({% for column in repr_columns %}{{ column.sql_column_name }}='{self.{{ column.sql_column_name }}}'{% if not loop.last %}, {% endif %}{% endfor %})>"
+        # Show first few columns for datasets
+        {% set display_columns = [] %}
+        {% for column in column_analysis[:3] %}
+        {% if column.csv_column_name not in specs.exclude_columns %}
+        {% set _ = display_columns.append(column) %}
+        {% endif %}
+        {% endfor %}
+        return f"<{{ model_name }}(id={self.id}{% for col in display_columns %}, {{ col.sql_column_name }}={self.{{ col.sql_column_name }}}{% endfor %})>"
         {% endif %}

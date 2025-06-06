@@ -45,30 +45,37 @@ class FAOForeignKeyMapper:
     def _process_dataset_foreign_keys(self, dataset: dict):
         """Process all foreign keys for a single dataset"""
         all_exclude_columns = set()
+        column_renames = {}
 
-        # Initialize foreign_keys if it doesn't exist
         if "foreign_keys" not in dataset:
             dataset["foreign_keys"] = []
 
-        # Check each column in the dataset
         for column in dataset["columns"]:
-            # Check against all lookup mappings
+
             for lookup_key, mapping in self.lookup_mappings.items():
                 lookup_name = mapping["lookup_name"]
 
-                # Check if this column matches any primary key variation
                 if column in mapping["primary_key_variations"]:
-                    # Get the lookup info
+
                     lookup = self.lookups.get(lookup_name)
                     if not lookup:
                         logger.warning(f"  ⚠️ Lookup table {lookup_name} not found")
                         continue
+
+                    if column != lookup["primary_key"]:
+                        column_renames[column] = lookup["primary_key"]
+                        logger.info(f"  📝 Will rename column: {column} → {lookup['primary_key']}")
 
                     # Find columns to exclude (non-PK lookup columns that exist in dataset)
                     for lookup_col in lookup["columns"]:
                         # Skip the PK column
                         if lookup_col == lookup["primary_key"]:
                             continue
+
+                        # Find columns to exclude (description columns)
+                        for desc_variation in mapping["description_variations"]:
+                            if desc_variation in dataset["columns"]:
+                                all_exclude_columns.add(desc_variation)
 
                         # Check if this lookup column exists in the dataset
                         if lookup_col in dataset["columns"]:
@@ -77,18 +84,28 @@ class FAOForeignKeyMapper:
                     # Create FK relationship with clear names
                     fk = dict(
                         dataset_fk_csv_column=column,
-                        dataset_fk_sql_column=format_column_name(column),
+                        dataset_fk_sql_column=format_column_name(lookup["primary_key"]),
                         lookup_sql_table=lookup_name,
                         lookup_sql_model=lookup["sql_model_name"],
-                        lookup_pk_csv_column=mapping["output_columns"]["pk"],
-                        lookup_pk_sql_column=format_column_name(mapping["output_columns"]["pk"]),
+                        lookup_pk_csv_column=lookup["primary_key"],  # Use lookup's actual PK
+                        lookup_pk_sql_column=format_column_name(lookup["primary_key"]),  # Use lookup's actual PK
                     )
 
                     dataset["foreign_keys"].append(fk)
                     break  # Found match, no need to check other lookups
 
-        # Update dataset with exclusions and SQL columns
+        # Update column_analysis with renamed columns
+        if column_renames:
+            for col_analysis in dataset["column_analysis"]:
+                if col_analysis["csv_column_name"] in column_renames:
+                    new_name = column_renames[col_analysis["csv_column_name"]]
+                    col_analysis["original_csv_column_name"] = col_analysis["csv_column_name"]
+                    col_analysis["csv_column_name"] = new_name
+                    col_analysis["sql_column_name"] = format_column_name(new_name)
+
+        # Update dataset with exclusions
         dataset["exclude_columns"] = sorted(list(all_exclude_columns))
+        dataset["column_renames"] = column_renames  # Store for use in templates
 
         # Build SQL columns list excluding redundant columns
         sql_columns = [format_column_name(col) for col in dataset["columns"] if col not in all_exclude_columns]

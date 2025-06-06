@@ -1,0 +1,131 @@
+# templates/dataset_module.py.jinja2
+import pandas as pd
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for
+from {{ project_name }}.src.db.database import run_with_session
+from .{{ table_name }}_model import {{ model_name }}
+
+# Dataset CSV file
+CSV_PATH = get_csv_path_for("{{ csv_file }}")
+
+table_name = "{{ table_name }}"
+CHUNK_SIZE = 10000  # Process in chunks for large datasets
+
+
+def load():
+    """Load the dataset CSV file"""
+    return load_csv(CSV_PATH)
+
+
+def clean(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean and prepare dataset data"""
+    if df.empty:
+        print(f"No {table_name} data to clean.")
+        return df
+
+    print(f"\nCleaning {table_name} data...")
+    initial_count = len(df)
+    
+    # Basic column cleanup
+    {% for column in column_analysis %}
+    {% if specs.exclude_columns | length and column.csv_column_name not in specs.exclude_columns %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
+    {% if column.inferred_sql_type == 'Integer' %}
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
+    {% elif column.inferred_sql_type == 'Float' %}
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    
+    {% if specs.conflict_resolutions %}
+    # Update foreign key values for conflicting lookups
+    {% for lookup_table, resolution_info in specs.conflict_resolutions.items() %}
+    fk_column = '{{ resolution_info.fk_column }}'
+
+    print(f"  Resolving conflicts in {fk_column} column...")
+    {% for conflict_ref in resolution_info.conflicts %}
+    {% set first_synthetic = conflict_ref.conflict.variations[0].synthetic_pk %}
+    {% if conflict_ref.pk_value != first_synthetic %}
+    # Original PK {{ conflict_ref.pk_value }} → {{ first_synthetic }}
+    mask = df[fk_column].astype(str) == '{{ conflict_ref.pk_value }}'
+    if mask.any():
+        df.loc[mask, fk_column] = '{{ first_synthetic }}'
+        print(f"    Updated {mask.sum()} rows: {fk_column} {{ conflict_ref.pk_value }} → {{ first_synthetic }}")
+    {% else %}
+    # PK {{ conflict_ref.pk_value }} keeps original value (no update needed)
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    {% endif %}
+    
+    {% if specs.exclude_columns %}
+    # Remove redundant columns that can be looked up via foreign keys
+    columns_to_drop = [col for col in {{ specs.exclude_columns | tojson }} if col in df.columns]
+    if columns_to_drop:
+        df = df.drop(columns=columns_to_drop)
+        print(f"  Dropped redundant columns: {columns_to_drop}")
+    {% endif %}
+    
+    # Remove complete duplicates
+    df = df.drop_duplicates()
+    
+    final_count = len(df)
+    print(f"  Cleaned: {initial_count} → {final_count} rows")
+    return df
+
+
+def insert(df: pd.DataFrame, session: Session):
+    """Insert dataset data with chunking for large files"""
+    if df.empty:
+        print(f"No {table_name} data to insert.")
+        return
+    
+    print(f"\nInserting {table_name} data ({len(df):,} rows)...")
+    
+    total_rows = len(df)
+    total_inserted = 0
+    
+    # Process in chunks
+    for chunk_idx, start_idx in enumerate(range(0, total_rows, CHUNK_SIZE)):
+        end_idx = min(start_idx + CHUNK_SIZE, total_rows)
+        chunk_df = df.iloc[start_idx:end_idx]
+        
+        records = []
+        for _, row in chunk_df.iterrows():
+            record = {}
+            {% for column in column_analysis %}
+            {% if column.csv_column_name not in specs.exclude_columns %}
+            record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
+            {% endif %}
+            {% endfor %}
+            records.append(record)
+        
+        if records:
+            try:
+                stmt = pg_insert({{ model_name }}).values(records)
+                stmt = stmt.on_conflict_do_nothing()
+                result = session.execute(stmt)
+                session.commit()
+                
+                total_inserted += result.rowcount
+                print(f"  Chunk {chunk_idx + 1}: Inserted {result.rowcount} rows " +
+                      f"(Total: {total_inserted:,}/{total_rows:,})")
+            except Exception as e:
+                print(f"  ❌ Error in chunk {chunk_idx + 1}: {e}")
+                session.rollback()
+                raise
+    
+    print(f"✅ {table_name} insert complete: {total_inserted:,} rows inserted")
+
+
+def run(db):
+    """Run the complete ETL pipeline for this dataset"""
+    df = load()
+    df = clean(df)
+    insert(df, db)
+
+
+if __name__ == "__main__":
+    run_with_session(run)

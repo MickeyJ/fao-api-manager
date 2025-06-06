@@ -69,32 +69,32 @@ class TemplateRenderer:
             project_name=self.project_name,
         )
 
-    def render_module_template(
+    def render_dataset_module_template(
         self,
-        csv_files: List[str],
+        csv_file: str,
         model_name: str,
         table_name: str,
-        csv_analysis: Dict | None = None,
+        column_analysis: Dict | None = None,
         specs: Dict | None = None,
     ) -> str:
         """Render pipeline_module template (e.g., items.py, areas.py)"""
-        template = self.jinja_env.get_template("pipeline_module.py.jinja2")
+        template = self.jinja_env.get_template("dataset_module.py.jinja2")
         return template.render(
-            csv_files=csv_files,
+            csv_file=csv_file,
             model_name=model_name,
             table_name=table_name,
-            csv_analysis=csv_analysis,
+            column_analysis=column_analysis,
             specs=specs,
             project_name=self.project_name,
         )
 
-    def render_model_template(self, model_name: str, table_name: str, csv_analysis: Dict, specs: Dict) -> str:
+    def render_model_template(self, model_name: str, table_name: str, column_analysis: Dict, specs: Dict) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("model.py.jinja2")
         return template.render(
             model_name=model_name,
             table_name=table_name,
-            csv_analysis=csv_analysis,
+            column_analysis=column_analysis,
             specs=specs,
             project_name=self.project_name,
         )

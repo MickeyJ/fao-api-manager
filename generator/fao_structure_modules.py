@@ -79,15 +79,6 @@ class FAOStructureModules:
 
                     col_spec = analyze_column(sample_rows=sample_rows, column_name=col)
 
-                    # col_spec = {
-                    #     "csv_column_name": col,
-                    #     "sql_column_name": format_column_name(col),
-                    #     "sample_values": sample_values[:5],  # Keep just a few for reference
-                    #     "null_count": null_count,
-                    #     "non_null_count": non_null_count,
-                    #     "unique_count": unique_count,
-                    #     "inferred_sql_type": inferred_type,
-                    # }
                     column_analysis.append(col_spec)
 
                 lookup = dict(
@@ -189,15 +180,6 @@ class FAOStructureModules:
         for col in columns:
             col_spec = analyze_column(sample_rows=sample_rows, column_name=col)
 
-            # col_spec = {
-            #     "csv_column_name": col,
-            #     "sql_column_name": format_column_name(col),
-            #     "sample_values": sample_values[:5],  # Keep just a few for reference
-            #     "null_count": null_count,
-            #     "non_null_count": non_null_count,
-            #     "unique_count": unique_count,
-            #     "inferred_sql_type": inferred_type,
-            # }
             column_analysis.append(col_spec)
 
         # Don't create dataset if we couldn't read the file

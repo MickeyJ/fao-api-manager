@@ -31,7 +31,7 @@ endif
 .PHONY: \
 	venv env-status \
 	initialize requirements install \
-	generator test process-csv csv-analysis optimizer \
+	generator pre-test process-csv \
 	run-all-pipelines \
 	use-remote-db use-local-db db-init db-upgrade db-revision  \
 	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
@@ -74,21 +74,13 @@ generate:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --all
 
-test:
+pre-test:
 	@echo "Generating code..."
-	$(ACTIVATE) $(PYTHON) -m generator --test
+	$(ACTIVATE) $(PYTHON) -m generator --pre_test
 
 process-csv:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --process_csv
-
-csv-analysis:
-	@echo "Scanning all CSV data..."
-	$(ACTIVATE) $(PYTHON) -m generator --csv_analysis
-
-optimizer:
-	@echo "Scanning all CSV data..."
-	$(ACTIVATE) $(PYTHON) -m generator --opt_analysis
 
 # =-=-=--=-=-=-=-=-
 # Pipeline commands
