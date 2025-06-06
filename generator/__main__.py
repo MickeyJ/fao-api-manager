@@ -2,7 +2,6 @@ import argparse, json
 from pathlib import Path
 from generator.generator import Generator
 from generator.fao_reference_data_extractor import FAOReferenceDataExtractor
-from generator.fao_conflict_detector import FAOConflictDetector
 from . import ZIP_PATH
 
 
@@ -23,20 +22,6 @@ def test_pre_generation():
 
     fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path)
     enhanced_datasets = fk_mapper.enhance_datasets_with_foreign_keys()
-
-    conflict_detector = FAOConflictDetector(structure_modules.results, json_cache_path)
-    enhanced_lookups = conflict_detector.enhance_with_conflicts()
-
-    # # Show summary
-    # summary = conflict_detector.get_conflict_summary()
-    # print(json.dumps(summary, indent=2))
-
-    # # Show details for specific lookup
-    # conflict_detector.show_conflict_details("area_codes", max_conflicts=5)
-
-    # # Get summary
-    # summary = conflict_detector.get_conflict_summary()
-    # print(json.dumps(summary, indent=2))
 
     structure_modules.save()
 

@@ -38,24 +38,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     {% endif %}
     {% endfor %}
     
-    {% if specs.has_conflicts %}
-    # Update PKs for conflict variations
-    {% for conflict in specs.conflicts %}
-
-    # Handle variations for PK {{ conflict.pk_value }}
-    {% for variation in conflict.variations %}
-    {% if variation.index > 0 %}  {# Skip first variation - it keeps original PK #}
-    # Find rows matching this variation's description
-    mask = (df['{{ conflict.pk_column }}'].astype(str) == '{{ conflict.pk_value }}') & \
-            (df['{{ conflict.desc_column }}'] == {{ variation[conflict.desc_column] | tojson }})
-    if mask.any():
-        df.loc[mask, '{{ conflict.pk_column }}'] = '{{ variation.synthetic_pk }}'
-        print(f"  Updated {mask.sum()} rows: PK {{ conflict.pk_value }} → {{ variation.synthetic_pk }} for '{{ variation[conflict.desc_column] }}'")
-    {% endif %}
-    {% endfor %}
-    {% endfor %}
-    {% endif %}
-    
+   
     # Remove any remaining duplicates (shouldn't be any after PK updates)
     df = df.drop_duplicates(subset=['{{ specs.pk_column }}'], keep='first')
     
