@@ -52,50 +52,39 @@ def strip_quote(df: pd.DataFrame, column_name, quote="'"):
     return df[column_name].str.replace(quote, "").str.strip()
 
 
-def load_csv(csv_paths) -> pd.DataFrame:
+def load_csv(csv_path) -> pd.DataFrame:
     """Load and preview data from single file or multiple files."""
     # Handle both single path and list of paths
-    if isinstance(csv_paths, str):
-        csv_paths = [csv_paths]
 
-    dfs = []
-    for csv_path in csv_paths:
-        try:
-            # Try different encodings like CSVAnalyzer does
-            encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
-            df = None
-            
-            for encoding in encodings:
-                try:
-                    df = pd.read_csv(csv_path, dtype=str, encoding=encoding)
-                    print(f"Loading: {csv_path} (encoding: {encoding})")
-                    break
-                except UnicodeDecodeError:
-                    continue
-            
-            if df is None:
-                # If all encodings fail, read with latin-1 (accepts any byte)
-                df = pd.read_csv(csv_path, dtype=str, encoding="latin-1")
-                print(f"Loading: {csv_path} (encoding: latin-1 fallback)")
-            
-            df.columns = df.columns.str.strip()
-            print(df.shape)
-            if not df.empty:
-                dfs.append(df)
-        except FileNotFoundError:
-            print(f"File not found: {csv_path}")
-            continue
-        except Exception as e:
-            print(f"Error reading {csv_path}: {e}")
-            continue
+    try:
+        # Try different encodings like CSVAnalyzer does
+        encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
+        df = None
 
-    if not dfs:
+        for encoding in encodings:
+            try:
+                df = pd.read_csv(csv_path, dtype=str, encoding=encoding)
+                print(f"Loading: {csv_path} (encoding: {encoding})")
+                break
+            except UnicodeDecodeError:
+                continue
+
+        if df is None:
+            # If all encodings fail, read with latin-1 (accepts any byte)
+            df = pd.read_csv(csv_path, dtype=str, encoding="latin-1")
+            print(f"Loading: {csv_path} (encoding: latin-1 fallback)")
+
+        df.columns = df.columns.str.strip()
+        print(df.shape)
+       
+    except FileNotFoundError as e:
+        print(f"File not found: {csv_path}")
+        raise e
+    except Exception as e:
+        print(f"Error reading {csv_path}: {e}")
+        raise e
+
+    if not len(df):
         return pd.DataFrame()
 
-    # This works whether dfs has 1 or many DataFrames
-    result_df = pd.concat(dfs, ignore_index=True)
-    if len(dfs) > 1:
-        print(f"Combined {len(dfs)} files into {result_df.shape}")
-    print(result_df.head(5))
-
-    return result_df
+    return df

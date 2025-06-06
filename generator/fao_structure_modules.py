@@ -1,29 +1,29 @@
 # generator/fao_analyzer.py
 import json
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional
 import pandas as pd
 from . import logger, to_snake_case, snake_to_pascal_case, format_column_name
-
 from .structure import Structure
+from .utils.value_type_checker import analyze_column
 
 
 class FAOStructureModules:
     """First pass - just discover what files we have"""
 
-    def __init__(self, input_dir: str | Path, lookup_mappings: Dict, json_cache_path: Path):
+    def __init__(self, input_dir: str | Path, lookup_mappings: Dict, json_cache_path: Path, cache_bust: bool = False):
         self.input_dir = Path(input_dir)
         self.json_cache_path = json_cache_path
         self.synthetic_lookups_dir = self.input_dir / "synthetic_lookups"
         self.lookup_mappings = lookup_mappings
         self.results = {"lookups": {}, "datasets": {}}
         self.structure = Structure()
+        self.cache_bust = cache_bust
 
     def run(self) -> None:
         """Discover all lookups and datasets"""
 
-        if self.json_cache_path.exists():
+        if self.json_cache_path.exists() and not self.cache_bust:
             logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
             with open(self.json_cache_path, "r") as f:
                 self.results = json.load(f)
@@ -64,27 +64,43 @@ class FAOStructureModules:
 
         for lookup_key, mapping in self.lookup_mappings.items():
             lookup_name = mapping["lookup_name"]
-
             csv_path = self.synthetic_lookups_dir / f"{lookup_name}.csv"
 
             if csv_path.exists():
-                # Just basic info for now
                 csv_info = self._get_csv_info(csv_path)
 
                 columns = csv_info["columns"]
                 row_count = csv_info["row_count"]
                 sample_rows = csv_info["sample_rows"]
 
+                # Analyze columns using sample rows
+                column_analysis = []
+                for col in columns:
+
+                    col_spec = analyze_column(sample_rows=sample_rows, column_name=col)
+
+                    # col_spec = {
+                    #     "csv_column_name": col,
+                    #     "sql_column_name": format_column_name(col),
+                    #     "sample_values": sample_values[:5],  # Keep just a few for reference
+                    #     "null_count": null_count,
+                    #     "non_null_count": non_null_count,
+                    #     "unique_count": unique_count,
+                    #     "inferred_sql_type": inferred_type,
+                    # }
+                    column_analysis.append(col_spec)
+
                 lookup = dict(
                     name=lookup_name,
                     module_name=lookup_name,
                     primary_key=mapping["output_columns"]["pk"],
                     description_col=mapping["output_columns"]["desc"],
-                    sql_table_name=to_snake_case(lookup_name),  # Add this
-                    sql_model_name=snake_to_pascal_case(lookup_name),  # Add this
+                    sql_table_name=to_snake_case(lookup_name),
+                    sql_model_name=snake_to_pascal_case(lookup_name),
                     file_path=csv_path,
                     row_count=row_count,
                     columns=columns,
+                    column_analysis=column_analysis,  # Add this!
                 )
                 lookups[lookup_name] = lookup
                 logger.info(f"  ✓ Found {lookup_name}: {row_count} rows")
@@ -92,6 +108,37 @@ class FAOStructureModules:
                 logger.warning(f"  ⚠️ Missing {lookup_name}.csv")
 
         return lookups
+
+    def _infer_sql_type(self, sample_values: List) -> str:
+        """Infer SQL type from sample values"""
+        if not sample_values:
+            return "String"
+
+        # Clean sample values
+        clean_values = []
+        for val in sample_values:
+            if val is not None and str(val).strip() != "":
+                clean_values.append(str(val).strip().replace("'", ""))
+
+        if not clean_values:
+            return "String"
+
+        # Check if all values are integers
+        try:
+            all([int(v) for v in clean_values])
+            return "Integer"
+        except ValueError:
+            pass
+
+        # Check if all values are floats
+        try:
+            all([float(v) for v in clean_values])
+            return "Float"
+        except ValueError:
+            pass
+
+        # Default to String
+        return "String"
 
     def _make_datasets(self) -> Dict[str, dict]:
         """Discover all dataset directories"""
@@ -137,6 +184,22 @@ class FAOStructureModules:
         row_count = csv_info["row_count"]
         sample_rows = csv_info["sample_rows"]
 
+        # Analyze columns using sample rows
+        column_analysis = []
+        for col in columns:
+            col_spec = analyze_column(sample_rows=sample_rows, column_name=col)
+
+            # col_spec = {
+            #     "csv_column_name": col,
+            #     "sql_column_name": format_column_name(col),
+            #     "sample_values": sample_values[:5],  # Keep just a few for reference
+            #     "null_count": null_count,
+            #     "non_null_count": non_null_count,
+            #     "unique_count": unique_count,
+            #     "inferred_sql_type": inferred_type,
+            # }
+            column_analysis.append(col_spec)
+
         # Don't create dataset if we couldn't read the file
         if row_count == -1 or not csv_info["columns"]:
             logger.error(f"  ✗ Failed to read {path.name}")
@@ -153,6 +216,7 @@ class FAOStructureModules:
             row_count=row_count,
             columns=columns,
             sample_rows=sample_rows,
+            column_analysis=column_analysis,
         )
 
     def _get_csv_info(self, csv_path: Path) -> dict:

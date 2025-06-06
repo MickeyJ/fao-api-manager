@@ -14,16 +14,17 @@ def format_column_name(column_name: str) -> str:
 class FAOForeignKeyMapper:
     """Enhances datasets with foreign key relationships"""
 
-    def __init__(self, structure_results: Dict, lookup_mappings: Dict, json_cache_path: Path):
+    def __init__(self, structure_results: Dict, lookup_mappings: Dict, json_cache_path: Path, cache_bust: bool = False):
         self.lookups = structure_results["lookups"]
         self.datasets = structure_results["datasets"]
         self.lookup_mappings = lookup_mappings
         self.json_cache_path = json_cache_path
+        self.cache_bust = cache_bust
 
     def enhance_datasets_with_foreign_keys(self) -> Dict[str, dict]:
         """Add FK relationships to existing dataset objects"""
 
-        if self.json_cache_path.exists():
+        if self.json_cache_path.exists() and not self.cache_bust:
             logger.info(f"📁 FAOForeignKeyMapper - Using cached module structure from {self.json_cache_path}")
             return {"lookups": self.lookups, "datasets": self.datasets}
 

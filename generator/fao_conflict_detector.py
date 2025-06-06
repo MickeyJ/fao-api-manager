@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -8,13 +9,21 @@ from . import logger
 class FAOConflictDetector:
     """Detects conflicts in lookup tables and tracks dataset references"""
 
-    def __init__(self, structure_results: Dict):
+    def __init__(self, structure_results: Dict, json_cache_path: Path, cache_bust: bool = False):
         self.lookups = structure_results["lookups"]
         self.datasets = structure_results["datasets"]
+        self.json_cache_path = json_cache_path
         self.synthetic_pk_counter = 900_000
+        self.cache_bust = cache_bust
 
     def enhance_with_conflicts(self) -> Dict:
         """Main method - detect conflicts and update all structures"""
+
+        if self.json_cache_path.exists() and not self.cache_bust:
+            logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
+            with open(self.json_cache_path, "r") as f:
+                return json.load(f)
+
         logger.info("🔍 Starting conflict detection...")
 
         total_conflicts = 0
@@ -71,6 +80,7 @@ class FAOConflictDetector:
 
         # Group duplicates by PK value
         for pk_value, group in duplicated.groupby(pk_col):
+
             conflict = {
                 "pk_value": str(pk_value),
                 "pk_column": pk_col,
@@ -83,7 +93,7 @@ class FAOConflictDetector:
             for idx, (_, row) in enumerate(group.iterrows()):
                 variation = {
                     "index": idx,
-                    "new_primary_key": str(pk_value) if idx == 0 else str(self.synthetic_pk_counter),
+                    "synthetic_pk": str(pk_value) if idx == 0 else str(self.synthetic_pk_counter),
                     desc_col: str(row[desc_col]),
                     "row_data": row.to_dict(),
                 }
@@ -260,10 +270,7 @@ class FAOConflictDetector:
                         {
                             "pk_value": conflict["pk_value"],
                             "variations": [
-                                {
-                                    "new_primary_key": v["new_primary_key"],
-                                    conflict["desc_column"]: v[conflict["desc_column"]],
-                                }
+                                {"synthetic_pk": v["synthetic_pk"], conflict["desc_column"]: v[conflict["desc_column"]]}
                                 for v in conflict["variations"]
                             ],
                         }
@@ -295,4 +302,4 @@ class FAOConflictDetector:
 
                 for v in conflict["variations"]:
                     marker = "→" if v["index"] == conflict_ref.get("matched_variation") else " "
-                    logger.info(f"      {marker} [{v['new_primary_key']}] {v[conflict['desc_column']]}")
+                    logger.info(f"      {marker} [{v['synthetic_pk']}] {v[conflict['desc_column']]}")

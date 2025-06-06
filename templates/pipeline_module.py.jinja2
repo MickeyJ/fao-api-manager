@@ -30,16 +30,6 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop_duplicates(keep='first')
     {% endif %}
 
-    {% if specs.similarities %}
-    # Remove rows with unwanted similarity values  
-    {% for similarity in specs.similarities %}
-    {% for bad_value in similarity['values'][1:] %}
-    mask = (df['{{ specs.pk_column }}'].astype(str) == '{{ similarity['pk_value'] }}') & (df['{{ similarity['column'] }}'] == '{{ bad_value }}')
-    df = df[~mask]
-    {% endfor %}
-    {% endfor %}
-    {% endif %}
-
     {% if specs.conflicts %}
     # Resolve conflicts by updating PK values to synthetic PKs
     {% for conflict in specs.conflicts %}

@@ -1,0 +1,109 @@
+import pandas as pd
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from {{ project_name }}.src.db.utils import load_csv
+from {{ project_name }}.src.db.database import run_with_session
+from .{{ table_name }}_model import {{ model_name }}
+
+
+# Direct path to synthetic lookup CSV
+CSV_PATH = "{{ csv_file }}"
+
+table_name = "{{ table_name }}"
+
+
+def load():
+    """Load the lookup CSV file"""
+    return load_csv(CSV_PATH)
+
+
+def clean(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean and prepare lookup data"""
+    if df.empty:
+        print(f"No {table_name} data to clean.")
+        return df
+
+    print(f"\nCleaning {table_name} data...")
+    initial_count = len(df)
+    
+    # Basic column cleanup
+    {% for column in column_analysis %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
+    {% if column.sql_column_name == specs.pk_sql_column_name %}
+    # Keep primary key as string
+    {% elif column.inferred_sql_type == 'Integer' %}
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
+    {% elif column.inferred_sql_type == 'Float' %}
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
+    {% endif %}
+    {% endfor %}
+    
+    {% if specs.has_conflicts %}
+    # Update PKs for conflict variations
+    {% for conflict in specs.conflicts %}
+
+    # Handle variations for PK {{ conflict.pk_value }}
+    {% for variation in conflict.variations %}
+    {% if variation.index > 0 %}  {# Skip first variation - it keeps original PK #}
+    # Find rows matching this variation's description
+    mask = (df['{{ conflict.pk_column }}'].astype(str) == '{{ conflict.pk_value }}') & \
+            (df['{{ conflict.desc_column }}'] == {{ variation[conflict.desc_column] | tojson }})
+    if mask.any():
+        df.loc[mask, '{{ conflict.pk_column }}'] = '{{ variation.synthetic_pk }}'
+        print(f"  Updated {mask.sum()} rows: PK {{ conflict.pk_value }} → {{ variation.synthetic_pk }} for '{{ variation[conflict.desc_column] }}'")
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    {% endif %}
+    
+    # Remove any remaining duplicates (shouldn't be any after PK updates)
+    df = df.drop_duplicates(subset=['{{ specs.pk_column }}'], keep='first')
+    
+    # Drop any rows with null PKs
+    df = df.dropna(subset=['{{ specs.pk_column }}'])
+    
+    final_count = len(df)
+    print(f"  Cleaned: {initial_count} → {final_count} rows")
+    return df
+
+
+def insert(df: pd.DataFrame, session: Session):
+    """Insert lookup data - simple bulk insert since conflicts are already resolved"""
+    if df.empty:
+        print(f"No {table_name} data to insert.")
+        return
+    
+    print(f"\nInserting {table_name} data...")
+    
+    records = []
+    for _, row in df.iterrows():
+        record = {}
+        {% for column in column_analysis %}
+        record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
+        {% endfor %}
+        records.append(record)
+    
+    if records:
+        try:
+            stmt = pg_insert({{ model_name }}).values(records)
+            stmt = stmt.on_conflict_do_nothing()
+            result = session.execute(stmt)
+            session.commit()
+            print(f"  ✅ Inserted {result.rowcount} rows")
+        except Exception as e:
+            print(f"  ❌ Error during bulk insert: {e}")
+            session.rollback()
+            raise
+    
+    print(f"✅ {table_name} insert complete")
+
+
+def run(db):
+    """Run the complete ETL pipeline for this lookup table"""
+    df = load()
+    df = clean(df)
+    insert(df, db)
+
+
+if __name__ == "__main__":
+    run_with_session(run)

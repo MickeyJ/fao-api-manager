@@ -50,7 +50,7 @@ def test():
     fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path)
     enhanced_datasets = fk_mapper.enhance_datasets_with_foreign_keys()
 
-    conflict_detector = FAOConflictDetector(structure_modules.results)
+    conflict_detector = FAOConflictDetector(structure_modules.results, json_cache_path)
     enhanced_lookups = conflict_detector.enhance_with_conflicts()
 
     # # Show summary

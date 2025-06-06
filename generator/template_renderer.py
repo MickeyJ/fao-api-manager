@@ -50,6 +50,25 @@ class TemplateRenderer:
         template = self.jinja_env.get_template("all_model_imports.py.jinja2")
         return template.render(imports=imports, project_name=self.project_name)
 
+    def render_lookup_module_template(
+        self,
+        csv_file: str,
+        model_name: str,
+        table_name: str,
+        column_analysis: Dict | None = None,
+        specs: Dict | None = None,
+    ) -> str:
+        """Render pipeline_module template (e.g., items.py, areas.py)"""
+        template = self.jinja_env.get_template("lookup_module.py.jinja2")
+        return template.render(
+            csv_file=csv_file,
+            model_name=model_name,
+            table_name=table_name,
+            column_analysis=column_analysis,
+            specs=specs,
+            project_name=self.project_name,
+        )
+
     def render_module_template(
         self,
         csv_files: List[str],

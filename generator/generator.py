@@ -10,7 +10,7 @@ from .csv_analyzer import CSVAnalyzer
 from .file_generator import FileGenerator
 from .template_renderer import TemplateRenderer
 from .pipeline_specs import PipelineSpecs
-from . import logger, clean_text
+from . import logger, clean_text, format_column_name, safe_index_name
 
 
 @dataclass
@@ -32,7 +32,7 @@ class Generator:
         self.structure = Structure()
         self.file_generator = FileGenerator(self.paths.project)
         self.scanner = Scanner(self.input_dir, self.structure)
-        self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
+        # self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
         self.template_renderer = TemplateRenderer(self.project_name)
 
         self.all_zip_info = self.scanner.scan_all_zips()
@@ -46,38 +46,102 @@ class Generator:
         # Step 1: Discover all modules
         self._discover_modules(self.all_zip_info)
 
-        # Step 2: Analyze CSV files in all modules
-        self._analyze_modules()
-
         # Step 3
         self._generate_directories()
         self._generate_files()
 
     def _discover_modules(self, all_zip_info: List[Dict]):
         """Discover modules from all pipelines"""
-        # Core modules
-        self.pipeline_specs = PipelineSpecs(self.input_dir).create()
-        core_pipeline = CorePipeline(all_zip_info, self.structure, self.pipeline_specs)
-        self.all_modules.extend(core_pipeline.modules)
+        from generator.fao_structure_modules import FAOStructureModules
+        from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
+        from generator.fao_conflict_detector import FAOConflictDetector
+        from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 
-        # All other dataset modules
-        dataset_pipelines = DatasetPipelines(all_zip_info, self.structure, self.pipeline_specs)
-        self.all_modules.extend(dataset_pipelines.modules)
+        json_cache_path = Path("./analysis/fao_module_cache.json")
+        cache_bust = False
+
+        # Structure discovery
+        structure_modules = FAOStructureModules(self.input_dir, LOOKUP_MAPPINGS, json_cache_path, cache_bust)
+        structure_modules.run()
+
+        # Add foreign keys
+        fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path, cache_bust)
+        fk_mapper.enhance_datasets_with_foreign_keys()
+
+        # Add conflicts
+        conflict_detector = FAOConflictDetector(structure_modules.results, json_cache_path, cache_bust)
+        enhanced_results = conflict_detector.enhance_with_conflicts()
+
+        # Save and use results
+        structure_modules.save()
+
+        # Step 2: Convert to module format
+        self._process_lookups(enhanced_results["lookups"])
+        # self._process_datasets(enhanced_results["datasets"])
 
         extraction_manifest = self.scanner.create_extraction_manifest(all_zip_info)
         self.file_generator.write_json_file(self.paths.project / "extraction_manifest.json", extraction_manifest)
 
-    def _analyze_modules(self):
-        """Add CSV analysis to all modules"""
+    def _process_lookups(self, lookups: Dict):
+        """Process lookup modules with conflict handling"""
+        for lookup_name, lookup_spec in lookups.items():
+            module = {
+                "pipeline_name": lookup_name,  # Each lookup gets own pipeline
+                "module_name": lookup_name,
+                "model_name": lookup_spec["sql_model_name"],
+                "table_name": lookup_spec["sql_table_name"],
+                "column_analysis": lookup_spec["column_analysis"],
+                "file_info": {
+                    "csv_file": lookup_spec["file_path"],
+                    "csv_filename": Path(lookup_spec["file_path"]).name,
+                    "zip_path": None,  # Synthetic lookups don't have zips
+                },
+                "specs": {
+                    "is_core_file": True,  # Flag as lookup/core
+                    "pk_column": lookup_spec["primary_key"],
+                    "pk_sql_column_name": format_column_name(lookup_spec["primary_key"]),
+                    "conflicts": lookup_spec.get("conflicts", []),
+                    "has_conflicts": lookup_spec.get("has_conflicts", False),
+                },
+            }
+            self.all_modules.append(module)
 
-        for module in self.all_modules:
-            file_info = module["file_info"]
-            csv_analysis = self.csv_analyzer.analyze_csv_from_zip(file_info["zip_path"], file_info["csv_filename"])
-            module["csv_analysis"] = csv_analysis
+    def _process_datasets(self, datasets: Dict):
+        """Process dataset modules with FK and conflict info"""
+        for dataset_name, dataset_spec in datasets.items():
+            # Format foreign keys for template compatibility
+            foreign_keys = []
+            for fk in dataset_spec.get("foreign_keys", []):
+                foreign_keys.append(
+                    {
+                        "table_name": fk["lookup_sql_table"],
+                        "model_name": fk["lookup_sql_model"],
+                        "column_name": format_column_name(fk["dataset_fk_csv_column"]),
+                        "actual_column_name": fk["dataset_fk_csv_column"],
+                        "pipeline_name": fk["lookup_sql_table"],  # For imports
+                        "index_hash": safe_index_name(
+                            f"{dataset_spec['sql_table_name']}{fk['lookup_sql_table']}", fk["dataset_fk_csv_column"]
+                        ),
+                    }
+                )
 
-        # print(
-        #     f"Analyzed {module['file_info']['csv_filename']} - column_count: {csv_analysis['column_count']}"
-        # )
+            module = {
+                "pipeline_name": dataset_name,
+                "module_name": dataset_name,
+                "model_name": dataset_spec["sql_model_name"],
+                "table_name": dataset_spec["sql_table_name"],
+                "file_info": {
+                    "csv_files": [dataset_spec["main_data_file"]],
+                    "csv_filename": Path(dataset_spec["main_data_file"]).name,
+                },
+                "specs": {
+                    "is_core_file": False,
+                    "foreign_keys": foreign_keys,
+                    "exclude_columns": dataset_spec.get("exclude_columns", []),
+                    "conflict_resolutions": dataset_spec.get("conflict_resolutions", {}),
+                },
+            }
+            self.all_modules.append(module)
 
     def _generate_files(self):
         """Generate all pipeline and model files"""
@@ -89,7 +153,7 @@ class Generator:
         self._generate_all_pipelines_main()
         self._generate_pipelines_init()
         self.generate_all_model_imports_file()
-        self._generate_api_routers()
+        # self._generate_api_routers()
 
     def _group_modules_by_pipeline(self) -> None:
         """Group modules by their pipeline name"""
@@ -166,29 +230,32 @@ class Generator:
         for module in modules:
             module_name = module["module_name"]
 
-            pipeline_content = self.template_renderer.render_module_template(
-                csv_files=module["file_info"]["csv_files"],  # Pass full path here
-                model_name=module["model_name"],
-                table_name=module["table_name"],
-                csv_analysis=module["csv_analysis"],
-                specs=module["specs"],
-            )
+            if module["specs"]["is_core_file"]:
+                # Lookup module
+                pipeline_content = self.template_renderer.render_lookup_module_template(
+                    csv_file=module["file_info"]["csv_file"],  # Singular
+                    model_name=module["model_name"],
+                    table_name=module["table_name"],
+                    column_analysis=module["column_analysis"],
+                    specs=module["specs"],
+                )
+                self.file_generator.write_file_cache(pipeline_dir / f"{module_name}.py", pipeline_content)
+            else:
+                """Dataset module next"""
 
-            self.file_generator.write_file_cache(pipeline_dir / f"{module_name}.py", pipeline_content)
-
-            # Generate model file (areas.py in model_dir)
-            model_content = self.template_renderer.render_model_template(
-                model_name=module["model_name"],
-                table_name=module["table_name"],
-                csv_analysis=module["csv_analysis"],
-                specs=module["specs"],
-            )
-            self.file_generator.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
+            # # Generate model file (areas.py in model_dir)
+            # model_content = self.template_renderer.render_model_template(
+            #     model_name=module["model_name"],
+            #     table_name=module["table_name"],
+            #     csv_analysis=module["column_analysis"],
+            #     specs=module["specs"],
+            # )
+            # self.file_generator.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
 
             # Generate analysis JSON
             self.file_generator.write_json_file(
                 self.paths.project / pipeline_dir / f"{module_name}.json",
-                module["csv_analysis"],
+                module["column_analysis"],
             )
 
     def _generate_api_routers(self):
