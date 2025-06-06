@@ -39,28 +39,30 @@ def test():
     from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
     from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 
-    extractor = FAOReferenceDataExtractor(ZIP_PATH)
-    extractor.run()
+    json_cache_path = Path("./analysis/fao_module_cache.json")
 
-    structure_modules = FAOStructureModules(ZIP_PATH, LOOKUP_MAPPINGS)
+    # extractor = FAOReferenceDataExtractor(ZIP_PATH, json_cache_path)
+    # extractor.run()
+
+    structure_modules = FAOStructureModules(ZIP_PATH, LOOKUP_MAPPINGS, json_cache_path)
     structure_modules.run()
 
-    fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS)
+    fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path)
     enhanced_datasets = fk_mapper.enhance_datasets_with_foreign_keys()
 
-    conflict_detector = FAOConflictDetector(structure_modules.results, LOOKUP_MAPPINGS)
-    enhanced_lookups = conflict_detector.enhance_lookups_with_conflicts()
+    conflict_detector = FAOConflictDetector(structure_modules.results)
+    enhanced_lookups = conflict_detector.enhance_with_conflicts()
 
-    # Show summary
-    summary = conflict_detector.get_conflict_summary()
-    print(json.dumps(summary, indent=2))
+    # # Show summary
+    # summary = conflict_detector.get_conflict_summary()
+    # print(json.dumps(summary, indent=2))
 
-    # Show details for specific lookup
-    conflict_detector.show_conflict_details("area_codes", max_conflicts=5)
+    # # Show details for specific lookup
+    # conflict_detector.show_conflict_details("area_codes", max_conflicts=5)
 
-    # Get summary
-    summary = conflict_detector.get_conflict_summary()
-    print(json.dumps(summary, indent=2))
+    # # Get summary
+    # summary = conflict_detector.get_conflict_summary()
+    # print(json.dumps(summary, indent=2))
 
     structure_modules.save()
 

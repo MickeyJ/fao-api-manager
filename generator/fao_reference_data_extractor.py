@@ -9,13 +9,19 @@ from . import logger
 class FAOReferenceDataExtractor:
     """Extract reference data tables from dataset files and create synthetic CSVs"""
 
-    def __init__(self, zip_directory: str | Path):
+    def __init__(self, zip_directory: str | Path, json_cache_path: Path):
         self.zip_dir = Path(zip_directory)
         self.analysis_dir = Path("./analysis")
         self.extracted_lookups = {}  # Will store discovered lookups
+        self.json_cache_path = json_cache_path
 
     def run(self):
         """Main entry point - extract and analyze everything"""
+
+        if self.json_cache_path.exists():
+            logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
+            return
+
         logger.info("🚀 Starting lookup data extraction process...")
 
         self.extract_all_zips()

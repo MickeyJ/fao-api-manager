@@ -4,21 +4,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional
 import pandas as pd
-from . import logger, to_snake_case, snake_to_pascal_case
-from .utils.dataclass import FAOLookup, FAODataset
+from . import logger, to_snake_case, snake_to_pascal_case, format_column_name
+
 from .structure import Structure
-
-
-def format_column_name(file_name: str) -> str:
-    """Convert CSV name to database-friendly name"""
-    return file_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_").replace(".", "_")
 
 
 class FAOStructureModules:
     """First pass - just discover what files we have"""
 
-    def __init__(self, input_dir: str | Path, lookup_mappings: Dict):
+    def __init__(self, input_dir: str | Path, lookup_mappings: Dict, json_cache_path: Path):
         self.input_dir = Path(input_dir)
+        self.json_cache_path = json_cache_path
         self.synthetic_lookups_dir = self.input_dir / "synthetic_lookups"
         self.lookup_mappings = lookup_mappings
         self.results = {"lookups": {}, "datasets": {}}
@@ -26,8 +22,14 @@ class FAOStructureModules:
 
     def run(self) -> None:
         """Discover all lookups and datasets"""
-        logger.info("🔍 Starting FAO data discovery...")
 
+        if self.json_cache_path.exists():
+            logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
+            with open(self.json_cache_path, "r") as f:
+                self.results = json.load(f)
+            return
+
+        logger.info("🔍 Starting FAO module structuring...")
         lookups = self._make_lookups()
         datasets = self._make_datasets()
 
@@ -36,59 +38,25 @@ class FAOStructureModules:
     def save(self) -> Path:
         """Save discovery results to JSON"""
 
-        output_path = Path("./analysis/fao_discovery.json")
-        output_path.parent.mkdir(exist_ok=True)
+        # Convert Path objects to strings
+        def convert_paths(obj):
+            if isinstance(obj, dict):
+                return {k: convert_paths(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_paths(item) for item in obj]
+            elif isinstance(obj, Path):
+                return str(obj)
+            else:
+                return obj
 
-        # Convert to JSON-serializable format
-        json_data = {
-            "lookups": {
-                name: {
-                    "name": lookup.name,
-                    "primary_key": lookup.primary_key,
-                    "description_col": lookup.description_col,
-                    "sql_table_name": lookup.sql_table_name,
-                    "sql_model_name": lookup.sql_model_name,
-                    "file_path": str(lookup.file_path),
-                    "row_count": lookup.row_count,
-                    "columns": lookup.columns,
-                }
-                for name, lookup in self.results["lookups"].items()
-            },
-            "datasets": {
-                name: {
-                    "name": dataset.name,
-                    "directory": str(dataset.directory),
-                    "sql_table_name": dataset.sql_table_name,
-                    "sql_model_name": dataset.sql_model_name,
-                    "main_data_file": str(dataset.main_data_file) if dataset.main_data_file else None,
-                    "row_count": dataset.row_count,
-                    "columns": dataset.columns,
-                    # NEW FK-related fields:
-                    "foreign_keys": [
-                        {
-                            "dataset_fk_csv_column": fk.dataset_fk_csv_column,
-                            "dataset_fk_sql_column": fk.dataset_fk_sql_column,
-                            "lookup_sql_table": fk.lookup_sql_table,
-                            "lookup_sql_model": fk.lookup_sql_model,
-                            "lookup_pk_csv_column": fk.lookup_pk_csv_column,
-                            "lookup_pk_sql_column": fk.lookup_pk_sql_column,
-                        }
-                        for fk in dataset.foreign_keys
-                    ],
-                    "exclude_columns": dataset.exclude_columns,
-                    "sql_all_columns": dataset.sql_all_columns,
-                }
-                for name, dataset in self.results["datasets"].items()
-            },
-        }
+        # Save directly with path conversion
+        with open(self.json_cache_path, "w") as f:
+            json.dump(convert_paths(self.results), f, indent=2, default=str)
 
-        with open(output_path, "w") as f:
-            json.dump(json_data, f, indent=2)
+        logger.info(f"💾 Saved discovery results to {self.json_cache_path}")
+        return self.json_cache_path
 
-        logger.info(f"💾 Saved discovery results to {output_path}")
-        return output_path
-
-    def _make_lookups(self) -> Dict[str, FAOLookup]:
+    def _make_lookups(self) -> Dict[str, dict]:
         """Discover all synthetic lookup files"""
         lookups = {}
 
@@ -101,11 +69,15 @@ class FAOStructureModules:
 
             if csv_path.exists():
                 # Just basic info for now
-                columns = self._get_csv_columns(csv_path)
-                row_count = self._get_csv_row_count(csv_path)
+                csv_info = self._get_csv_info(csv_path)
 
-                lookup = FAOLookup(
+                columns = csv_info["columns"]
+                row_count = csv_info["row_count"]
+                sample_rows = csv_info["sample_rows"]
+
+                lookup = dict(
                     name=lookup_name,
+                    module_name=lookup_name,
                     primary_key=mapping["output_columns"]["pk"],
                     description_col=mapping["output_columns"]["desc"],
                     sql_table_name=to_snake_case(lookup_name),  # Add this
@@ -121,7 +93,7 @@ class FAOStructureModules:
 
         return lookups
 
-    def _make_datasets(self) -> Dict[str, FAODataset]:
+    def _make_datasets(self) -> Dict[str, dict]:
         """Discover all dataset directories"""
         datasets = {}
 
@@ -137,8 +109,8 @@ class FAOStructureModules:
                 if self._is_fao_dataset(path):
                     dataset = self._extract_dataset_info(path)
                     if dataset:
-                        datasets[dataset.name] = dataset
-                        logger.info(f"  ✓ Found {dataset.name}: {dataset.row_count} rows")
+                        datasets[dataset["name"]] = dataset
+                        logger.info(f"  ✓ Found {dataset['name']}: {dataset['row_count']} rows")
 
         return datasets
 
@@ -147,7 +119,7 @@ class FAOStructureModules:
         # Look for All_Data CSV files
         return any(f.name for f in path.glob("*.csv") if "all_data" in f.name.lower())
 
-    def _extract_dataset_info(self, path: Path) -> Optional[FAODataset]:
+    def _extract_dataset_info(self, path: Path) -> Optional[dict]:
         """Basic analysis of a dataset directory"""
         # Find main data file
         main_file = None
@@ -159,17 +131,20 @@ class FAOStructureModules:
         if not main_file:
             return None
 
-        columns = self._get_csv_columns(main_file)
-        row_count = self._get_csv_row_count(main_file)
+        csv_info = self._get_csv_info(main_file)
+
+        columns = csv_info["columns"]
+        row_count = csv_info["row_count"]
+        sample_rows = csv_info["sample_rows"]
 
         # Don't create dataset if we couldn't read the file
-        if row_count == -1 or not columns:
+        if row_count == -1 or not csv_info["columns"]:
             logger.error(f"  ✗ Failed to read {path.name}")
             return None
 
         dataset_name = self.structure.extract_module_name(path.name)
 
-        return FAODataset(
+        return dict(
             name=dataset_name,
             directory=path,
             sql_table_name=dataset_name,
@@ -177,24 +152,44 @@ class FAOStructureModules:
             main_data_file=main_file,
             row_count=row_count,
             columns=columns,
+            sample_rows=sample_rows,
         )
 
-    def _get_csv_columns(self, csv_path: Path) -> List[str]:
-        """Get column names from CSV with proper encoding handling"""
+    def _get_csv_info(self, csv_path: Path) -> dict:
+        """Get CSV info including columns, row count, and first 50 rows"""
         encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
 
         for encoding in encodings:
             try:
-                df = pd.read_csv(csv_path, nrows=0, encoding=encoding)
-                return df.columns.str.strip().tolist()
+                # Read first 50 rows to get columns and sample data
+                df_sample = pd.read_csv(csv_path, nrows=50, encoding=encoding)
+
+                # Get total row count efficiently
+                # Option 1: Quick count by reading the rest of the file
+                with open(csv_path, "r", encoding=encoding) as f:
+                    # Skip header line we already read
+                    next(f)
+                    # Start at 50 since we already read those
+                    row_count = 50 + sum(1 for _ in f)
+
+                # If file has less than 50 rows, adjust count
+                if len(df_sample) < 50:
+                    row_count = len(df_sample)
+
+                return dict(
+                    row_count=row_count,
+                    columns=df_sample.columns.str.strip().tolist(),
+                    sample_rows=df_sample.to_dict("records"),
+                )
+
             except UnicodeDecodeError:
                 continue
             except Exception as e:
-                logger.error(f"Error reading {csv_path}: {e}")
-                return []
+                logger.error(f"Error reading {csv_path} with {encoding}: {e}")
+                continue
 
         logger.error(f"Failed to read {csv_path} with any encoding")
-        return []
+        return dict(row_count=0, columns=[], rows=[])
 
     def _get_csv_row_count(self, csv_path: Path) -> int:
         """Get row count from CSV with proper encoding handling"""

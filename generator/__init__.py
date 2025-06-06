@@ -16,6 +16,11 @@ logging.basicConfig(level=logging.INFO, format="%(lineno)d: %(message)s")
 logger = logging.getLogger(__name__)
 
 
+def format_column_name(file_name: str) -> str:
+    """Convert CSV name to database-friendly name"""
+    return file_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_").replace(".", "_")
+
+
 def random_string(length=8):
     letters = string.ascii_lowercase
     return "".join(random.choice(letters) for i in range(length))
