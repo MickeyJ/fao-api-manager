@@ -1,13 +1,13 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from {{ project_name }}.src.db.utils import load_csv
+from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for
 from {{ project_name }}.src.db.database import run_with_session
 from .{{ table_name }}_model import {{ model_name }}
 
 
 # Direct path to synthetic lookup CSV
-CSV_PATH = "{{ csv_file }}"
+CSV_PATH = get_csv_path_for("{{ csv_file }}")
 
 table_name = "{{ table_name }}"
 

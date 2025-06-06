@@ -5,7 +5,7 @@ from typing import List, Dict, Optional
 import pandas as pd
 from . import logger, to_snake_case, snake_to_pascal_case, format_column_name
 from .structure import Structure
-from .utils.value_type_checker import analyze_column
+from .value_type_checker import analyze_column
 
 
 class FAOStructureModules:
@@ -197,7 +197,6 @@ class FAOStructureModules:
             main_data_file=main_file,
             row_count=row_count,
             columns=columns,
-            sample_rows=sample_rows,
             column_analysis=column_analysis,
         )
 
@@ -207,19 +206,19 @@ class FAOStructureModules:
 
         for encoding in encodings:
             try:
-                # Read first 50 rows to get columns and sample data
-                df_sample = pd.read_csv(csv_path, nrows=50, encoding=encoding)
+                # Read first 1000 rows to get good variety of sample values
+                df_sample = pd.read_csv(csv_path, nrows=1000, encoding=encoding)
 
                 # Get total row count efficiently
                 # Option 1: Quick count by reading the rest of the file
                 with open(csv_path, "r", encoding=encoding) as f:
                     # Skip header line we already read
                     next(f)
-                    # Start at 50 since we already read those
-                    row_count = 50 + sum(1 for _ in f)
+                    # Start at 1000 since we already read those
+                    row_count = 1000 + sum(1 for _ in f)
 
-                # If file has less than 50 rows, adjust count
-                if len(df_sample) < 50:
+                # If file has less than 1000 rows, adjust count
+                if len(df_sample) < 1000:
                     row_count = len(df_sample)
 
                 return dict(

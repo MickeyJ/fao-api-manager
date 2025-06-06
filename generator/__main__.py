@@ -6,7 +6,7 @@ from generator.fao_conflict_detector import FAOConflictDetector
 from . import ZIP_PATH
 
 
-json_cache_path = Path("./analysis/fao_module_cache.json")
+json_cache_path = Path("./cache/fao_module_cache.json")
 
 
 def test_pre_generation():

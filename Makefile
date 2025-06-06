@@ -87,7 +87,7 @@ process-csv:
 # =-=-=--=-=-=-=-=-
 run-all-pipelines:
 	@echo "Running pipeline..."
-	$(ACTIVATE) $(PYTHON) -m foa.src.db.pipelines
+	$(ACTIVATE) $(PYTHON) -m fao.src.db.pipelines
 
 # =-=-=--=-=-=-=-=-
 # Database commands

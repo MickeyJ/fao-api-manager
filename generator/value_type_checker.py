@@ -225,19 +225,22 @@ class ValueTypeChecker:
             - has_empty_strings
             - sample_values
         """
+        import pandas as pd
+
         all_values = [row.get(column_name) for row in sample_rows]
 
-        null_count = sum(1 for v in all_values if v is None)
+        # Check for both None and pandas NaN
+        null_count = sum(1 for v in all_values if v is None or pd.isna(v))
         empty_string_count = sum(1 for v in all_values if v == "")
 
-        non_null_values = [v for v in all_values if v is not None and str(v).strip() != ""]
+        non_null_values = [v for v in all_values if v is not None and not pd.isna(v) and str(v).strip() != ""]
 
         return {
             "null_count": null_count,
             "empty_string_count": empty_string_count,
             "non_null_count": len(non_null_values),
             "unique_count": len(set(str(v) for v in non_null_values)),
-            "sample_values": non_null_values[:5],
+            "sample_values": all_values[:5],
             "has_empty_strings": empty_string_count > 0,
         }
 

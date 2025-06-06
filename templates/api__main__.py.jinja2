@@ -2,28 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from . import current_version_prefix
+from . import current_version_prefix, api_map
 
 # Import all the routers
-from .routers import (
-  {% for router in routers %}
-  {{ router.name }},
-  {% endfor %}
-)
-
-api_map = {
-    "api_name": "Food Price Analysis API",
-    "version": "1.0.0",
-    "docs": "/docs",
-    "endpoints": {
-        {% for router in routers %}
-        "{{ router.name }}": {
-            "description": "{{ router.description }}",
-            "path": f"/{current_version_prefix}/{{ router.name }}",
-        },
-        {% endfor %}
-    },
-}
+{% for group_name, router_group in routers.items() %}
+from .routers.{{group_name}} import {{group_name}}_api
+{% endfor %}
 
 
 # Create main app
@@ -31,6 +15,8 @@ app = FastAPI(
     title="Food Price Analysis API",
     description="API for analyzing global food commodity prices",
     version="1.0.0",
+    docs_url="/",  # Put docs at root instead of /docs
+    redoc_url="/redoc",
 )
 
 # Add CORS middleware
@@ -45,8 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-{% for router in routers %}
-app.include_router({{ router.name }}.router, prefix=f"/{current_version_prefix}")
+{% for group_name, router_group in routers.items() %}
+app.include_router({{group_name}}_api)
 {% endfor %}
 
 # Root endpoint
@@ -54,8 +40,6 @@ app.include_router({{ router.name }}.router, prefix=f"/{current_version_prefix}"
 def root():
     return api_map
 
-
-# Make it runnable with: python -m api
 if __name__ == "__main__":
     import uvicorn
     import signal

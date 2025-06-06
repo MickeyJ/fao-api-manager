@@ -1,0 +1,35 @@
+from fastapi import APIRouter
+from ... import current_version_prefix
+
+{% for router in router_group %}
+from .{{router.name}} import router as {{router.name}}
+{% endfor %}
+
+{{group_name}}_api = APIRouter(
+  prefix=f"/{{group_name}}", 
+  tags=["{{group_name}}"],
+)
+
+{% for router in router_group %}
+{{group_name}}_api.include_router(
+  {{router.name}}, 
+  prefix=f"/{current_version_prefix}", 
+  tags=["{{group_name}}", "{{router.name}}"],
+)
+{% endfor %}
+
+{{ group_name }}_group_map = {
+    "description": "{{ group_name }}",
+    "routes": [
+        {% for router in router_group %}
+        {
+            "name": "{{ router.name }}",
+            "description": "{{ router.description }}",
+            "path": f"/{ current_version_prefix }/{{ group_name }}/{{ router.name }}",
+        },
+        {% endfor %}
+    ],
+}
+
+# Export the sub-API
+__all__ = ["{{group_name}}_api", "{{ group_name }}_group_map"]

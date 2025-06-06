@@ -21,12 +21,12 @@ ETL-codebase-generator/
 ├── Makefile                  # Build and setup commands
 ├── generator/                 # Core generation logic
 │   ├── __init__.py           # Configuration (ZIP_PATH)
-│   ├── scanner.py            # FAO ZIP file scanner
+│   ├── template_renderer.py  # Jinja2 template rendering
 │   └── generator.py          # Pipeline code generator
 ├── templates/                # Jinja2 templates
 │   ├── __init__.py.jinja2    # Pipeline initialization
 │   ├── __main__.py.jinja2    # Pipeline execution entry point
-│   ├── module.py.jinja2      # Individual module template
+│   ├── model.py.jinja2      # Individual module template
 │   └── __init___empty.py.jinja2  # Empty init template
 │ 
 │ # Generated Codebase
@@ -36,22 +36,20 @@ ETL-codebase-generator/
 ├── Makefile
 │   └──src/
 │      └── db/
+│          ├── __init__.py
 │          ├── utils.py
 │          ├── database.py
-│          └── models/ 
-│              ├── __main__.py
-│              └── core/
-│                  └── area_codes.py
-│              └── emissions_totals/
-│                  ├── __main__.py
-│                  └── emissions_totals.py
-│              └── ...
 │          └── pipelines/ 
 │              ├── __main__.py
-│              └── core/
+│              └── area_codes/
+│                  ├── __init__.py
+│                  ├── __main__.py
+│                  ├── area_codes_model.py
 │                  └── area_codes.py
 │              └── emissions_totals/
+│                  ├── __init__.py
 │                  ├── __main__.py
+│                  ├── emissions_totals_model.py
 │                  └── emissions_totals.py
 │              └── ...
 │      └── api/

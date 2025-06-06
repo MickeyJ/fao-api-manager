@@ -1,1 +1,17 @@
 current_version_prefix = "v1"
+
+{% for group_name, router_group in routers.items() %}
+from .routers.{{ group_name }} import {{ group_name }}_group_map      
+{% endfor %}
+
+api_map = {
+    "api_name": "FAO API",
+    "api_description": "API for accessing FAO datasets",
+    "version": "1.0.0",
+    # "docs": "/docs",
+    "endpoints": {
+        {% for group_name, router_group in routers.items() %}
+        "{{ group_name }}": {{ group_name }}_group_map,
+        {% endfor %}
+    },
+}

@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from typing import Dict, List, Optional
+from collections import defaultdict
 
 
 class TemplateRenderer:
@@ -107,7 +108,7 @@ class TemplateRenderer:
             project_name=self.project_name,
         )
 
-    def render_api_main_template(self, routers: list[dict]) -> str:
+    def render_api_main_template(self, routers: defaultdict) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("api__main__.py.jinja2")
         return template.render(
@@ -115,10 +116,20 @@ class TemplateRenderer:
             project_name=self.project_name,
         )
 
-    def render_api_init_template(self) -> str:
+    def render_api_router_group_init_template(self, group_name: str, router_group: defaultdict) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("api_router_group__init__.py.jinja2")
+        return template.render(
+            group_name=group_name,
+            router_group=router_group,
+            project_name=self.project_name,
+        )
+
+    def render_api_init_template(self, routers: defaultdict) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("api__init__.py.jinja2")
         return template.render(
+            routers=routers,
             project_name=self.project_name,
         )
 

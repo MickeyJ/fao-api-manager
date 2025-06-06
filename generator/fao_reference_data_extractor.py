@@ -11,7 +11,7 @@ class FAOReferenceDataExtractor:
 
     def __init__(self, zip_directory: str | Path, json_cache_path: Path):
         self.zip_dir = Path(zip_directory)
-        self.analysis_dir = Path("./analysis")
+        self.analysis_dir = Path("./cache")
         self.extracted_lookups = {}  # Will store discovered lookups
         self.json_cache_path = json_cache_path
 

@@ -1,4 +1,5 @@
 from typing import List, Dict, Literal
+from collections import defaultdict
 from pathlib import Path
 from dataclasses import dataclass
 from .structure import Structure
@@ -25,7 +26,6 @@ class Generator:
         self.input_dir = input_dir
         self.structure = Structure()
         self.file_generator = FileGenerator(self.paths.project)
-        # self.csv_analyzer = CSVAnalyzer(self.structure, self.scanner, self.file_generator)
         self.template_renderer = TemplateRenderer(self.project_name)
 
         # Will hold all modules from all pipelines
@@ -48,7 +48,7 @@ class Generator:
         from generator.fao_conflict_detector import FAOConflictDetector
         from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 
-        json_cache_path = Path("./analysis/fao_module_cache.json")
+        json_cache_path = Path("./cache/fao_module_cache.json")
         cache_bust = False
 
         # Structure discovery
@@ -74,8 +74,11 @@ class Generator:
         # self.file_generator.write_json_file(self.paths.project / "extraction_manifest.json", extraction_manifest)
 
     def _process_lookups(self, lookups: Dict):
-        """Process lookup modules with conflict handling"""
+        """Process lookup modules to match previous template format TODO: potential for simplification"""
         for lookup_name, lookup_spec in lookups.items():
+            full_path = Path(lookup_spec["file_path"])
+            relative_path = full_path.relative_to(self.input_dir)
+            csv_file_path = relative_path.as_posix()  # This converts to forward slashes
             module = {
                 "pipeline_name": lookup_name,  # Each lookup gets own pipeline
                 "module_name": lookup_name,
@@ -83,8 +86,8 @@ class Generator:
                 "table_name": lookup_spec["sql_table_name"],
                 "column_analysis": lookup_spec["column_analysis"],
                 "file_info": {
-                    "csv_file": lookup_spec["file_path"],
-                    "csv_filename": Path(lookup_spec["file_path"]).name,
+                    "csv_file": csv_file_path,
+                    "csv_filename": full_path.name,
                     "zip_path": None,  # Synthetic lookups don't have zips
                 },
                 "specs": {
@@ -98,10 +101,15 @@ class Generator:
             self.all_modules.append(module)
 
     def _process_datasets(self, datasets: Dict):
-        """Process dataset modules with FK and conflict info"""
+        """Process dataset modules to match previous template format TODO: potential for simplification"""
         for dataset_name, dataset_spec in datasets.items():
+            full_path = Path(dataset_spec["main_data_file"])
+            relative_path = full_path.relative_to(self.input_dir)
+            csv_file_path = relative_path.as_posix()  # This converts to forward slashes
+
             # Format foreign keys for template compatibility
             foreign_keys = []
+
             for fk in dataset_spec.get("foreign_keys", []):
                 foreign_keys.append(
                     {
@@ -123,8 +131,8 @@ class Generator:
                 "table_name": dataset_spec["sql_table_name"],
                 "column_analysis": dataset_spec["column_analysis"],
                 "file_info": {
-                    "csv_file": dataset_spec["main_data_file"],
-                    "csv_filename": Path(dataset_spec["main_data_file"]).name,
+                    "csv_file": csv_file_path,
+                    "csv_filename": full_path.name,
                 },
                 "specs": {
                     "is_core_file": False,
@@ -145,7 +153,7 @@ class Generator:
         self._generate_all_pipelines_main()
         self._generate_pipelines_init()
         self.generate_all_model_imports_file()
-        # self._generate_api_routers()
+        self._generate_api_routers()
 
     def _group_modules_by_pipeline(self) -> None:
         """Group modules by their pipeline name"""
@@ -158,11 +166,10 @@ class Generator:
 
     def _generate_pipeline_and_models(self, pipeline_name: str, modules: List[Dict]):
         """Generate files for a single pipeline"""
-        # Create pipeline and model directory
+        # Create pipeline directory
         self.file_generator.create_dir(self.paths.db_pipelines / pipeline_name)
-        # self.file_generator.create_dir(self.paths.db_models / pipeline_name)
 
-        # Generate pipeline files
+        # Generate all pipeline related files
         self._generate_pipeline_init(pipeline_name, modules)
         self._generate_pipeline_main(pipeline_name, modules)
         self._generate_modules_and_models(
@@ -202,7 +209,7 @@ class Generator:
         self.file_generator.write_file_cache(self.paths.db_pipelines / "__init__.py", content)
 
     def generate_all_model_imports_file(self):
-        """Generate db/models/__init__.py with all model imports"""
+        """Generate project file with all model imports for alembic migrations"""
         imports = []
         for pipeline_name, modules in self.pipelines.items():
             for module in modules:
@@ -218,7 +225,7 @@ class Generator:
         self.file_generator.write_file_cache("all_model_imports.py", content)
 
     def _generate_modules_and_models(self, pipeline_name, pipeline_dir, model_dir, modules):
-        """Generate both pipeline modules and model files"""
+        """Generate all pipeline module and model files"""
         for module in modules:
             module_name = module["module_name"]
 
@@ -254,47 +261,83 @@ class Generator:
 
     def _generate_api_routers(self):
         """Generate API routers for each pipeline"""
-        api_routers = self._format_api_routers()
+        router_groups = self._format_api_routers()
 
         # print(json.dumps(api_routers, indent=2))
 
-        content = self.template_renderer.render_api_main_template(routers=api_routers)
-        self.file_generator.write_file_cache(self.paths.api / "__main__.py", content)
+        main_content = self.template_renderer.render_api_main_template(routers=router_groups)
+        self.file_generator.write_file_cache(self.paths.api / "__main__.py", main_content)
 
-        content = self.template_renderer.render_api_init_template()
-        self.file_generator.write_file_cache(self.paths.api / "__init__.py", content)
+        init_content = self.template_renderer.render_api_init_template(routers=router_groups)
+        self.file_generator.write_file_cache(self.paths.api / "__init__.py", init_content)
 
-        for router in api_routers:
-            router_dir = router["router_dir"]
+        self.file_generator.create_dir(self.paths.api_routers)
+        content = self.template_renderer.render_empty_init_template()
+        self.file_generator.write_file(self.paths.api_routers / "__init__.py", content)
+
+        for group_name, router_group in router_groups.items():
+            # Sort routers by name within each group
+            router_dir = self.paths.api_routers / group_name
             self.file_generator.create_dir(router_dir)
 
-            content = self.template_renderer.render_api_router_template(router=router)
-            self.file_generator.write_file_cache(self.paths.api_routers / f"{router['name']}.py", content)
+            group_init_content = self.template_renderer.render_api_router_group_init_template(
+                group_name=group_name,
+                router_group=router_group,
+            )
+            self.file_generator.write_file_cache(router_dir / "__init__.py", group_init_content)
+
+            for router in router_group:
+                router_content = self.template_renderer.render_api_router_template(router=router)
+                self.file_generator.write_file_cache(router_dir / f"{router['name']}.py", router_content)
+
+        # for router in api_routers:
+        #     router_dir = router["router_dir"]
+        #     self.file_generator.create_dir(router_dir)
+
+        #     content = self.template_renderer.render_api_router_template(router=router)
+        #     self.file_generator.write_file_cache(self.paths.api_routers / f"{router['name']}.py", content)
 
         # # Generate __init__.py for routers
         # init_content = self.template_renderer.render_api_routers_init_template(routers=api_routers)
         # self.file_generator.write_file(self.paths.api_routers / "__init__.py", init_content)
 
-    def _format_api_routers(self) -> list[dict]:
+    def _format_api_routers(self) -> defaultdict:
         """Format API routers by generating __init__.py"""
-        api_routers = []
+
+        # Count modules in each group to determine
+        # if they should be grouped together or in a miscellaneous group
+        module_group_counts = defaultdict(int)
+        for module in self.all_modules:
+            module_name = module["module_name"]
+            prefix = module_name.split("_")[0]
+            module_group_counts[prefix] += 1
+
+        router_groups = defaultdict(list)
         for module in self.all_modules:
             pipeline_name = module["pipeline_name"]
             module_name = module["module_name"]
 
-            api_routers.append(
-                {
-                    "name": module_name,
-                    "model": module["model_name"],
-                    "pipeline_name": pipeline_name,
-                    "router_dir": f"{self.paths.api_routers}",
-                    "router_name": f"{module_name}_router",
-                    "csv_analysis": module["csv_analysis"],
-                    "specs": module["specs"],
-                }
-            )
+            group_name = module_name.split("_")[0]
+            module_group_count = module_group_counts[group_name]
+            if module_group_count < 2:
+                group_name = "other"
 
-        return api_routers
+            # logger.info(f" {module_group_count} modules in {group_name} group")
+
+            router_specs = {
+                "name": module_name,
+                "router_group": group_name,
+                "model": module["model_name"],
+                "pipeline_name": pipeline_name,
+                "router_dir": Path(f"{self.paths.api_routers}/{group_name}"),
+                "router_name": f"{module_name}_router",
+                "column_analysis": module["column_analysis"],
+                "specs": module["specs"],
+            }
+
+            router_groups[group_name].append(router_specs)
+
+        return router_groups
 
     def _generate_directories(self):
         self.file_generator.create_dir(self.paths.src)

@@ -4,7 +4,6 @@ from sqlalchemy import select, func, or_, text
 from typing import Optional
 from {{ project_name }}.src.db.database import get_db
 from {{ project_name }}.src.db.pipelines.{{ router.pipeline_name }}.{{ router.name }}_model import {{ router.model }}
-from .. import current_version_prefix
 {% if router.specs.foreign_keys %}
 # Import core/lookup tables for joins
 {% set imported_tables = [] %}
@@ -23,7 +22,7 @@ router = APIRouter(
 )
 
 @router.get("/")
-def get_base_{{ router.name }}(
+def get_{{ router.name }}(
     limit: int = Query(100, le=1000, ge=1, description="Maximum records to return"),
     offset: int = Query(0, ge=0, description="Number of records to skip"),
     db: Session = Depends(get_db)

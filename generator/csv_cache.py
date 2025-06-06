@@ -6,7 +6,7 @@ from generator import logger
 
 
 class CSVCache:
-    def __init__(self, cache_file_path: str = "./analysis/csv_analysis_cache.json"):
+    def __init__(self, cache_file_path: str = "./cache/csv_analysis_cache.json"):
         self.cache_file = Path(cache_file_path)
         self.cache_file.parent.mkdir(exist_ok=True)
         self._cache = {}

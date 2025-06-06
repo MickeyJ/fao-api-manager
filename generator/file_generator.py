@@ -6,7 +6,7 @@ import json, difflib
 class FileGenerator:
     def __init__(self, output_dir: str | Path):
         self.output_dir = Path(output_dir)
-        self.cache_dir = self.output_dir / ".generator_cache"
+        self.cache_dir = Path("./cache/.generator_cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self._update_all = None  # Track if user selected "all" option
 
