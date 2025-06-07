@@ -1,0 +1,12 @@
+from . import inputs_pesticides_trade
+from fao.src.db.database import run_with_session
+
+
+def run_all(db):
+    print("Running inputs_pesticides_trade pipeline")
+    inputs_pesticides_trade.run(db)
+
+
+if __name__ == "__main__":
+    run_with_session(run_all)
+    print("inputs_pesticides_trade pipeline complete")

@@ -205,9 +205,9 @@ ehthumbs.db
 Thumbs.db
 
 # optional - remove to track generated code
-fao/*
-cache/*
-.generator_cache/*
+
+
+*/.generator_cache/*
 
 
 # Local configuration

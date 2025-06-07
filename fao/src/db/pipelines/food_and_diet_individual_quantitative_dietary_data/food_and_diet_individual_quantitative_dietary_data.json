@@ -1,0 +1,330 @@
+[
+  {
+    "csv_column_name": "Survey Code",
+    "sql_column_name": "survey_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "076_2014",
+      "076_2014",
+      "076_2014",
+      "076_2014",
+      "076_2014"
+    ]
+  },
+  {
+    "csv_column_name": "Survey",
+    "sql_column_name": "survey",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "Brazil - 2014",
+      "Brazil - 2014",
+      "Brazil - 2014",
+      "Brazil - 2014",
+      "Brazil - 2014"
+    ]
+  },
+  {
+    "csv_column_name": "Geographic Level Code",
+    "sql_column_name": "geographic_level_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      10000,
+      10000,
+      10000,
+      10000,
+      10000
+    ]
+  },
+  {
+    "csv_column_name": "Geographic Level",
+    "sql_column_name": "geographic_level",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "National",
+      "National",
+      "National",
+      "National",
+      "National"
+    ]
+  },
+  {
+    "csv_column_name": "Population Age Group Code",
+    "sql_column_name": "population_age_group_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "allages",
+      "allages",
+      "allages",
+      "allages",
+      "allages"
+    ],
+    "original_csv_column_name": "Population Group Code"
+  },
+  {
+    "csv_column_name": "Population Group",
+    "sql_column_name": "population_group",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "All age groups",
+      "All age groups",
+      "All age groups",
+      "All age groups",
+      "All age groups"
+    ]
+  },
+  {
+    "csv_column_name": "Food Group Code",
+    "sql_column_name": "food_group_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 12,
+    "sample_values": [
+      "FGWD",
+      "FGWD",
+      "FGWD",
+      "FGWD",
+      "FGWD"
+    ]
+  },
+  {
+    "csv_column_name": "Food Group",
+    "sql_column_name": "food_group",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 12,
+    "sample_values": [
+      "Whole diet (excluding beverages)",
+      "Whole diet (excluding beverages)",
+      "Whole diet (excluding beverages)",
+      "Whole diet (excluding beverages)",
+      "Whole diet (excluding beverages)"
+    ]
+  },
+  {
+    "csv_column_name": "Indicator Code",
+    "sql_column_name": "indicator_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 29,
+    "sample_values": [
+      3334,
+      3334,
+      3334,
+      3331,
+      3331
+    ]
+  },
+  {
+    "csv_column_name": "Indicator",
+    "sql_column_name": "indicator",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 29,
+    "sample_values": [
+      "Average calcium intake",
+      "Average calcium intake",
+      "Average calcium intake",
+      "Average carbohydrate intake",
+      "Average carbohydrate intake"
+    ]
+  },
+  {
+    "csv_column_name": "Element Code",
+    "sql_column_name": "element_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 9,
+    "sample_values": [
+      6209,
+      6209,
+      6209,
+      6123,
+      6123
+    ]
+  },
+  {
+    "csv_column_name": "Element",
+    "sql_column_name": "element",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "Value",
+      "Value",
+      "Value",
+      "Value",
+      "Value"
+    ]
+  },
+  {
+    "csv_column_name": "Sex Code",
+    "sql_column_name": "sex_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 3,
+    "sample_values": [
+      1,
+      2,
+      3,
+      1,
+      2
+    ]
+  },
+  {
+    "csv_column_name": "Sex",
+    "sql_column_name": "sex",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 3,
+    "sample_values": [
+      "Total",
+      "Male",
+      "Female",
+      "Total",
+      "Male"
+    ]
+  },
+  {
+    "csv_column_name": "Unit",
+    "sql_column_name": "unit",
+    "inferred_sql_type": "String",
+    "sql_type_size": 50,
+    "index": false,
+    "nullable": true,
+    "null_count": 99,
+    "non_null_count": 901,
+    "unique_count": 5,
+    "sample_values": [
+      "mg/pc/d",
+      "mg/pc/d",
+      "mg/pc/d",
+      "g/pc/d",
+      "g/pc/d"
+    ]
+  },
+  {
+    "csv_column_name": "Value",
+    "sql_column_name": "value",
+    "inferred_sql_type": "Float",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": true,
+    "null_count": 33,
+    "non_null_count": 967,
+    "unique_count": 476,
+    "sample_values": [
+      "376",
+      "395",
+      "356",
+      "204.5",
+      "221.6"
+    ]
+  },
+  {
+    "csv_column_name": "Flag",
+    "sql_column_name": "flag",
+    "inferred_sql_type": "String",
+    "sql_type_size": 1,
+    "index": true,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "E",
+      "E",
+      "E",
+      "E",
+      "E"
+    ],
+    "format_methods": [
+      "upper"
+    ]
+  },
+  {
+    "csv_column_name": "Note",
+    "sql_column_name": "note",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "Brazil-2014",
+      "Brazil-2014",
+      "Brazil-2014",
+      "Brazil-2014",
+      "Brazil-2014"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "csv_column_name": "Release Code",
+    "sql_column_name": "release_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 2,
+    "unique_count": 2,
+    "sample_values": [
+      "7S2024",
+      "12U2024"
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Release",
+    "sql_column_name": "release",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 2,
+    "unique_count": 2,
+    "sample_values": [
+      "July 2024 (SOFI report)",
+      "December 2024 (Update)"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 2,
+    "unique_count": 1,
+    "sample_values": [
+      "cost_affordability_healthy_diet_co_ahd",
+      "cost_affordability_healthy_diet_co_ahd"
+    ],
+    "format_methods": []
+  }
+]

@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Source Code",
+    "sql_column_name": "source_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 30,
+    "unique_count": 14,
+    "sample_values": [
+      3050,
+      3051,
+      3050,
+      3051,
+      3050
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Source",
+    "sql_column_name": "source",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 30,
+    "unique_count": 14,
+    "sample_values": [
+      "FAO TIER 1",
+      "UNFCCC",
+      "FAO TIER 1",
+      "UNFCCC",
+      "FAO TIER 1"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 30,
+    "unique_count": 8,
+    "sample_values": [
+      "emissions_crops",
+      "emissions_crops",
+      "emissions_drained_organic_soils",
+      "emissions_drained_organic_soils",
+      "emissions_land_use_fires"
+    ],
+    "format_methods": []
+  }
+]

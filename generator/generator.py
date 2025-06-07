@@ -255,9 +255,6 @@ class Generator:
         self.file_generator.create_dir(self.paths.api_routers)
 
     def _generate_project_files(self):
-        self._generate_env_files()
-        self._generate_makefile()
-        self._generate_requirements_file()
         self._generate_database_file()
         self._generate_database_utils_file()
         self._generate_empty_init_files()
@@ -274,23 +271,6 @@ class Generator:
         self.file_generator.write_file("__init__.py", content)
         self.file_generator.write_file(self.paths.src / "__init__.py", content)
         self.file_generator.write_file(self.paths.db / "__init__.py", content)
-
-    def _generate_env_files(self):
-        """Generate database.py for db"""
-        templates = self.template_renderer.render_env_templates()
-
-        for template in templates:
-            self.file_generator.write_file_cache(template["file_name"], template["content"])
-
-    def _generate_makefile(self):
-        """Generate database.py for db"""
-        content = self.template_renderer.render_makefile_template()
-        self.file_generator.write_file_cache("Makefile", content)
-
-    def _generate_requirements_file(self):
-        """Generate database.py for db"""
-        content = self.template_renderer.render_requirements_template()
-        self.file_generator.write_file_cache("requirements.in", content)
 
     def _generate_database_file(self):
         """Generate database.py for db"""

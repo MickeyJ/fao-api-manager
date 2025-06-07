@@ -1,0 +1,80 @@
+[
+  {
+    "csv_column_name": "Donor Code",
+    "sql_column_name": "donor_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 137,
+    "unique_count": 137,
+    "sample_values": [
+      1034,
+      1035,
+      1037,
+      1031,
+      1030
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Donor",
+    "sql_column_name": "donor",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 137,
+    "unique_count": 137,
+    "sample_values": [
+      "Climate Investment Funds (CIF)",
+      "Charity Projects Ltd (Comic Relief)",
+      "Children's Investment Fund Foundation",
+      "Council of Europe Development Bank (CEB)",
+      "Caribbean Development Bank (CDB)"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "Donor Code (M49)",
+    "sql_column_name": "donor_code_m49",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 137,
+    "unique_count": 137,
+    "sample_values": [
+      "'1011",
+      "'1614",
+      "'1615",
+      "'1013",
+      "'F1030"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 137,
+    "unique_count": 1,
+    "sample_values": [
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture"
+    ],
+    "format_methods": []
+  }
+]

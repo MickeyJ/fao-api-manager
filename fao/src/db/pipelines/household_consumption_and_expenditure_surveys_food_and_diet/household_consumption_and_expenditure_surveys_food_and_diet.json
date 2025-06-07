@@ -1,0 +1,257 @@
+[
+  {
+    "csv_column_name": "Survey Code",
+    "sql_column_name": "survey_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "004_2020",
+      "004_2020",
+      "004_2020",
+      "004_2020",
+      "004_2020"
+    ]
+  },
+  {
+    "csv_column_name": "Survey",
+    "sql_column_name": "survey",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "Afghanistan - 2020",
+      "Afghanistan - 2020",
+      "Afghanistan - 2020",
+      "Afghanistan - 2020",
+      "Afghanistan - 2020"
+    ]
+  },
+  {
+    "csv_column_name": "Geographic Level Code",
+    "sql_column_name": "geographic_level_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 2,
+    "sample_values": [
+      10000,
+      10000,
+      10000,
+      10000,
+      10000
+    ]
+  },
+  {
+    "csv_column_name": "Geographic Level",
+    "sql_column_name": "geographic_level",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 2,
+    "sample_values": [
+      "National",
+      "National",
+      "National",
+      "National",
+      "National"
+    ]
+  },
+  {
+    "csv_column_name": "Food Group Code",
+    "sql_column_name": "food_group_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 16,
+    "sample_values": [
+      "FG0",
+      "FG0",
+      "FG0",
+      "FG0",
+      "FG0"
+    ]
+  },
+  {
+    "csv_column_name": "Food Group",
+    "sql_column_name": "food_group",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 16,
+    "sample_values": [
+      "All food groups",
+      "All food groups",
+      "All food groups",
+      "All food groups",
+      "All food groups"
+    ]
+  },
+  {
+    "csv_column_name": "Indicator Code",
+    "sql_column_name": "indicator_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 17,
+    "sample_values": [
+      3302,
+      3302,
+      3302,
+      3303,
+      3303
+    ]
+  },
+  {
+    "csv_column_name": "Indicator",
+    "sql_column_name": "indicator",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 17,
+    "sample_values": [
+      "Energy apparent intake",
+      "Energy apparent intake",
+      "Energy apparent intake",
+      "Protein apparent intake",
+      "Protein apparent intake"
+    ]
+  },
+  {
+    "csv_column_name": "Element Code",
+    "sql_column_name": "element_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 14,
+    "sample_values": [
+      "6128A",
+      "61281",
+      "61282",
+      "6123A",
+      "61231"
+    ]
+  },
+  {
+    "csv_column_name": "Element",
+    "sql_column_name": "element",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 3,
+    "sample_values": [
+      "Average",
+      "Confidence interval: Lower bound",
+      "Confidence interval: Upper bound",
+      "Average",
+      "Confidence interval: Lower bound"
+    ]
+  },
+  {
+    "csv_column_name": "Unit",
+    "sql_column_name": "unit",
+    "inferred_sql_type": "String",
+    "sql_type_size": 50,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 4,
+    "sample_values": [
+      "kcal/cap/d",
+      "kcal/cap/d",
+      "kcal/cap/d",
+      "g/cap/d",
+      "g/cap/d"
+    ]
+  },
+  {
+    "csv_column_name": "Value",
+    "sql_column_name": "value",
+    "inferred_sql_type": "Float",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 405,
+    "sample_values": [
+      2352.0,
+      2329.0,
+      2374.0,
+      59.6,
+      58.9
+    ]
+  },
+  {
+    "csv_column_name": "Flag",
+    "sql_column_name": "flag",
+    "inferred_sql_type": "String",
+    "sql_type_size": 1,
+    "index": true,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 1,
+    "sample_values": [
+      "E",
+      "E",
+      "E",
+      "E",
+      "E"
+    ],
+    "format_methods": [
+      "upper"
+    ]
+  },
+  {
+    "csv_column_name": "Note",
+    "sql_column_name": "note",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": true,
+    "null_count": 32,
+    "non_null_count": 968,
+    "unique_count": 1,
+    "sample_values": [
+      "Income, Expenditure and Labour Force Survey, October 2019 - September 2020.",
+      "Income, Expenditure and Labour Force Survey, October 2019 - September 2020.",
+      "Income, Expenditure and Labour Force Survey, October 2019 - September 2020.",
+      "Income, Expenditure and Labour Force Survey, October 2019 - September 2020.",
+      "Income, Expenditure and Labour Force Survey, October 2019 - September 2020."
+    ]
+  }
+]

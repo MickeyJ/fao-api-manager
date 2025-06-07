@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Sex Code",
+    "sql_column_name": "sex_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 12,
+    "unique_count": 3,
+    "sample_values": [
+      1,
+      2,
+      3,
+      1,
+      2
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Sex",
+    "sql_column_name": "sex",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 12,
+    "unique_count": 3,
+    "sample_values": [
+      "Total",
+      "Male",
+      "Female",
+      "Total",
+      "Male"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 12,
+    "unique_count": 4,
+    "sample_values": [
+      "employment_indicators_agriculture",
+      "employment_indicators_agriculture",
+      "employment_indicators_agriculture",
+      "employment_indicators_rural",
+      "employment_indicators_rural"
+    ],
+    "format_methods": []
+  }
+]

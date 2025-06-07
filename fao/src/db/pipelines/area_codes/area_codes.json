@@ -1,0 +1,80 @@
+[
+  {
+    "csv_column_name": "Area Code",
+    "sql_column_name": "area_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 251,
+    "sample_values": [
+      4,
+      8,
+      9,
+      16,
+      14
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Area",
+    "sql_column_name": "area",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 252,
+    "sample_values": [
+      "Algeria",
+      "Antigua and Barbuda",
+      "Argentina",
+      "Bangladesh",
+      "Barbados"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "Area Code (M49)",
+    "sql_column_name": "area_code_m49",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 251,
+    "sample_values": [
+      "'012",
+      "'028",
+      "'032",
+      "'050",
+      "'052"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 1000,
+    "unique_count": 6,
+    "sample_values": [
+      "asti_expenditures",
+      "asti_expenditures",
+      "asti_expenditures",
+      "asti_expenditures",
+      "asti_expenditures"
+    ],
+    "format_methods": []
+  }
+]

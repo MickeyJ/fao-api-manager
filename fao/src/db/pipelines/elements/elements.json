@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Element Code",
+    "sql_column_name": "element_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 485,
+    "unique_count": 300,
+    "sample_values": [
+      "6083",
+      "6084",
+      "6082",
+      "6086",
+      "726313"
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Element",
+    "sql_column_name": "element",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 485,
+    "unique_count": 223,
+    "sample_values": [
+      "Share of Value Added (Agriculture, Forestry and Fishing)",
+      "Spending, total (constant 2011 prices)",
+      "Researchers, total",
+      "Per 100,000 farmers",
+      "Emissions Share (CO2eq) (AR5)"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 485,
+    "unique_count": 68,
+    "sample_values": [
+      "asti_expenditures",
+      "asti_expenditures",
+      "asti_researchers",
+      "asti_researchers",
+      "climate_change_emissions_indicators"
+    ],
+    "format_methods": []
+  }
+]

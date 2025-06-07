@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Purpose Code",
+    "sql_column_name": "purpose_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 57,
+    "unique_count": 57,
+    "sample_values": [
+      310,
+      311,
+      307,
+      31163,
+      43040
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Purpose",
+    "sql_column_name": "purpose",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 57,
+    "unique_count": 56,
+    "sample_values": [
+      "Agriculture, forestry, fishing",
+      "Agriculture",
+      "Rural Development",
+      "Livestock",
+      "Rural development"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 57,
+    "unique_count": 1,
+    "sample_values": [
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture",
+      "development_assistance_to_agriculture"
+    ],
+    "format_methods": []
+  }
+]

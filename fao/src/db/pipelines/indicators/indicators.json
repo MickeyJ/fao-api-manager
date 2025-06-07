@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Indicator Code",
+    "sql_column_name": "indicator_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 170,
+    "unique_count": 143,
+    "sample_values": [
+      21160,
+      21163,
+      21161,
+      21162,
+      21164
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Indicator",
+    "sql_column_name": "indicator",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 170,
+    "unique_count": 163,
+    "sample_values": [
+      "Total employment in agrifood systems (AFS)",
+      "Total non-agricultural AFS employment",
+      "Share of AFS employment in total employment",
+      "Share of agricultural employment in total AFS employment",
+      "Share of non-agricultural AFS employment in total AFS employment"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 170,
+    "unique_count": 8,
+    "sample_values": [
+      "employment_indicators_agriculture",
+      "employment_indicators_agriculture",
+      "employment_indicators_agriculture",
+      "employment_indicators_agriculture",
+      "employment_indicators_agriculture"
+    ],
+    "format_methods": []
+  }
+]

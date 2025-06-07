@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Survey Code",
+    "sql_column_name": "survey_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 128,
+    "unique_count": 122,
+    "sample_values": [
+      "076_2014",
+      "484_2012",
+      "788_19961997",
+      "004_2020",
+      "032_2018"
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Survey",
+    "sql_column_name": "survey",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 128,
+    "unique_count": 122,
+    "sample_values": [
+      "Brazil - 2014",
+      "Mexico - 2012",
+      "Tunisia - 1996-1997",
+      "Afghanistan - 2020",
+      "Argentina - 2018"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 128,
+    "unique_count": 5,
+    "sample_values": [
+      "food_and_diet_individual_quantitative_dietary_data",
+      "food_and_diet_individual_quantitative_dietary_data",
+      "food_and_diet_individual_quantitative_dietary_data",
+      "household_consumption_and_expenditure_surveys_food_and_diet",
+      "household_consumption_and_expenditure_surveys_food_and_diet"
+    ],
+    "format_methods": []
+  }
+]

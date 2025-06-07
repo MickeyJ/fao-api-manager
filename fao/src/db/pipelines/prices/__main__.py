@@ -1,0 +1,12 @@
+from . import prices
+from fao.src.db.database import run_with_session
+
+
+def run_all(db):
+    print("Running prices pipeline")
+    prices.run(db)
+
+
+if __name__ == "__main__":
+    run_with_session(run_all)
+    print("prices pipeline complete")

@@ -1,0 +1,61 @@
+[
+  {
+    "csv_column_name": "Geographic Level Code",
+    "sql_column_name": "geographic_level_code",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 952,
+    "unique_count": 862,
+    "sample_values": [
+      "10000",
+      "10001",
+      "10002",
+      "076_665",
+      "076_666"
+    ],
+    "format_methods": [],
+    "indexed": true,
+    "original_pk": true
+  },
+  {
+    "csv_column_name": "Geographic Level",
+    "sql_column_name": "geographic_level",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 952,
+    "unique_count": 673,
+    "sample_values": [
+      "National",
+      "Urban",
+      "Rural",
+      "Acre",
+      "Alagoas"
+    ],
+    "format_methods": []
+  },
+  {
+    "csv_column_name": "source_dataset",
+    "sql_column_name": "source_dataset",
+    "inferred_sql_type": "String",
+    "sql_type_size": null,
+    "index": false,
+    "nullable": false,
+    "null_count": 0,
+    "non_null_count": 952,
+    "unique_count": 4,
+    "sample_values": [
+      "food_and_diet_individual_quantitative_dietary_data",
+      "food_and_diet_individual_quantitative_dietary_data",
+      "food_and_diet_individual_quantitative_dietary_data",
+      "food_and_diet_individual_quantitative_dietary_data",
+      "food_and_diet_individual_quantitative_dietary_data"
+    ],
+    "format_methods": []
+  }
+]
