@@ -19,12 +19,12 @@ class {{ module.model.model_name }}(Base):
     {% if module.is_lookup_module %}
     # Lookup table - use domain primary key
     id = Column(Integer, primary_key=True)
-    # Original FAO code (indexed for queries)
-    {{ module.model.pk_sql_column_name }} = Column(String, nullable=False, index=True)
     {# readability spacer #}
         {% for column in module.model.column_analysis %}
-            {% if column.sql_column_name != module.model.pk_sql_column_name %}
-    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
+            {% if column.sql_type_size %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}({{ column.sql_type_size }}){% if column.null_count == 0 %}, nullable=False{% endif %}, index={{ column.index}})
+            {% else %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %}, index={{ column.index}})
             {% endif %}
         {% endfor %}
     {% else %} {# NOT module.is_lookup_module #}
@@ -38,7 +38,11 @@ class {{ module.model.model_name }}(Base):
         {# readability spacer #}
         {% for column in module.model.column_analysis %}
             {% if column.csv_column_name not in module.model.exclude_columns %}
-    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
+                {% if column.sql_type_size %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}({{ column.sql_type_size }}){% if column.null_count == 0 %}, nullable=False{% endif %}, index={{ column.index}})
+                {% else %}
+    {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %}, index={{ column.index}})
+                {% endif %}
             {% endif %}
         {% endfor %}
     {# readability spacer #}

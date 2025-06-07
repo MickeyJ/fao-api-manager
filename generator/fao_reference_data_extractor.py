@@ -404,15 +404,15 @@ LOOKUP_MAPPINGS = {
         "hash_columns": ["Geographic Level Code", "source_dataset"],
         "format_methods": {},
     },
-    "months": {
-        "lookup_name": "months",
-        "primary_key_variations": ["Months Code", "Month Code"],
-        "description_variations": ["Months", "Month"],
-        "output_columns": {"pk": "Month Code", "desc": "Month"},
-        "additional_columns": {
-            "Month Number": ["Month Number"],
-            "Quarter": ["Quarter"],
-        },
-        "hash_columns": ["Month Code"],
-    },
+    # "months": {
+    #     "lookup_name": "months",
+    #     "primary_key_variations": ["Months Code", "Month Code"],
+    #     "description_variations": ["Months", "Month"],
+    #     "output_columns": {"pk": "Month Code", "desc": "Month"},
+    #     "additional_columns": {
+    #         "Month Number": ["Month Number"],
+    #         "Quarter": ["Quarter"],
+    #     },
+    #     "hash_columns": ["Month Code"],
+    # },
 }

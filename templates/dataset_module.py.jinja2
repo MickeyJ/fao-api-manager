@@ -26,6 +26,13 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
     print(f"\nCleaning {table_name} data...")
     initial_count = len(df)
+
+    {% if module.model.column_renames %}
+    # Rename columns to match lookup table standards
+    column_renames = {{ module.model.column_renames | tojson }}
+    df = df.rename(columns=column_renames)
+    print(f"  Renamed columns: {list(column_renames.keys())} → {list(column_renames.values())}")
+    {% endif %}
     
     # Basic column cleanup
     {% for column in module.model.column_analysis %}
@@ -53,8 +60,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     
     {% for fk in module.model.foreign_keys %}
     # Generate hash IDs for {{ fk.csv_column_name }}
-    # Generate hash IDs for {{ fk.csv_column_name }}
-    df['{{ fk.hash_fk_sql_column_name }}'] = df['{{ fk.csv_column_name }}'].apply(
+    df['{{ fk.hash_fk_sql_column_name }}'] = df['{{ fk.lookup_pk_csv_column }}'].apply(
         lambda val: generate_numeric_id(
             {
                 {% for col in fk.hash_columns %}

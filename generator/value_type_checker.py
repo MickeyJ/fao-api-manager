@@ -9,16 +9,23 @@ def analyze_column(sample_rows: List[Dict], column_name: str) -> Dict:
 
     sql_type = checker.infer_column_type(sample_rows, column_name)
     stats = checker.get_column_stats(sample_rows, column_name)
+    sql_type_size = None
+    index = False
 
     if column_name in GLOBAL_COLUMN_RULES:
-        rule = GLOBAL_COLUMN_RULES[column_name]
-        if rule.sql_type:
-            sql_type = rule.sql_type
+        column_rules = GLOBAL_COLUMN_RULES[column_name]
+        index = column_rules.index
+        if column_rules.sql_type:
+            sql_type = column_rules.sql_type
+            sql_type_size = column_rules.sql_type_size
 
     return {
         "csv_column_name": column_name,
         "sql_column_name": format_column_name(column_name),
         "inferred_sql_type": sql_type,
+        "sql_type_size": sql_type_size,
+        "index": index,
+        "nullable": stats["null_count"] > 0,
         "null_count": stats["null_count"],
         "non_null_count": stats["non_null_count"],
         "unique_count": stats["unique_count"],

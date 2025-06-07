@@ -61,14 +61,18 @@ class ColumnRule:
     def __init__(
         self,
         name: str,
-        sql_type: str | None = None,
-        nullable: bool | None = None,
+        sql_type: str,
+        sql_type_size: int | None = None,
+        nullable: bool = False,
+        index: bool = False,
         is_primary_key: bool = False,
         foreign_key_model_name: str | None = None,
     ):
         self.name = name
         self.sql_type = sql_type
+        self.sql_type_size = sql_type_size
         self.nullable = nullable
+        self.index = index
         self.is_primary_key = is_primary_key
         self.foreign_key_model_name = foreign_key_model_name
         self.is_foreign_key = foreign_key_model_name is not None
@@ -77,13 +81,13 @@ class ColumnRule:
 # Global column rules applied to all tables
 GLOBAL_COLUMN_RULES = {
     # Exact name matches
-    "Flag": ColumnRule(name="Flag", sql_type="String(1)", nullable=False),
+    "Flag": ColumnRule(name="Flag", sql_type="String", sql_type_size=1, index=True, nullable=False),
     "Year": ColumnRule(name="Year", sql_type="SmallInteger", nullable=False),
-    "Year Code": ColumnRule(name="Year Code", sql_type="String(4)", nullable=False),
-    "Unit": ColumnRule(name="Unit", sql_type="String(50)", nullable=False),
+    "Year Code": ColumnRule(name="Year Code", sql_type="String", sql_type_size=4, nullable=False),
+    "Unit": ColumnRule(name="Unit", sql_type="String", sql_type_size=50, nullable=False),
     "Value": ColumnRule(name="Value", sql_type="Float", nullable=False),
     "Note": ColumnRule(name="Note", sql_type="String", nullable=True),
     # Month columns
-    "Months": ColumnRule(name="Months", sql_type="String(20)", nullable=False),
-    "Months Code": ColumnRule(name="Months Code", sql_type="String(4)", nullable=False),
+    "Months": ColumnRule(name="Months", sql_type="String", sql_type_size=20, nullable=False),
+    "Months Code": ColumnRule(name="Months Code", sql_type="String", sql_type_size=4, nullable=False),
 }
