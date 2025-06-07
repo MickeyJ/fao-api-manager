@@ -4,12 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for, generate_numeric_id
 from {{ project_name }}.src.db.database import run_with_session
-from .{{ table_name }}_model import {{ model_name }}
+from .{{ module.model.table_name }}_model import {{ module.model.model_name }}
 
 # Dataset CSV file
-CSV_PATH = get_csv_path_for("{{ csv_file }}")
+CSV_PATH = get_csv_path_for("{{ module.model.csv_file }}")
 
-table_name = "{{ table_name }}"
+table_name = "{{ module.model.table_name }}"
 CHUNK_SIZE = 10000  # Process in chunks for large datasets
 
 
@@ -28,8 +28,8 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     initial_count = len(df)
     
     # Basic column cleanup
-    {% for column in column_analysis %}
-    {% if specs.exclude_columns | length and column.csv_column_name not in specs.exclude_columns %}
+    {% for column in module.model.column_analysis %}
+    {% if module.model.exclude_columns | length and column.csv_column_name not in module.model.exclude_columns %}
     df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
     {% if column.inferred_sql_type == 'Integer' %}
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
@@ -39,24 +39,24 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     {% endif %}
     {% endfor %}
     
-    {% if specs.foreign_keys %}
+    {% if module.model.foreign_keys %}
     # Generate hash IDs for foreign key columns
-    dataset_name = "{{ table_name }}"  # This dataset's name
+    dataset_name = "{{ module.model.table_name }}"  # This dataset's name
     
-    {% for fk in specs.foreign_keys %}
-    # Generate hash IDs for {{ fk.actual_column_name }}
-    df['{{ fk.actual_column_name }}_id'] = df['{{ fk.actual_column_name }}'].apply(
+    {% for fk in module.model.foreign_keys %}
+    # Generate hash IDs for {{ fk.csv_column_name }}
+    df['{{ fk.hash_fk_csv_column_name }}'] = df['{{ fk.csv_column_name }}'].apply(
         lambda val: generate_numeric_id(
-            {'{{ fk.lookup_pk_column }}': str(val), 'source_dataset': dataset_name},
-            ['{{ fk.lookup_pk_column }}', 'source_dataset']
+            {'{{ fk.lookup_pk_csv_column }}': str(val), 'source_dataset': dataset_name},
+            ['{{ fk.lookup_pk_csv_column }}', 'source_dataset']
         ) if pd.notna(val) and str(val).strip() else None
     )
     {% endfor %}
     {% endif %}
     
-    {% if specs.exclude_columns %}
+    {% if module.model.exclude_columns %}
     # Remove redundant columns that can be looked up via foreign keys
-    columns_to_drop = [col for col in {{ specs.exclude_columns | tojson }} if col in df.columns]
+    columns_to_drop = [col for col in {{ module.model.exclude_columns | tojson }} if col in df.columns]
     if columns_to_drop:
         df = df.drop(columns=columns_to_drop)
         print(f"  Dropped redundant columns: {columns_to_drop}")
@@ -89,14 +89,14 @@ def insert(df: pd.DataFrame, session: Session):
         records = []
         for _, row in chunk_df.iterrows():
             record = {}
-             {% if specs.foreign_keys %}
+             {% if module.model.foreign_keys %}
             # Add the hash ID columns
-            {% for fk in specs.foreign_keys %}
-            record['{{ fk.column_name }}_id'] = row['{{ fk.actual_column_name }}_id']
+            {% for fk in module.model.foreign_keys %}
+            record['{{ fk.hash_fk_sql_column_name }}'] = row['{{ fk.hash_fk_csv_column_name }}']
             {% endfor %}
             {% endif %}
             {% for column in column_analysis %}
-            {% if column.csv_column_name not in specs.exclude_columns %}
+            {% if column.csv_column_name not in module.model.exclude_columns %}
             record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
             {% endif %}
             {% endfor %}
@@ -104,7 +104,7 @@ def insert(df: pd.DataFrame, session: Session):
         
         if records:
             try:
-                stmt = pg_insert({{ model_name }}).values(records)
+                stmt = pg_insert({{ module.model.model_name }}).values(records)
                 stmt = stmt.on_conflict_do_nothing()
                 result = session.execute(stmt)
                 session.commit()

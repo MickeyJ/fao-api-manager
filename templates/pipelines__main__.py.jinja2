@@ -2,8 +2,8 @@ import json
 import zipfile
 from pathlib import Path
 from {{ project_name }}.src.db.database import run_with_session
-{% for name in pipeline_names %}
-from .{{ name }}.__main__ import run_all as run_{{ name }}
+{% for pipeline_name in pipeline_names %}
+from .{{ pipeline_name }}.__main__ import run_all as run_{{ pipeline_name }}
 {% endfor %}
 
 def ensure_zips_extracted():
@@ -49,8 +49,8 @@ def _extraction_is_current(zip_path: Path, extract_dir: Path) -> bool:
 def run_all_pipelines(db):
     ensure_zips_extracted()
     print("🚀 Starting all data pipelines...")
-{% for name in pipeline_names %}
-    run_{{ name }}(db)
+{% for pipeline_name in pipeline_names %}
+    run_{{ pipeline_name }}(db)
 {% endfor %}
     print("✅ All pipelines complete!")
 

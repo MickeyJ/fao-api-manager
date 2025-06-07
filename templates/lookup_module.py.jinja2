@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for, generate_numeric_id
 from {{ project_name }}.src.db.database import run_with_session
-from .{{ table_name }}_model import {{ model_name }}
+from .{{ module.model.table_name }}_model import {{ module.model.model_name }}
 
 
 # Direct path to synthetic lookup CSV
-CSV_PATH = get_csv_path_for("{{ csv_file }}")
+CSV_PATH = get_csv_path_for("{{ module.file_info.csv_file }}")
 
-table_name = "{{ table_name }}"
+table_name = "{{ module.model.table_name }}"
 
 
 def load():
@@ -27,9 +27,9 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     initial_count = len(df)
     
     # Basic column cleanup
-    {% for column in column_analysis %}
+    {% for column in module.model.column_analysis %}
     df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
-    {% if column.sql_column_name == specs.pk_sql_column_name %}
+    {% if column.sql_column_name == module.model.pk_sql_column_name %}
     # Keep primary key as string
     {% elif column.inferred_sql_type == 'Integer' %}
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
@@ -40,10 +40,10 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     
    
     # Remove any remaining duplicates (shouldn't be any after PK updates)
-    df = df.drop_duplicates(subset=['{{ specs.pk_column }}'], keep='first')
+    df = df.drop_duplicates(subset={{ module.model.hash_columns }}, keep='first')
     
     # Drop any rows with null PKs
-    df = df.dropna(subset=['{{ specs.pk_column }}'])
+    df = df.dropna(subset=['{{ module.model.pk_column }}'])
     
     final_count = len(df)
     print(f"  Cleaned: {initial_count} → {final_count} rows")
@@ -63,16 +63,16 @@ def insert(df: pd.DataFrame, session: Session):
         record = {}
         
         # Generate hash ID from configured columns
-        hash_columns = {{ specs.hash_columns | tojson }}
+        hash_columns = {{ module.model.hash_columns | tojson }}
         record['id'] = generate_numeric_id(row.to_dict(), hash_columns)
-        {% for column in column_analysis %}
+        {% for column in module.model.column_analysis %}
         record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
         {% endfor %}
         records.append(record)
     
     if records:
         try:
-            stmt = pg_insert({{ model_name }}).values(records)
+            stmt = pg_insert({{ module.model.model_name }}).values(records)
             stmt = stmt.on_conflict_do_nothing()
             result = session.execute(stmt)
             session.commit()

@@ -1,11 +1,11 @@
-{% for module in modules %}from . import {{ module }}
+{% for module_name in modules %}from . import {{ module_name }}
 {% endfor %}from {{ project_name }}.src.db.database import run_with_session
 
 
 def run_all(db):
     print("Running {{ pipeline_name }} pipeline")
-    {% for module in modules %}
-    {{ module }}.run(db)
+    {% for module_name in modules %}
+    {{ module_name }}.run(db)
     {% endfor %}
 
 

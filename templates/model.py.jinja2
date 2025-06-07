@@ -1,6 +1,6 @@
 # templates/model.py.jinja2
 from sqlalchemy import (
-    {% for sql_type in column_analysis | map(attribute='inferred_sql_type') | unique | reject('equalto', 'Integer') %}
+    {% for sql_type in module.model.column_analysis | map(attribute='inferred_sql_type') | unique | reject('equalto', 'Integer') %}
     {{ sql_type }},
     {% endfor %}
     Integer,
@@ -13,67 +13,67 @@ from sqlalchemy import (
 from {{ project_name }}.src.db.database import Base
 
 
-class {{ model_name }}(Base):
-    __tablename__ = "{{ table_name }}"
+class {{ module.model.model_name }}(Base):
+    __tablename__ = "{{ module.model.table_name }}"
     {# readability spacer #}
-    {% if specs.is_core_file %}
+    {% if module.is_lookup_module %}
     # Lookup table - use domain primary key
     id = Column(Integer, primary_key=True)
     # Original FAO code (indexed for queries)
-    {{ specs.pk_sql_column_name }} = Column(String, nullable=False, index=True)
+    {{ module.model.pk_sql_column_name }} = Column(String, nullable=False, index=True)
     {# readability spacer #}
-    {% for column in column_analysis %}
-    {% if column.sql_column_name != specs.pk_sql_column_name %}
+        {% for column in module.model.column_analysis %}
+            {% if column.sql_column_name != module.model.pk_sql_column_name %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-    {% endif %}
-    {% endfor %}
-    {% else %} {# not specs.is_core_file #}
+            {% endif %}
+        {% endfor %}
+    {% else %} {# NOT module.is_lookup_module #}
     # Dataset table - use auto-increment id
     id = Column(Integer, primary_key=True)
     {# readability spacer #}
-    {% for column in column_analysis %}
-    {% if column.csv_column_name not in specs.exclude_columns %}
-    {% set col_name_to_match = column.original_csv_column_name | default(column.csv_column_name) %}
-    {% set matching_fks = specs.foreign_keys | selectattr('actual_column_name', 'equalto', col_name_to_match) | list %}
-    {% if matching_fks %}
-        {% set fk = matching_fks[0] %}
+        {% for column in module.model.column_analysis %}
+            {% if column.csv_column_name not in module.model.exclude_columns %}
+                {% set col_name_to_match = column.original_csv_column_name | default(column.csv_column_name) %}
+                {% set matching_fks = module.model.foreign_keys | selectattr('csv_column_name', 'equalto', col_name_to_match) | list %}
+                {% if matching_fks %}
+                    {% set fk = matching_fks[0] %}
     # Foreign key to {{ fk.table_name }}
     {{ column.sql_column_name }}_id = Column(Integer, ForeignKey("{{ fk.table_name }}.id"), index=True)
     {{ column.sql_column_name }} = Column(String)  # Keep original code for queries
-    {% else %}
+                {% else %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-    {% endif %}
-    {% endif %}
-    {% endfor %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
     {# readability spacer #}
-    {% endif %} {# end specs.is_core_file #}  
+    {% endif %} {# end module.is_lookup_module #}  
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    {% if specs.is_core_file %}
+    {% if module.is_lookup_module %}
     # Composite indexes for lookup tables
     __table_args__ = (
-        Index("ix_{{ table_name[:8] }}_{{ specs.pk_sql_column_name[:8] }}_src", '{{ specs.pk_sql_column_name }}', 'source_dataset', unique=True),
+        Index("ix_{{ module.model.table_name[:8] }}_{{ module.model.pk_sql_column_name[:8] }}_src", '{{ module.model.pk_sql_column_name }}', 'source_dataset', unique=True),
     )
-    {% elif specs.foreign_keys %}
+    {% elif module.model.foreign_keys %}
     # Composite indexes for common query patterns
     __table_args__ = (
-        {% for fk in specs.foreign_keys %}
-        Index("ix_{{ fk.index_hash }}", "{{ fk.column_name }}"),
+        {% for fk in module.model.foreign_keys %}
+        Index("ix_{{ fk.index_hash }}", "{{ fk.sql_column_name }}"),
         {% endfor %}
     )
     {% endif %}
     
     def __repr__(self):
-        {% if specs.is_core_file %}
-        return f"<{{ model_name }}({{ specs.pk_sql_column_name }}={self.{{ specs.pk_sql_column_name }}})>"
+        {% if module.is_lookup_module %}
+        return f"<{{ module.model.model_name }}({{ module.model.pk_sql_column_name }}={self.{{ module.model.pk_sql_column_name }}})>"
         {% else %}
         # Show first few columns for datasets
         {% set display_columns = [] %}
-        {% for column in column_analysis[:3] %}
-        {% if column.csv_column_name not in specs.exclude_columns %}
+        {% for column in module.model.column_analysis[:3] %}
+        {% if column.csv_column_name not in module.model.exclude_columns %}
         {% set _ = display_columns.append(column) %}
         {% endif %}
         {% endfor %}
-        return f"<{{ model_name }}(id={self.id}{% for col in display_columns %}, {{ col.sql_column_name }}={self.{{ col.sql_column_name }}}{% endfor %})>"
+        return f"<{{ module.model.model_name }}(id={self.id}{% for col in display_columns %}, {{ col.sql_column_name }}={self.{{ col.sql_column_name }}}{% endfor %})>"
         {% endif %}

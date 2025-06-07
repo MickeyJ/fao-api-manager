@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional
 import pandas as pd
-from . import logger
+from . import logger, safe_index_name
 
 
 def format_column_name(column_name: str) -> str:
@@ -34,9 +34,9 @@ class FAOForeignKeyMapper:
             print(f"Processing dataset: {dataset_name}")
             self._process_dataset_foreign_keys(dataset)
 
-            if dataset["foreign_keys"]:
+            if dataset["model"]["foreign_keys"]:
                 logger.info(
-                    f"  📊 {dataset_name}: {len(dataset['foreign_keys'])} FKs, excluding {len(dataset['exclude_columns'])} columns"
+                    f"  📊 {dataset_name}: {len(dataset['model']['foreign_keys'])} FKs, excluding {len(dataset['model']['exclude_columns'])} columns"
                 )
 
         logger.info(f"✅ Enhanced {len(self.datasets)} datasets with FK information")
@@ -47,66 +47,97 @@ class FAOForeignKeyMapper:
         all_exclude_columns = set()
         column_renames = {}
 
-        if "foreign_keys" not in dataset:
-            dataset["foreign_keys"] = []
+        # Initialize foreign_keys in model if not present
+        if "foreign_keys" not in dataset["model"]:
+            dataset["model"]["foreign_keys"] = []
 
-        for column in dataset["columns"]:
+        # Get columns from the model
+        column_names = dataset["model"]["column_names"]
+        column_analysis = dataset["model"]["column_analysis"]
 
+        for column in column_names:
             for lookup_key, mapping in self.lookup_mappings.items():
                 lookup_name = mapping["lookup_name"]
 
                 if column in mapping["primary_key_variations"]:
-
                     lookup = self.lookups.get(lookup_name)
                     if not lookup:
                         logger.warning(f"  ⚠️ Lookup table {lookup_name} not found")
                         continue
 
-                    if column != lookup["primary_key"]:
-                        column_renames[column] = lookup["primary_key"]
-                        logger.info(f"  📝 Will rename column: {column} → {lookup['primary_key']}")
+                    # Get the lookup's PK from its model
+                    lookup_pk = lookup["model"]["pk_column"]
+                    lookup_pk_sql = lookup["model"]["pk_sql_column_name"]
 
-                    # Find columns to exclude (non-PK lookup columns that exist in dataset)
-                    for lookup_col in lookup["columns"]:
+                    # Check if column needs renaming
+                    if column != lookup_pk:
+                        column_renames[column] = lookup_pk
+                        logger.info(f"  📝 Will rename column: {column} → {lookup_pk}")
+
+                    # Find columns to exclude (non-PK lookup columns in dataset)
+                    for lookup_col_analysis in lookup["model"]["column_analysis"]:
+                        lookup_col = lookup_col_analysis["csv_column_name"]
+
                         # Skip the PK column
-                        if lookup_col == lookup["primary_key"]:
+                        if lookup_col == lookup_pk:
                             continue
 
-                        # Find columns to exclude (description columns)
+                        # Check description variations
                         for desc_variation in mapping["description_variations"]:
-                            if desc_variation in dataset["columns"]:
+                            if desc_variation in column_names:
                                 all_exclude_columns.add(desc_variation)
 
-                        # Check if this lookup column exists in the dataset
-                        if lookup_col in dataset["columns"]:
+                        # Check if this lookup column exists in dataset
+                        if lookup_col in column_names:
                             all_exclude_columns.add(lookup_col)
 
-                    # Create FK relationship with clear names
-                    fk = dict(
-                        dataset_fk_csv_column=column,
-                        dataset_fk_sql_column=format_column_name(lookup["primary_key"]),
-                        lookup_sql_table=lookup_name,
-                        lookup_sql_model=lookup["sql_model_name"],
-                        lookup_pk_csv_column=lookup["primary_key"],  # Use lookup's actual PK
-                        lookup_pk_sql_column=format_column_name(lookup["primary_key"]),  # Use lookup's actual PK
-                    )
+                    # Create FK relationship in template-ready format
+                    fk = {
+                        "table_name": lookup_name,
+                        "model_name": lookup["model"]["model_name"],
+                        "sql_column_name": lookup_pk_sql,
+                        "hash_fk_sql_column_name": f"{lookup_pk_sql}_id",
+                        "hash_fk_csv_column_name": f"{lookup_pk_sql}_id",
+                        "hash_pk_sql_column_name": "id",  # Assuming 'hash' is the standard PK in lookup tables
+                        "csv_column_name": column,
+                        "pipeline_name": lookup_name,
+                        "index_hash": safe_index_name(f"{dataset['model']['table_name']}{lookup_name}", lookup_name),
+                        # Additional info for ETL
+                        "lookup_pk_csv_column": lookup_pk,
+                        "hash_columns": lookup["model"]["hash_columns"],
+                    }
 
-                    dataset["foreign_keys"].append(fk)
+                    dataset["model"]["foreign_keys"].append(fk)
                     break  # Found match, no need to check other lookups
 
         # Update column_analysis with renamed columns
         if column_renames:
-            for col_analysis in dataset["column_analysis"]:
+            for col_analysis in column_analysis:
                 if col_analysis["csv_column_name"] in column_renames:
                     new_name = column_renames[col_analysis["csv_column_name"]]
                     col_analysis["original_csv_column_name"] = col_analysis["csv_column_name"]
                     col_analysis["csv_column_name"] = new_name
                     col_analysis["sql_column_name"] = format_column_name(new_name)
 
-        # Update dataset with exclusions
-        dataset["exclude_columns"] = sorted(list(all_exclude_columns))
-        dataset["column_renames"] = column_renames  # Store for use in templates
+        # Update model with exclusions and renames
+        dataset["model"]["exclude_columns"] = sorted(list(all_exclude_columns))
+        dataset["model"]["column_renames"] = column_renames
+
+        # Build indexes for foreign keys (already using correct format)
+        for fk in dataset["model"]["foreign_keys"]:
+            dataset["model"]["indexes"].append(
+                {
+                    "name": fk["index_hash"],  # Reuse the hash from FK
+                    "columns": [f"{fk['sql_column_name']}_id"],  # The hash FK column
+                    "unique": False,
+                    "description": f"Index for FK to {fk['table_name']}",
+                }
+            )
 
         # Build SQL columns list excluding redundant columns
-        sql_columns = [format_column_name(col) for col in dataset["columns"] if col not in all_exclude_columns]
-        dataset["sql_all_columns"] = ", ".join(sql_columns)
+        sql_columns = []
+        for col in column_analysis:
+            if col["csv_column_name"] not in all_exclude_columns:
+                sql_columns.append(col["sql_column_name"])
+
+        dataset["model"]["sql_all_columns"] = ", ".join(sql_columns)

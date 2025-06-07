@@ -1,5 +1,5 @@
 """ DO NOT IMPORT MODELS FROM THIS FILE DIRECTLY - is for alembic migrations only """
 
 {% for model in imports %}
-from {{ project_name }}.src.db.pipelines.{{model.pipeline_name}}.{{model.module_name}}_model import {{model.model_name}}
+from {{ project_name }}.src.db.pipelines.{{model.module_name}}.{{model.module_name}}_model import {{model.model_name}}
 {% endfor %}
