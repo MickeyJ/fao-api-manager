@@ -3,7 +3,7 @@ from typing import Dict, Optional
 import json, difflib
 
 
-class FileGenerator:
+class FileSystem:
     def __init__(self, output_dir: str | Path):
         self.output_dir = Path(output_dir)
         self.cache_dir = Path("./cache/.generator_cache")
