@@ -76,23 +76,24 @@ class FAOStructureModules:
                 column_analysis = []
                 for column_name in column_names:
                     col_spec = analyze_column(sample_rows=sample_rows, column_name=column_name)
-                    csv_name = col_spec["csv_column_name"]
+                    csv_column_name = col_spec["csv_column_name"]
                     column_def = {
-                        "csv_column_name": csv_name,
+                        "csv_column_name": csv_column_name,
                         "sql_column_name": col_spec["sql_column_name"],
                         "inferred_sql_type": col_spec["inferred_sql_type"],
                         "nullable": col_spec["null_count"] > 0,
                         "null_count": col_spec["null_count"],
                         "non_null_count": col_spec["non_null_count"],
                         "unique_count": col_spec["unique_count"],
+                        "format_methods": mapping["format_methods"].get(csv_column_name, []),
                     }
 
                     # Mark if this is the original PK column
-                    if csv_name == mapping["output_columns"]["pk"]:
+                    if csv_column_name == mapping["output_columns"]["pk"]:
                         column_def["indexed"] = True
                         column_def["original_pk"] = True
 
-                    column_analysis.append(col_spec)
+                    column_analysis.append(column_def)
 
                 # Build lookup structure
                 lookup = {
@@ -112,6 +113,7 @@ class FAOStructureModules:
                         "hash_columns": mapping.get("hash_columns", []),
                         "column_names": column_names,
                         "column_analysis": column_analysis,
+                        "format_methods": mapping["format_methods"],
                         "indexes": [],  # Initialize empty
                     },
                     "metadata": {
@@ -140,6 +142,14 @@ class FAOStructureModules:
                 logger.warning(f"  ⚠️ Missing {lookup_name}.csv")
 
         return lookups
+
+    # In FAOStructureModules, when processing columns
+    def _find_lookup_mapping_for_column(self, column_name: str):
+        """Find the lookup mapping that contains this column as a primary key variation"""
+        for lookup_key, mapping in self.lookup_mappings.items():
+            if column_name in mapping["primary_key_variations"]:
+                return mapping
+        return {}
 
     def _is_fao_dataset(self, path: Path) -> bool:
         """Check if directory looks like a FAO dataset"""
@@ -188,6 +198,7 @@ class FAOStructureModules:
         column_analysis = []
         for column_name in column_names:
             col_spec = analyze_column(sample_rows=sample_rows, column_name=column_name)
+            mapping = self.lookup_mappings.get(f'{col_spec["sql_column_name"]}s', {})
             column_def = {
                 "csv_column_name": col_spec["csv_column_name"],
                 "sql_column_name": col_spec["sql_column_name"],
@@ -197,6 +208,12 @@ class FAOStructureModules:
                 "non_null_count": col_spec["non_null_count"],
                 "unique_count": col_spec["unique_count"],
             }
+            mapping = self._find_lookup_mapping_for_column(col_spec["csv_column_name"])
+            if mapping and "format_methods" in mapping:
+                format_methods = mapping.get("format_methods", {})
+                if col_spec["csv_column_name"] in format_methods:
+                    column_def["format_methods"] = format_methods[col_spec["csv_column_name"]]
+
             column_analysis.append(column_def)
 
         # Don't create dataset if we couldn't read the file

@@ -31,18 +31,14 @@ class {{ module.model.model_name }}(Base):
     # Dataset table - use auto-increment id
     id = Column(Integer, primary_key=True)
     {# readability spacer #}
+        {% for fk in module.model.foreign_keys %}
+    # Foreign key to {{ fk.table_name }}
+    {{ fk.hash_fk_sql_column_name }} = Column(Integer, ForeignKey("{{ fk.table_name }}.id"), index=True)
+        {% endfor %}
+        {# readability spacer #}
         {% for column in module.model.column_analysis %}
             {% if column.csv_column_name not in module.model.exclude_columns %}
-                {% set col_name_to_match = column.original_csv_column_name | default(column.csv_column_name) %}
-                {% set matching_fks = module.model.foreign_keys | selectattr('csv_column_name', 'equalto', col_name_to_match) | list %}
-                {% if matching_fks %}
-                    {% set fk = matching_fks[0] %}
-    # Foreign key to {{ fk.table_name }}
-    {{ column.sql_column_name }}_id = Column(Integer, ForeignKey("{{ fk.table_name }}.id"), index=True)
-    {{ column.sql_column_name }} = Column(String)  # Keep original code for queries
-                {% else %}
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %})
-                {% endif %}
             {% endif %}
         {% endfor %}
     {# readability spacer #}
@@ -54,13 +50,6 @@ class {{ module.model.model_name }}(Base):
     # Composite indexes for lookup tables
     __table_args__ = (
         Index("ix_{{ module.model.table_name[:8] }}_{{ module.model.pk_sql_column_name[:8] }}_src", '{{ module.model.pk_sql_column_name }}', 'source_dataset', unique=True),
-    )
-    {% elif module.model.foreign_keys %}
-    # Composite indexes for common query patterns
-    __table_args__ = (
-        {% for fk in module.model.foreign_keys %}
-        Index("ix_{{ fk.index_hash }}", "{{ fk.sql_column_name }}"),
-        {% endfor %}
     )
     {% endif %}
     

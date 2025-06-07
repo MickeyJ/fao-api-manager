@@ -29,6 +29,13 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     # Basic column cleanup
     {% for column in module.model.column_analysis %}
     df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
+    {# Apply format methods for columns #}
+    {% if column.format_methods %}
+    {% for method in column.format_methods %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].str.{{ method }}()
+    {% endfor %}
+    {% endif %}
+    {# spacer #}
     {% if column.sql_column_name == module.model.pk_sql_column_name %}
     # Keep primary key as string
     {% elif column.inferred_sql_type == 'Integer' %}

@@ -55,11 +55,11 @@ class FAOForeignKeyMapper:
         column_names = dataset["model"]["column_names"]
         column_analysis = dataset["model"]["column_analysis"]
 
-        for column in column_names:
+        for column_name in column_names:
             for lookup_key, mapping in self.lookup_mappings.items():
                 lookup_name = mapping["lookup_name"]
 
-                if column in mapping["primary_key_variations"]:
+                if column_name in mapping["primary_key_variations"]:
                     lookup = self.lookups.get(lookup_name)
                     if not lookup:
                         logger.warning(f"  ⚠️ Lookup table {lookup_name} not found")
@@ -70,17 +70,13 @@ class FAOForeignKeyMapper:
                     lookup_pk_sql = lookup["model"]["pk_sql_column_name"]
 
                     # Check if column needs renaming
-                    if column != lookup_pk:
-                        column_renames[column] = lookup_pk
-                        logger.info(f"  📝 Will rename column: {column} → {lookup_pk}")
+                    if column_name != lookup_pk:
+                        column_renames[column_name] = lookup_pk
+                        logger.info(f"  📝 Will rename column: {column_name} → {lookup_pk}")
 
                     # Find columns to exclude (non-PK lookup columns in dataset)
                     for lookup_col_analysis in lookup["model"]["column_analysis"]:
                         lookup_col = lookup_col_analysis["csv_column_name"]
-
-                        # Skip the PK column
-                        if lookup_col == lookup_pk:
-                            continue
 
                         # Check description variations
                         for desc_variation in mapping["description_variations"]:
@@ -97,14 +93,15 @@ class FAOForeignKeyMapper:
                         "model_name": lookup["model"]["model_name"],
                         "sql_column_name": lookup_pk_sql,
                         "hash_fk_sql_column_name": f"{lookup_pk_sql}_id",
-                        "hash_fk_csv_column_name": f"{lookup_pk_sql}_id",
+                        "hash_fk_csv_column_name": f"{column_name}_id",
                         "hash_pk_sql_column_name": "id",  # Assuming 'hash' is the standard PK in lookup tables
-                        "csv_column_name": column,
+                        "csv_column_name": column_name,
                         "pipeline_name": lookup_name,
                         "index_hash": safe_index_name(f"{dataset['model']['table_name']}{lookup_name}", lookup_name),
                         # Additional info for ETL
                         "lookup_pk_csv_column": lookup_pk,
                         "hash_columns": lookup["model"]["hash_columns"],
+                        "format_methods": mapping["format_methods"].get(column_name, []),
                     }
 
                     dataset["model"]["foreign_keys"].append(fk)

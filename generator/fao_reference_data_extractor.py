@@ -137,6 +137,12 @@ class FAOReferenceDataExtractor:
                     # ADD SOURCE DATASET COLUMN
                     row_dict["source_dataset"] = dataset_name
 
+                    # TODO: processing for months lookup file
+                    # df["Month Number"] = df["Months Code"].apply(
+                    #     lambda x: int(str(x)[-2:]) if str(x).startswith("70") and x != "7021" else None
+                    # )
+                    # df["Quarter"] = df["Month Number"].apply(lambda x: f"Q{((x-1)//3)+1}" if x else None)
+
                     # Add row to list
                     lookup_data[lookup_name]["rows"].append(row_dict)
 
@@ -262,6 +268,7 @@ LOOKUP_MAPPINGS = {
             "Area Code (M49)": ["Area Code (M49)", "M49 Code"],
         },
         "hash_columns": ["Area Code", "source_dataset"],
+        "format_methods": {},
     },
     "item_codes": {
         "lookup_name": "item_codes",
@@ -274,6 +281,7 @@ LOOKUP_MAPPINGS = {
             "Item Code (SDG)": ["Item Code (SDG)"],
         },
         "hash_columns": ["Item Code", "source_dataset"],
+        "format_methods": {},
     },
     "elements": {
         "lookup_name": "elements",
@@ -282,6 +290,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Element Code", "desc": "Element"},
         "additional_columns": {},
         "hash_columns": ["Element Code", "source_dataset"],
+        "format_methods": {},
     },
     "population_groups": {
         "lookup_name": "population_age_groups",
@@ -290,6 +299,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Population Age Group Code", "desc": "Population Age Group"},
         "additional_columns": {},
         "hash_columns": ["Population Age Group Code", "source_dataset"],
+        "format_methods": {},
     },
     "sexs": {
         "lookup_name": "sexs",
@@ -298,6 +308,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Sex Code", "desc": "Sex"},
         "additional_columns": {},
         "hash_columns": ["Sex Code", "source_dataset"],
+        "format_methods": {},
     },
     "flags": {
         "lookup_name": "flags",
@@ -305,7 +316,10 @@ LOOKUP_MAPPINGS = {
         "description_variations": ["Description"],
         "output_columns": {"pk": "Flag", "desc": "Description"},
         "additional_columns": {},
-        "hash_columns": ["Flag", "source_dataset"],
+        "hash_columns": ["Flag"],
+        "format_methods": {
+            "Flag": ["upper"],
+        },
     },
     "currencies": {
         "lookup_name": "currencies",
@@ -314,6 +328,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "ISO Currency Code", "desc": "Currency"},
         "additional_columns": {},
         "hash_columns": ["ISO Currency Code", "source_dataset"],
+        "format_methods": {},
     },
     "sources": {
         "lookup_name": "sources",
@@ -322,6 +337,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Source Code", "desc": "Source"},
         "additional_columns": {},
         "hash_columns": ["Source Code", "source_dataset"],
+        "format_methods": {},
     },
     "surveys": {
         "lookup_name": "surveys",
@@ -330,6 +346,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Survey Code", "desc": "Survey"},
         "additional_columns": {},
         "hash_columns": ["Survey Code", "source_dataset"],
+        "format_methods": {},
     },
     "releases": {
         "lookup_name": "releases",
@@ -338,6 +355,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Release Code", "desc": "Release"},
         "additional_columns": {},
         "hash_columns": ["Release Code", "source_dataset"],
+        "format_methods": {},
     },
     "indicators": {
         "lookup_name": "indicators",
@@ -346,6 +364,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Indicator Code", "desc": "Indicator"},
         "additional_columns": {},
         "hash_columns": ["Indicator Code", "source_dataset"],
+        "format_methods": {},
     },
     "purposes": {
         "lookup_name": "purposes",
@@ -354,6 +373,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Purpose Code", "desc": "Purpose"},
         "additional_columns": {},
         "hash_columns": ["Purpose Code", "source_dataset"],
+        "format_methods": {},
     },
     "donors": {
         "lookup_name": "donors",
@@ -364,6 +384,7 @@ LOOKUP_MAPPINGS = {
             "Donor Code (M49)": ["Donor Code (M49)"],
         },
         "hash_columns": ["Donor Code", "source_dataset"],
+        "format_methods": {},
     },
     "food_groups": {
         "lookup_name": "food_groups",
@@ -372,6 +393,7 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Food Group Code", "desc": "Food Group"},
         "additional_columns": {},
         "hash_columns": ["Food Group Code", "source_dataset"],
+        "format_methods": {},
     },
     "geographic_levels": {
         "lookup_name": "geographic_levels",
@@ -380,5 +402,17 @@ LOOKUP_MAPPINGS = {
         "output_columns": {"pk": "Geographic Level Code", "desc": "Geographic Level"},
         "additional_columns": {},
         "hash_columns": ["Geographic Level Code", "source_dataset"],
+        "format_methods": {},
+    },
+    "months": {
+        "lookup_name": "months",
+        "primary_key_variations": ["Months Code", "Month Code"],
+        "description_variations": ["Months", "Month"],
+        "output_columns": {"pk": "Month Code", "desc": "Month"},
+        "additional_columns": {
+            "Month Number": ["Month Number"],
+            "Quarter": ["Quarter"],
+        },
+        "hash_columns": ["Month Code"],
     },
 }

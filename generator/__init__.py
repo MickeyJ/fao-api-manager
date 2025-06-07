@@ -57,12 +57,6 @@ def snake_to_pascal_case(snake_str: str) -> str:
     return "".join(word.capitalize() for word in snake_str.split("_"))
 
 
-class ForeignKeyRule:
-    def __init__(self, model_name: str, column_name: str):
-        self.model_name = model_name
-        self.column_name = column_name
-
-
 class ColumnRule:
     def __init__(
         self,
@@ -80,26 +74,16 @@ class ColumnRule:
         self.is_foreign_key = foreign_key_model_name is not None
 
 
-class ModelRule:
-    def __init__(
-        self,
-        model_name: str,
-        primary_key: str = "",
-        foreign_keys: list | None = None,
-        unique_constraints: list | None = None,  # [["col1", "col2"], ["col3"]]
-        indexes: list | None = None,  # ["col1", "col2"]
-        column_rules: list[ColumnRule] | None = None,  # List of ColumnRule objects
-    ):
-        self.model_name = model_name
-        self.use_as_primary_key = primary_key
-        self.foreign_keys = foreign_keys or []  # Avoid mutable default
-        self.unique_constraints = unique_constraints or []  # Avoid mutable default
-        self.indexes = indexes or []  # Avoid mutable default
-        self.column_rules = column_rules or []
-
-
-class PipelineRule:
-    def __init__(self, name: str, skip_models: list = [], chunk_size: int = 5000):
-        self.name = name
-        self.skip_models = skip_models or []
-        self.chunk_size = chunk_size
+# Global column rules applied to all tables
+GLOBAL_COLUMN_RULES = {
+    # Exact name matches
+    "Flag": ColumnRule(name="Flag", sql_type="String(1)", nullable=False),
+    "Year": ColumnRule(name="Year", sql_type="SmallInteger", nullable=False),
+    "Year Code": ColumnRule(name="Year Code", sql_type="String(4)", nullable=False),
+    "Unit": ColumnRule(name="Unit", sql_type="String(50)", nullable=False),
+    "Value": ColumnRule(name="Value", sql_type="Float", nullable=False),
+    "Note": ColumnRule(name="Note", sql_type="String", nullable=True),
+    # Month columns
+    "Months": ColumnRule(name="Months", sql_type="String(20)", nullable=False),
+    "Months Code": ColumnRule(name="Months Code", sql_type="String(4)", nullable=False),
+}

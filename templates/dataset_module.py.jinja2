@@ -7,7 +7,7 @@ from {{ project_name }}.src.db.database import run_with_session
 from .{{ module.model.table_name }}_model import {{ module.model.model_name }}
 
 # Dataset CSV file
-CSV_PATH = get_csv_path_for("{{ module.model.csv_file }}")
+CSV_PATH = get_csv_path_for("{{ module.file_info.csv_file }}")
 
 table_name = "{{ module.model.table_name }}"
 CHUNK_SIZE = 10000  # Process in chunks for large datasets
@@ -29,14 +29,22 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     
     # Basic column cleanup
     {% for column in module.model.column_analysis %}
-    {% if module.model.exclude_columns | length and column.csv_column_name not in module.model.exclude_columns %}
+        {% if module.model.exclude_columns | length and column.csv_column_name not in module.model.exclude_columns %}
     df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
-    {% if column.inferred_sql_type == 'Integer' %}
+        
+            {% if column.inferred_sql_type == 'Integer' %}
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
-    {% elif column.inferred_sql_type == 'Float' %}
+            {% elif column.inferred_sql_type == 'Float' %}
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
-    {% endif %}
-    {% endif %}
+            {% endif %}
+        {% endif %}
+        {# Apply format methods for columns #}
+        {% if column.format_methods %}
+            {% for method in column.format_methods %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].str.{{ method }}()
+            {% endfor %}
+        {% endif %}
+        {# spacer #}
     {% endfor %}
     
     {% if module.model.foreign_keys %}
@@ -45,10 +53,19 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     
     {% for fk in module.model.foreign_keys %}
     # Generate hash IDs for {{ fk.csv_column_name }}
-    df['{{ fk.hash_fk_csv_column_name }}'] = df['{{ fk.csv_column_name }}'].apply(
+    # Generate hash IDs for {{ fk.csv_column_name }}
+    df['{{ fk.hash_fk_sql_column_name }}'] = df['{{ fk.csv_column_name }}'].apply(
         lambda val: generate_numeric_id(
-            {'{{ fk.lookup_pk_csv_column }}': str(val), 'source_dataset': dataset_name},
-            ['{{ fk.lookup_pk_csv_column }}', 'source_dataset']
+            {
+                {% for col in fk.hash_columns %}
+                {% if col == 'source_dataset' %}
+                'source_dataset': dataset_name,
+                {% else %}
+                '{{ col }}': str(val),
+                {% endif %}
+                {% endfor %}
+            },
+            {{ fk.hash_columns | tojson }}
         ) if pd.notna(val) and str(val).strip() else None
     )
     {% endfor %}
@@ -92,10 +109,10 @@ def insert(df: pd.DataFrame, session: Session):
              {% if module.model.foreign_keys %}
             # Add the hash ID columns
             {% for fk in module.model.foreign_keys %}
-            record['{{ fk.hash_fk_sql_column_name }}'] = row['{{ fk.hash_fk_csv_column_name }}']
+            record['{{ fk.hash_fk_sql_column_name }}'] = row['{{ fk.hash_fk_sql_column_name }}']
             {% endfor %}
             {% endif %}
-            {% for column in column_analysis %}
+            {% for column in module.model.column_analysis %}
             {% if column.csv_column_name not in module.model.exclude_columns %}
             record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
             {% endif %}

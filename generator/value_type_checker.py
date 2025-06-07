@@ -1,4 +1,29 @@
 from typing import List, Dict, Literal
+from . import GLOBAL_COLUMN_RULES
+
+
+# Usage example:
+def analyze_column(sample_rows: List[Dict], column_name: str) -> Dict:
+    """Complete column analysis"""
+    checker = ValueTypeChecker()
+
+    sql_type = checker.infer_column_type(sample_rows, column_name)
+    stats = checker.get_column_stats(sample_rows, column_name)
+
+    if column_name in GLOBAL_COLUMN_RULES:
+        rule = GLOBAL_COLUMN_RULES[column_name]
+        if rule.sql_type:
+            sql_type = rule.sql_type
+
+    return {
+        "csv_column_name": column_name,
+        "sql_column_name": format_column_name(column_name),
+        "inferred_sql_type": sql_type,
+        "null_count": stats["null_count"],
+        "non_null_count": stats["non_null_count"],
+        "unique_count": stats["unique_count"],
+        "sample_values": stats["sample_values"],
+    }
 
 
 class ValueTypeChecker:
@@ -243,25 +268,6 @@ class ValueTypeChecker:
             "sample_values": all_values[:5],
             "has_empty_strings": empty_string_count > 0,
         }
-
-
-# Usage example:
-def analyze_column(sample_rows: List[Dict], column_name: str) -> Dict:
-    """Complete column analysis"""
-    checker = ValueTypeChecker()
-
-    sql_type = checker.infer_column_type(sample_rows, column_name)
-    stats = checker.get_column_stats(sample_rows, column_name)
-
-    return {
-        "csv_column_name": column_name,
-        "sql_column_name": format_column_name(column_name),
-        "inferred_sql_type": sql_type,
-        "null_count": stats["null_count"],
-        "non_null_count": stats["non_null_count"],
-        "unique_count": stats["unique_count"],
-        "sample_values": stats["sample_values"],
-    }
 
 
 def format_column_name(file_name: str) -> str:
