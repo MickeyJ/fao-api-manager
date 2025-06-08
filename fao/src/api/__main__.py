@@ -26,7 +26,7 @@ app = FastAPI(
     title="Food Price Analysis API",
     description="API for analyzing global food commodity prices",
     version="1.0.0",
-    docs_url="/",  # Put docs at root instead of /docs
+    docs_url="/docs",  # Put docs at root instead of /docs
     redoc_url="/redoc",
 )
 

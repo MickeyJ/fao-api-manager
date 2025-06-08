@@ -31,10 +31,12 @@ def get_{{ router.name }}(
     {{ fk.lookup_description_column }}: Optional[str] = Query(None, description="Filter by {{ fk.table_name }} description"),
         {% endif %}
     {% endfor %}
+    include_all_lookup_columns: bool = Query(False, description="Include all columns from lookup tables"),
     db: Session = Depends(get_db)
 ):
     """
-    {{ router.name.replace('_', ' ') }} data with filters.
+    Get {{ router.name.replace('_', ' ') }} data with filters.
+    
     Filter options:
     {% for fk in router.model.foreign_keys %}
     - {{ fk.sql_column_name }}: Filter by {{ fk.table_name }} code
@@ -42,37 +44,53 @@ def get_{{ router.name }}(
     - {{ fk.lookup_description_column }}: Filter by {{ fk.table_name }} description (partial match)
         {% endif %}
     {% endfor %}
+    - year: Exact year
+    - year_min/year_max: Year range
     """
     
-    query = (
-        select(
-            {{ router.model.model_name }},
-            {% for fk in router.model.foreign_keys %}
-            {{ fk.model_name }}.{{ fk.sql_column_name }}.label("{{ fk.table_name }}_code"),
-            {% if fk.lookup_description_column %}
-            {{ fk.model_name }}.{{ fk.lookup_description_column }}.label("{{ fk.table_name }}_desc"),
-            {% endif %}
-            {% endfor %}
-        )
-        .select_from({{ router.model.model_name }})
-        {% for fk in router.model.foreign_keys %}
-        .outerjoin({{ fk.model_name }}, {{ router.model.model_name }}.{{ fk.hash_fk_sql_column_name }} == {{ fk.model_name }}.id)
-        {% endfor %}
-    )
+    # Build column list for select
+    columns = []
     
-    # Apply filters
+    # Add all main table columns (except system columns)
+    for col in {{ router.model.model_name }}.__table__.columns:
+        if col.name not in ['id', 'created_at', 'updated_at']:
+            columns.append(col)
+    
+    {% if router.model.foreign_keys %}
+    # Add lookup table columns
     {% for fk in router.model.foreign_keys %}
-    if {{ fk.sql_column_name }}:
-        query = query.where({{ fk.model_name }}.{{ fk.sql_column_name }} == {{ fk.sql_column_name }})
-    if {{ fk.lookup_description_column }}:
-        query = query.where({{ fk.model_name }}.{{ fk.lookup_description_column }}.ilike("%" + {{ fk.lookup_description_column }} + "%"))
+    if include_all_lookup_columns:
+        # Add all lookup columns
+        for col in {{ fk.model_name }}.__table__.columns:
+            if col.name not in ['id', 'created_at', 'updated_at', 'source_dataset']:
+                columns.append(col.label(f"{{ fk.table_name }}_{col.name}"))
+    else:
+        # Just key columns
+        columns.append({{ fk.model_name }}.{{ fk.sql_column_name }}.label("{{ fk.table_name }}_{{ fk.sql_column_name }}"))
+        {% if fk.lookup_description_column %}
+        columns.append({{ fk.model_name }}.{{ fk.lookup_description_column }}.label("{{ fk.table_name }}_{{ fk.lookup_description_column }}"))
+        {% endif %}
+        {% for col in fk.lookup_additional_columns %}
+        columns.append({{ fk.model_name }}.{{ col }}.label("{{ fk.table_name }}_{{ col }}"))
+        {% endfor %}
     {% endfor %}
-   
+    {% endif %}
     
-    # Get total count (with filters)
-    total_count = db.execute(select(func.count()).select_from(query.subquery())).scalar()
+    # Build query
+    query = select(*columns).select_from({{ router.model.model_name }})
     
-    # Paginate and execute
+    {% if router.model.foreign_keys %}
+    # Add joins
+    {% for fk in router.model.foreign_keys %}
+    query = query.outerjoin({{ fk.model_name }}, {{ router.model.model_name }}.{{ fk.hash_fk_sql_column_name }} == {{ fk.model_name }}.id)
+    {% endfor %}
+    {% endif %}
+    
+    # Get total count
+    count_query = select(func.count()).select_from({{ router.model.model_name }})
+    total_count = db.execute(count_query).scalar()
+    
+    # Apply pagination and execute
     query = query.offset(offset).limit(limit)
     results = db.execute(query).mappings().all()
     

@@ -8,7 +8,8 @@ class FileSystem:
         self.output_dir = Path(output_dir)
         self.cache_dir = Path("./cache/.generator_cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self._update_all = None  # Track if user selected "all" option
+        self._update_all_generated = None  # For files without manual edits
+        self._update_all_manual = None  # For files with manual edits
 
     def create_dir(self, dir_path: str | Path) -> Path:
         dir_path = Path(self.output_dir / dir_path)
@@ -33,6 +34,11 @@ class FileSystem:
         # Check if we have cached content
         cached_content = self._read_cache(file_path)
 
+        # Read current file content if it exists
+        current_content = None
+        if file_path.exists():
+            current_content = file_path.read_text(encoding="utf-8")
+
         if cached_content is None:
             # First time generation - write both file and cache
             file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -41,10 +47,33 @@ class FileSystem:
             print(f"✅ Generated: {file_path}")
 
         elif cached_content != content:
-            # Content has changed - show diff and prompt
-            self._show_diff(cached_content, content, file_path)
+            # Content has changed from cache
+            has_manual_edits = False
 
-            if self._prompt_for_update(file_path):
+            # Determine what to diff against
+            if current_content is not None and current_content == cached_content:
+                # No manual edits - diff against cache
+                has_manual_edits = False
+                self._show_diff(
+                    cached_content, content, file_path, "cached (original generated)", "new (updated generation)"
+                )
+            elif current_content is not None:
+                # Manual edits exist - diff against current
+                has_manual_edits = True
+                print(f"⚠️  Manual edits detected in {file_path}")
+                self._show_diff(
+                    current_content, content, file_path, "current (with manual edits)", "new (updated generation)"
+                )
+            else:
+                # File was deleted - treat as first generation
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(content, encoding="utf-8")
+                self._write_cache(file_path, content)
+                print(f"✅ Regenerated deleted file: {file_path}")
+                return
+
+            # Use category-specific prompting
+            if self._prompt_for_update_categorized(file_path, has_manual_edits):
                 # User accepted update
                 file_path.write_text(content, encoding="utf-8")
                 self._write_cache(file_path, content)
@@ -92,17 +121,17 @@ class FileSystem:
         cache_path = self._get_cache_path(file_path)
         return cache_path.exists()
 
-    def _show_diff(self, cached_content: str, new_content: str, file_path: Path) -> None:
-        """Show diff between cached and new content"""
+    def _show_diff(self, old_content: str, new_content: str, file_path: Path, from_label: str, to_label: str) -> None:
+        """Show diff between old and new content with custom labels"""
         print(f"\n{'='*60}")
         print(f"File: {file_path}")
         print(f"{'='*60}")
 
         diff = difflib.unified_diff(
-            cached_content.splitlines(keepends=True),
+            old_content.splitlines(keepends=True),
             new_content.splitlines(keepends=True),
-            fromfile="cached (original generated)",
-            tofile="new (updated generation)",
+            fromfile=from_label,
+            tofile=to_label,
             n=3,
         )
 
@@ -114,18 +143,31 @@ class FileSystem:
             else:
                 print(line, end="")
 
-    def _prompt_for_update(self, file_path: Path) -> bool:
-        """Prompt user to accept or reject update"""
-        # Check if user already selected "all" option
-        if self._update_all is not None:
-            return self._update_all
+    def _prompt_for_update_categorized(self, file_path: Path, has_manual_edits: bool) -> bool:
+        """Prompt with category-specific 'all' options"""
 
-        print(f"\nThe generated content for {file_path} has changed.")
-        print("Options:")
-        print("  [y] Yes      - Update this file")
-        print("  [n] No       - Keep current file")
-        print("  [a] All      - Update all remaining files")
-        print("  [s] Skip all - Keep all remaining files")
+        if has_manual_edits:
+            # Check if user already decided for manual edits
+            if self._update_all_manual is not None:
+                return self._update_all_manual
+
+            print(f"\n⚠️  File has manual edits: {file_path}")
+            print("Options:")
+            print("  [y] Yes         - Update this file (overwrites manual edits)")
+            print("  [n] No          - Keep current file with manual edits")
+            print("  [a] All manual  - Update all remaining manually edited files")
+            print("  [s] Skip manual - Keep all remaining manually edited files")
+        else:
+            # Check if user already decided for generated files
+            if self._update_all_generated is not None:
+                return self._update_all_generated
+
+            print(f"\nThe generated content for {file_path} has changed.")
+            print("Options:")
+            print("  [y] Yes      - Update this file")
+            print("  [n] No       - Keep current file")
+            print("  [a] All      - Update all remaining generated files")
+            print("  [s] Skip all - Keep all remaining generated files")
 
         while True:
             choice = input("Update file? [y/n/a/s]: ").lower().strip()
@@ -133,10 +175,16 @@ class FileSystem:
                 return True
             elif choice in ["n", "no"]:
                 return False
-            elif choice in ["a", "all"]:
-                self._update_all = True
+            elif choice in ["a", "all", "all manual"]:
+                if has_manual_edits:
+                    self._update_all_manual = True
+                else:
+                    self._update_all_generated = True
                 return True
-            elif choice in ["s", "skip"]:
-                self._update_all = False
+            elif choice in ["s", "skip", "skip all", "skip manual"]:
+                if has_manual_edits:
+                    self._update_all_manual = False
+                else:
+                    self._update_all_generated = False
                 return False
             print("Please enter 'y', 'n', 'a', or 's'")

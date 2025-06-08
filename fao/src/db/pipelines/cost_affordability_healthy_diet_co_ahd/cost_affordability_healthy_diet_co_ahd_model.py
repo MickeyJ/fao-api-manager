@@ -15,7 +15,7 @@ from fao.src.db.database import Base
 
 class CostAffordabilityHealthyDietCoAhd(Base):
     __tablename__ = "cost_affordability_healthy_diet_co_ahd"
-     # Dataset table - use auto-increment id
+    # Dataset table - use auto-increment id
     id = Column(Integer, primary_key=True)
     # Foreign key to area_codes
     area_code_id = Column(Integer, ForeignKey("area_codes.id"), index=True)
@@ -31,11 +31,10 @@ class CostAffordabilityHealthyDietCoAhd(Base):
     year = Column(SmallInteger, nullable=False, index=False)
     unit = Column(String(50), nullable=False, index=False)
     value = Column(Float, index=False)
-   
+
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
-    
-    
+
     def __repr__(self):
         # Show first few columns for datasets
         return f"<CostAffordabilityHealthyDietCoAhd(id={self.id})>"

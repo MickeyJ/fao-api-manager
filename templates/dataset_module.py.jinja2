@@ -42,6 +42,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
             {% if column.inferred_sql_type == 'Integer' %}
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
             {% elif column.inferred_sql_type == 'Float' %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].replace({'<0.1': 0.05, 'nan': None})
     df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
             {% endif %}
         {% endif %}

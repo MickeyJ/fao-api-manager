@@ -102,6 +102,21 @@ class FAOForeignKeyMapper:
                         "lookup_pk_csv_column": lookup_pk,
                         "hash_columns": lookup["model"]["hash_columns"],
                         "format_methods": mapping["format_methods"].get(column_name, []),
+                        # NEW: Add basic lookup table info
+                        "lookup_column_count": len(lookup["model"]["column_analysis"]),
+                        "lookup_description_column": next(
+                            (
+                                col["sql_column_name"]
+                                for col in lookup["model"]["column_analysis"]
+                                if col["csv_column_name"] in mapping["description_variations"]
+                            ),
+                            None,
+                        ),
+                        "lookup_additional_columns": [
+                            col["sql_column_name"]
+                            for col in lookup["model"]["column_analysis"]
+                            if col["csv_column_name"] in mapping.get("additional_columns", {}).keys()
+                        ],
                     }
 
                     dataset["model"]["foreign_keys"].append(fk)

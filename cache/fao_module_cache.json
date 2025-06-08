@@ -2048,7 +2048,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -2065,7 +2070,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -2082,7 +2094,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -2100,7 +2115,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -2436,7 +2454,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -2453,7 +2476,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -2470,7 +2500,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -2488,7 +2521,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -2805,7 +2841,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -2822,7 +2863,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -2839,7 +2887,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -2857,7 +2908,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -3193,7 +3247,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -3210,7 +3269,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -3227,7 +3293,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -3245,7 +3314,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -3601,7 +3673,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -3618,7 +3695,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -3635,7 +3719,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -3653,7 +3740,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -3990,7 +4080,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -4007,7 +4102,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -4024,7 +4126,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -4042,7 +4147,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -4417,7 +4525,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -4434,7 +4547,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -4451,7 +4571,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -4469,7 +4592,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -4824,7 +4950,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -4841,7 +4972,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -4858,7 +4996,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "releases",
@@ -4875,7 +5016,10 @@
               "Release Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "release",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -4893,7 +5037,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -5220,7 +5367,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -5237,7 +5389,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -5254,7 +5413,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -5272,7 +5434,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -5703,7 +5868,12 @@
               "Donor Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "donor",
+            "lookup_additional_columns": [
+              "donor_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -5720,7 +5890,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -5737,7 +5914,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "purposes",
@@ -5754,7 +5934,10 @@
               "Purpose Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "purpose",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -5772,7 +5955,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -6099,7 +6285,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -6116,7 +6307,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -6133,7 +6331,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -6151,7 +6352,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -6544,7 +6748,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -6561,7 +6770,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -6578,7 +6794,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sources",
@@ -6595,7 +6814,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -6613,7 +6835,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -6998,7 +7223,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -7015,7 +7245,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -7032,7 +7269,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sources",
@@ -7049,7 +7289,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -7067,7 +7310,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -7451,7 +7697,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -7468,7 +7719,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -7485,7 +7743,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sources",
@@ -7502,7 +7763,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -7520,7 +7784,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -7904,7 +8171,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -7921,7 +8193,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -7938,7 +8217,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sources",
@@ -7955,7 +8237,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -7973,7 +8258,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -8376,7 +8664,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -8393,7 +8686,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -8410,7 +8710,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sources",
@@ -8427,7 +8730,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -8445,7 +8751,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -8773,7 +9082,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -8790,7 +9104,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -8807,7 +9128,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -8825,7 +9149,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -9199,7 +9526,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -9216,7 +9548,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -9233,7 +9572,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sources",
@@ -9250,7 +9592,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -9268,7 +9613,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -9690,7 +10038,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "sources",
@@ -9707,7 +10060,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -9724,7 +10080,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sexs",
@@ -9741,7 +10100,10 @@
               "Sex Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "sex",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -9758,7 +10120,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -9776,7 +10141,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -10208,7 +10576,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "sources",
@@ -10225,7 +10598,10 @@
               "Source Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "source",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -10242,7 +10618,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sexs",
@@ -10259,7 +10638,10 @@
               "Sex Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "sex",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -10276,7 +10658,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -10294,7 +10679,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -10631,7 +11019,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -10648,7 +11041,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -10665,7 +11065,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -10683,7 +11086,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -11019,7 +11425,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -11036,7 +11447,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -11053,7 +11471,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -11071,7 +11492,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -11388,7 +11812,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -11405,7 +11834,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -11422,7 +11858,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -11440,7 +11879,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -11776,7 +12218,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -11793,7 +12240,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -11810,7 +12264,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -11828,7 +12285,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -12146,7 +12606,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -12163,7 +12628,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -12180,7 +12652,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -12198,7 +12673,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -12515,7 +12993,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -12532,7 +13015,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -12549,7 +13039,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -12567,7 +13060,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -12884,7 +13380,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -12901,7 +13402,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -12918,7 +13426,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -12936,7 +13447,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -13291,7 +13805,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -13308,7 +13827,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -13325,7 +13851,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -13343,7 +13872,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -13680,7 +14212,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -13697,7 +14234,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -13714,7 +14258,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -13732,7 +14279,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -14050,7 +14600,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -14067,7 +14622,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -14084,7 +14646,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -14102,7 +14667,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -14419,7 +14987,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -14436,7 +15009,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -14453,7 +15033,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -14471,7 +15054,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -14788,7 +15374,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "elements",
@@ -14805,7 +15396,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -14823,7 +15417,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -15168,7 +15765,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "elements",
@@ -15185,7 +15787,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "currencies",
@@ -15202,7 +15807,10 @@
               "ISO Currency Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "currency",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -15220,7 +15828,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -15613,7 +16224,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -15630,7 +16248,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -15648,7 +16269,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -15974,7 +16598,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -15991,7 +16620,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -16008,7 +16644,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -16026,7 +16665,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -16382,7 +17024,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -16399,7 +17046,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -16416,7 +17070,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -16434,7 +17091,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -16771,7 +17431,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -16788,7 +17455,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -16806,7 +17476,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -17227,7 +17900,10 @@
               "Survey Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "survey",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "geographic_levels",
@@ -17244,7 +17920,10 @@
               "Geographic Level Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "geographic_level",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "population_age_groups",
@@ -17261,7 +17940,10 @@
               "Population Age Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 5,
+            "lookup_description_column": "population_age_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "food_groups",
@@ -17278,7 +17960,10 @@
               "Food Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "food_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -17295,7 +17980,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -17312,7 +18000,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sexs",
@@ -17329,7 +18020,10 @@
               "Sex Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "sex",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -17347,7 +18041,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -17723,7 +18420,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -17740,7 +18442,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -17757,7 +18466,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -17775,7 +18487,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -18111,7 +18826,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -18128,7 +18848,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -18145,7 +18872,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -18163,7 +18893,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -18480,7 +19213,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -18497,7 +19235,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -18514,7 +19259,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -18532,7 +19280,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -18925,7 +19676,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -18942,7 +19700,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -18960,7 +19721,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -19304,7 +20068,10 @@
               "Survey Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "survey",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "geographic_levels",
@@ -19321,7 +20088,10 @@
               "Geographic Level Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "geographic_level",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "food_groups",
@@ -19338,7 +20108,10 @@
               "Food Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "food_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -19355,7 +20128,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -19372,7 +20148,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -19390,7 +20169,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -19745,7 +20527,10 @@
               "Survey Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "survey",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -19762,7 +20547,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -19779,7 +20567,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -19797,7 +20588,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -20227,7 +21021,10 @@
               "Survey Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "survey",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "geographic_levels",
@@ -20244,7 +21041,10 @@
               "Geographic Level Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "geographic_level",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "population_age_groups",
@@ -20261,7 +21061,10 @@
               "Population Age Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 5,
+            "lookup_description_column": "population_age_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "food_groups",
@@ -20278,7 +21081,10 @@
               "Food Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "food_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -20295,7 +21101,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -20312,7 +21121,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "sexs",
@@ -20329,7 +21141,10 @@
               "Sex Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "sex",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -20347,7 +21162,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -20703,7 +21521,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -20720,7 +21543,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -20737,7 +21567,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -20755,7 +21588,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -21091,7 +21927,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -21108,7 +21949,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -21125,7 +21973,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -21143,7 +21994,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -21460,7 +22314,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -21477,7 +22336,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -21494,7 +22360,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -21512,7 +22381,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -21848,7 +22720,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -21865,7 +22742,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -21882,7 +22766,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -21900,7 +22787,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -22217,7 +23107,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -22234,7 +23129,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -22251,7 +23153,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -22269,7 +23174,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -22605,7 +23513,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -22622,7 +23535,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -22639,7 +23559,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -22657,7 +23580,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -22993,7 +23919,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -23010,7 +23941,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -23027,7 +23965,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -23045,7 +23986,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -23381,7 +24325,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -23398,7 +24347,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -23415,7 +24371,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -23433,7 +24392,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -23750,7 +24712,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -23767,7 +24734,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -23784,7 +24758,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -23802,7 +24779,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -24138,7 +25118,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -24155,7 +25140,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -24172,7 +25164,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -24190,7 +25185,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -24526,7 +25524,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -24543,7 +25546,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -24560,7 +25570,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -24578,7 +25591,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -24895,7 +25911,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -24912,7 +25933,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -24929,7 +25957,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -24947,7 +25978,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -25283,7 +26317,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -25300,7 +26339,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -25317,7 +26363,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -25335,7 +26384,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -25671,7 +26723,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -25688,7 +26745,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -25705,7 +26769,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -25723,7 +26790,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -26059,7 +27129,10 @@
               "Survey Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "survey",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "food_groups",
@@ -26076,7 +27149,10 @@
               "Food Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "food_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -26093,7 +27169,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "geographic_levels",
@@ -26110,7 +27189,10 @@
               "Geographic Level Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "geographic_level",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -26127,7 +27209,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -26145,7 +27230,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -26500,7 +27588,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -26517,7 +27610,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -26534,7 +27634,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -26552,7 +27655,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -26888,7 +27994,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -26905,7 +28016,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -26922,7 +28040,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -26940,7 +28061,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -27315,7 +28439,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -27332,7 +28461,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -27349,7 +28485,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -27367,7 +28506,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -27723,7 +28865,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -27740,7 +28887,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -27757,7 +28911,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -27775,7 +28932,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -28112,7 +29272,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -28129,7 +29294,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -28146,7 +29318,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -28164,7 +29339,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -28520,7 +29698,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -28537,7 +29720,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -28554,7 +29744,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -28572,7 +29765,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -28928,7 +30124,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "item_codes",
@@ -28945,7 +30146,14 @@
               "Item Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 6,
+            "lookup_description_column": "item",
+            "lookup_additional_columns": [
+              "item_code_cpc",
+              "item_code_fbs",
+              "item_code_sdg"
+            ]
           },
           {
             "table_name": "elements",
@@ -28962,7 +30170,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -28980,7 +30191,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [
@@ -29355,7 +30569,12 @@
               "Area Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 4,
+            "lookup_description_column": "area",
+            "lookup_additional_columns": [
+              "area_code_m49"
+            ]
           },
           {
             "table_name": "food_groups",
@@ -29372,7 +30591,10 @@
               "Food Group Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "food_group",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "indicators",
@@ -29389,7 +30611,10 @@
               "Indicator Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "indicator",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "elements",
@@ -29406,7 +30631,10 @@
               "Element Code",
               "source_dataset"
             ],
-            "format_methods": []
+            "format_methods": [],
+            "lookup_column_count": 3,
+            "lookup_description_column": "element",
+            "lookup_additional_columns": []
           },
           {
             "table_name": "flags",
@@ -29424,7 +30652,10 @@
             ],
             "format_methods": [
               "upper"
-            ]
+            ],
+            "lookup_column_count": 3,
+            "lookup_description_column": "description",
+            "lookup_additional_columns": []
           }
         ],
         "exclude_columns": [

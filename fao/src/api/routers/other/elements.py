@@ -18,39 +18,31 @@ def get_elements(
     db: Session = Depends(get_db)
 ):
     """
-    Get elements data with all related information from lookup tables.
+    elements data with filters.
+    Filter options:
     """
     
-    # Build query - select all columns from main table
-    query = select(Elements)
+    query = (
+        select(
+            Elements,
+        )
+        .select_from(Elements)
+    )
     
+    # Apply filters
+   
     
-    # Get total count before pagination
-    count_query = select(func.count()).select_from(Elements)
-    total_count = db.execute(count_query).scalar()
+    # Get total count (with filters)
+    total_count = db.execute(select(func.count()).select_from(query.subquery())).scalar()
     
-    # Apply pagination
+    # Paginate and execute
     query = query.offset(offset).limit(limit)
-    
-    # Execute query
-    results = db.execute(query).all()
-    
-    # Format results
-    data = []
-    for row in results:
-        item = {}
-        # Add all columns from all tables in the row
-        for table_data in row:
-            if hasattr(table_data, '__table__'):
-                table_name = table_data.__table__.name
-                for column in table_data.__table__.columns:
-                    col_name = f"{table_name}_{column.name}" if table_name != "elements" else column.name
-                    item[col_name] = getattr(table_data, column.name)
-        data.append(item)
+    results = db.execute(query).mappings().all()
     
     return {
         "total_count": total_count,
         "limit": limit,
         "offset": offset,
-        "data": data
+        "data": [dict(row) for row in results]
     }
+

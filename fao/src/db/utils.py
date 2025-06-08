@@ -21,6 +21,7 @@ def generate_numeric_id(row_data: dict, hash_columns: list[str]) -> int:
     Returns:
         Positive integer suitable for database ID
     """
+
     # Extract values in consistent order
     values = []
     for col in sorted(hash_columns):  # Sort for consistency
@@ -117,3 +118,42 @@ def load_csv(csv_path) -> pd.DataFrame:
         return pd.DataFrame()
 
     return df
+
+
+# if __name__ == "__main__":
+#     csv_path = (
+#         Path(ZIP_PATH)
+#         / "Individual_Quantitative_Dietary_Data_Food_and_Diet_E_All_Data_(Normalized)/Individual_Quantitative_Dietary_Data_Food_and_Diet_E_All_Data_(Normalized).csv"
+#     )
+#     df = pd.read_csv(csv_path, nrows=1000000)  # Sample first 10k rows
+
+#     values = [
+#         "All",
+#         "9-18 years",
+#         "9-13 years",
+#         "14-18 years",
+#         "19 years +",
+#         "19-50 years",
+#         "51 years +",
+#         "< 12 months",
+#         "1-8 years",
+#         "1-3 years",
+#         "4-8 years",
+#     ]
+
+#     cols = ["allages", "9t18y", "9t13y", "14t18y", "19ya", "19t50y", "51ya", "12mb", "1t8y", "1t3y", "4t8y"]
+
+#     for i, col in enumerate(cols):
+#         id = generate_numeric_id(
+#             {
+#                 "Population Age Group Code": col,
+#                 "source_dataset": "individual_quantitative_dietary_data_food_and_diet",
+#             },
+#             ["Population Age Group Code", "source_dataset"],
+#         )
+
+#         print(
+#             f"insert into population_age_groups (id, population_age_group_code, population_age_group, source_dataset, created_at, updated_at) values ({id}, '{col}', '{values[i]}', 'individual_quantitative_dietary_data_food_and_diet', current_timestamp, current_timestamp);"
+#         )
+
+#     # print(df["Population Age Group Code"].unique())

@@ -19,7 +19,8 @@ api_map = {
     "api_name": "FAO API",
     "api_description": "API for accessing FAO datasets",
     "version": "1.0.0",
-    # "docs": "/docs",
+    "docs": "/docs",
+    "redoc": "/redoc",
     "endpoints": {
         "other": other_group_map,
         "population": population_group_map,

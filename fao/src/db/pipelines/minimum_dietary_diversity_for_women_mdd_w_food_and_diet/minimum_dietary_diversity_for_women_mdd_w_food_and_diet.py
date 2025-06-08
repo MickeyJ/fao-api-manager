@@ -33,6 +33,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
         
     df['Value'] = df['Value'].astype(str).str.strip().str.replace("'", "")
         
+    df['Value'] = df['Value'].replace({'<0.1': 0.05, 'nan': None})
     df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
     df['Flag'] = df['Flag'].str.upper()
     

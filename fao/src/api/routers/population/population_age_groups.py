@@ -18,39 +18,31 @@ def get_population_age_groups(
     db: Session = Depends(get_db)
 ):
     """
-    Get population age groups data with all related information from lookup tables.
+    population age groups data with filters.
+    Filter options:
     """
     
-    # Build query - select all columns from main table
-    query = select(PopulationAgeGroups)
+    query = (
+        select(
+            PopulationAgeGroups,
+        )
+        .select_from(PopulationAgeGroups)
+    )
     
+    # Apply filters
+   
     
-    # Get total count before pagination
-    count_query = select(func.count()).select_from(PopulationAgeGroups)
-    total_count = db.execute(count_query).scalar()
+    # Get total count (with filters)
+    total_count = db.execute(select(func.count()).select_from(query.subquery())).scalar()
     
-    # Apply pagination
+    # Paginate and execute
     query = query.offset(offset).limit(limit)
-    
-    # Execute query
-    results = db.execute(query).all()
-    
-    # Format results
-    data = []
-    for row in results:
-        item = {}
-        # Add all columns from all tables in the row
-        for table_data in row:
-            if hasattr(table_data, '__table__'):
-                table_name = table_data.__table__.name
-                for column in table_data.__table__.columns:
-                    col_name = f"{table_name}_{column.name}" if table_name != "population_age_groups" else column.name
-                    item[col_name] = getattr(table_data, column.name)
-        data.append(item)
+    results = db.execute(query).mappings().all()
     
     return {
         "total_count": total_count,
         "limit": limit,
         "offset": offset,
-        "data": data
+        "data": [dict(row) for row in results]
     }
+
