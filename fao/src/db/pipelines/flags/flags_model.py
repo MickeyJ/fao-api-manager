@@ -26,6 +26,7 @@ class Flags(Base):
     __table_args__ = (
         Index("ix_flags_flag_src", 'flag', 'source_dataset', unique=True),
     )
-    
+    # TODO: Indices for dataset tables
+    #     
     def __repr__(self):
         return f"<Flags(flag={self.flag})>"

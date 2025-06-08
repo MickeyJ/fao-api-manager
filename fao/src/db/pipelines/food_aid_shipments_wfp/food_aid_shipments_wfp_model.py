@@ -35,7 +35,13 @@ class FoodAidShipmentsWfp(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #         #             #         #         #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_7ed4ab55_uniq_uniq", 
+    #         'item_code_id', 'element_code_id', 'flag_id', 'year', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<FoodAidShipmentsWfp(id={self.id}, recipient_country_code={self.recipient_country_code}, recipient_country_code_m49={self.recipient_country_code_m49}, recipient_country={self.recipient_country})>"

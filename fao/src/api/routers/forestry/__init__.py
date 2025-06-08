@@ -6,23 +6,23 @@ from .forestry_pulp_paper_survey import router as forestry_pulp_paper_survey
 from .forestry_trade_flows import router as forestry_trade_flows
 
 forestry_api = APIRouter(
-  prefix=f"/forestry", 
+  prefix=f"/{current_version_prefix}", 
   tags=["forestry"],
 )
 
 forestry_api.include_router(
   forestry, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/forestry", 
   tags=["forestry", "forestry"],
 )
 forestry_api.include_router(
   forestry_pulp_paper_survey, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/forestry", 
   tags=["forestry", "forestry_pulp_paper_survey"],
 )
 forestry_api.include_router(
   forestry_trade_flows, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/forestry", 
   tags=["forestry", "forestry_trade_flows"],
 )
 

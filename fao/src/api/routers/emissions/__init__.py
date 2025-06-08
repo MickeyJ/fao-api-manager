@@ -11,48 +11,48 @@ from .emissions_pre_post_production import router as emissions_pre_post_producti
 from .emissions_totals import router as emissions_totals
 
 emissions_api = APIRouter(
-  prefix=f"/emissions", 
+  prefix=f"/{current_version_prefix}", 
   tags=["emissions"],
 )
 
 emissions_api.include_router(
   emissions_agriculture_energy, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_agriculture_energy"],
 )
 emissions_api.include_router(
   emissions_crops, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_crops"],
 )
 emissions_api.include_router(
   emissions_drained_organic_soils, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_drained_organic_soils"],
 )
 emissions_api.include_router(
   emissions_land_use_fires, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_land_use_fires"],
 )
 emissions_api.include_router(
   emissions_land_use_forests, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_land_use_forests"],
 )
 emissions_api.include_router(
   emissions_livestock, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_livestock"],
 )
 emissions_api.include_router(
   emissions_pre_post_production, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_pre_post_production"],
 )
 emissions_api.include_router(
   emissions_totals, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/emissions", 
   tags=["emissions", "emissions_totals"],
 )
 

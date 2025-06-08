@@ -55,6 +55,33 @@ class {{ module.model.model_name }}(Base):
     __table_args__ = (
         Index("ix_{{ module.model.table_name[:8] }}_{{ module.model.pk_sql_column_name[:8] }}_src", '{{ module.model.pk_sql_column_name }}', 'source_dataset', unique=True),
     )
+    # TODO: Indices for dataset tables
+    # {% else %}
+    # {% set index_name = safe_index_name(module.model.table_name, 'uniq') %}
+    #     {% set unique_cols = [] %}
+    #     {% for fk in module.model.foreign_keys %}
+    #         {% set _ = unique_cols.append("'" + fk.hash_fk_sql_column_name + "'") %}
+    #     {% endfor %}
+    #     {% if 'year' in module.model.sql_all_columns %}
+    #         {% set _ = unique_cols.append("'year'") %}
+    #     {% endif %}
+    #     {% if 'months_code' in module.model.sql_all_columns %}
+    #         {% set _ = unique_cols.append("'months_code'") %}
+    #     {% endif %}
+    #     {% if 'months' in module.model.sql_all_columns %}
+    #         {% set _ = unique_cols.append("'months'") %}
+    #     {% endif %}
+    #     {% if 'unit' in module.model.sql_all_columns %}
+    #         {% set _ = unique_cols.append("'unit'") %}
+    #     {% endif %}
+        
+    #     {% if unique_cols %}
+    # __table_args__ = (
+    #     Index("ix_{{ index_name }}_uniq", 
+    #         {{ unique_cols | join(', ') }},
+    #         unique=True),
+    # )
+    #     {% endif %}
     {% endif %}
     
     def __repr__(self):

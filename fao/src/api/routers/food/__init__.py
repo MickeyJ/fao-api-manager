@@ -9,38 +9,38 @@ from .food_and_diet_individual_quantitative_dietary_data import router as food_a
 from .food_security_data import router as food_security_data
 
 food_api = APIRouter(
-  prefix=f"/food", 
+  prefix=f"/{current_version_prefix}", 
   tags=["food"],
 )
 
 food_api.include_router(
   food_groups, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/food", 
   tags=["food", "food_groups"],
 )
 food_api.include_router(
   food_balance_sheets_historic, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/food", 
   tags=["food", "food_balance_sheets_historic"],
 )
 food_api.include_router(
   food_balance_sheets, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/food", 
   tags=["food", "food_balance_sheets"],
 )
 food_api.include_router(
   food_aid_shipments_wfp, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/food", 
   tags=["food", "food_aid_shipments_wfp"],
 )
 food_api.include_router(
   food_and_diet_individual_quantitative_dietary_data, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/food", 
   tags=["food", "food_and_diet_individual_quantitative_dietary_data"],
 )
 food_api.include_router(
   food_security_data, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/food", 
   tags=["food", "food_security_data"],
 )
 

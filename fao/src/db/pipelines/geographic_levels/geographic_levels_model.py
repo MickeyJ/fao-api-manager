@@ -26,6 +26,7 @@ class GeographicLevels(Base):
     __table_args__ = (
         Index("ix_geograph_geograph_src", 'geographic_level_code', 'source_dataset', unique=True),
     )
-    
+    # TODO: Indices for dataset tables
+    #     
     def __repr__(self):
         return f"<GeographicLevels(geographic_level_code={self.geographic_level_code})>"

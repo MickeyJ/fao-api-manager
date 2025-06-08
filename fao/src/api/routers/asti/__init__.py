@@ -5,18 +5,18 @@ from .asti_expenditures import router as asti_expenditures
 from .asti_researchers import router as asti_researchers
 
 asti_api = APIRouter(
-  prefix=f"/asti", 
+  prefix=f"/{current_version_prefix}", 
   tags=["asti"],
 )
 
 asti_api.include_router(
   asti_expenditures, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/asti", 
   tags=["asti", "asti_expenditures"],
 )
 asti_api.include_router(
   asti_researchers, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/asti", 
   tags=["asti", "asti_researchers"],
 )
 

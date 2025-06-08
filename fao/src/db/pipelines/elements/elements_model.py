@@ -26,6 +26,7 @@ class Elements(Base):
     __table_args__ = (
         Index("ix_elements_element__src", 'element_code', 'source_dataset', unique=True),
     )
-    
+    # TODO: Indices for dataset tables
+    #     
     def __repr__(self):
         return f"<Elements(element_code={self.element_code})>"

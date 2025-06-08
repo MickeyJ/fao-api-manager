@@ -5,18 +5,18 @@ from .employment_indicators_agriculture import router as employment_indicators_a
 from .employment_indicators_rural import router as employment_indicators_rural
 
 employment_api = APIRouter(
-  prefix=f"/employment", 
+  prefix=f"/{current_version_prefix}", 
   tags=["employment"],
 )
 
 employment_api.include_router(
   employment_indicators_agriculture, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/employment", 
   tags=["employment", "employment_indicators_agriculture"],
 )
 employment_api.include_router(
   employment_indicators_rural, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/employment", 
   tags=["employment", "employment_indicators_rural"],
 )
 

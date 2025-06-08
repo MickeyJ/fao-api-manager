@@ -38,7 +38,13 @@ class ForestryTradeFlows(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #         #             #         #         #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_b2d97bae_uniq_uniq", 
+    #         'item_code_id', 'element_code_id', 'flag_id', 'year', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<ForestryTradeFlows(id={self.id}, reporter_country_code={self.reporter_country_code}, reporter_country_code_m49={self.reporter_country_code_m49}, reporter_countries={self.reporter_countries})>"

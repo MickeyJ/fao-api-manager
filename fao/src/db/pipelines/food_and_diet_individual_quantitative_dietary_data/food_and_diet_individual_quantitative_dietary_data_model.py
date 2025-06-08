@@ -40,7 +40,13 @@ class FoodAndDietIndividualQuantitativeDietaryData(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #             #         #             #         #             #         #             #         #             #         #         #         #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_859b6c3f_uniq_uniq", 
+    #         'survey_code_id', 'geographic_level_code_id', 'population_age_group_code_id', 'food_group_code_id', 'indicator_code_id', 'element_code_id', 'sex_code_id', 'flag_id', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<FoodAndDietIndividualQuantitativeDietaryData(id={self.id})>"

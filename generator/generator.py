@@ -170,7 +170,10 @@ class Generator:
             self.file_system.write_file_cache(pipeline_dir / f"{module_name}.py", pipeline_content)
 
             # Generate model file (areas.py in model_dir)
-            model_content = self.template_renderer.render_model_template(module)
+            model_content = self.template_renderer.render_model_template(
+                module,
+                safe_index_name,
+            )
             self.file_system.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
 
             # Generate analysis JSON

@@ -73,12 +73,13 @@ class TemplateRenderer:
             project_name=self.project_name,
         )
 
-    def render_model_template(self, module: Dict) -> str:
+    def render_model_template(self, module: Dict, safe_index_name) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("model.py.jinja2")
         return template.render(
             module=module,
             project_name=self.project_name,
+            safe_index_name=safe_index_name,
         )
 
     def render_api_router_template(self, router: dict) -> str:

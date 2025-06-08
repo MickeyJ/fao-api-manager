@@ -57,6 +57,18 @@ app.include_router(investment_api)
 app.include_router(prices_api)
 app.include_router(production_api)
 
+
+# Import custom routers (this section preserved during regeneration)
+try:
+    from fao.src.api_custom.routers import custom_routers
+    for custom_router in custom_routers:
+        app.include_router(custom_router)
+    print(f"✅ Loaded {len(custom_routers)} custom routers")
+except ImportError as e:
+    print("ℹ️  No custom routers found")
+except Exception as e:
+    print(f"⚠️  Error loading custom routers: {e}")
+
 # Root endpoint
 @app.get("/")
 def root():

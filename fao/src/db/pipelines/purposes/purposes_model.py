@@ -26,6 +26,7 @@ class Purposes(Base):
     __table_args__ = (
         Index("ix_purposes_purpose__src", 'purpose_code', 'source_dataset', unique=True),
     )
-    
+    # TODO: Indices for dataset tables
+    #     
     def __repr__(self):
         return f"<Purposes(purpose_code={self.purpose_code})>"

@@ -10,33 +10,37 @@ ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
 
 ZIP_PATH = ALL_ZIP_EXAMPLE
 
+def safe_index_name(table_name, column_name):
+    # Always fits in 63 chars: ix_ + 8 hash chars + _ + column (max 50)
+    table_hash = hashlib.md5(table_name.encode()).hexdigest()[:8]
+    col_part = column_name[:50]  # Ensure total < 63
+    return f"{table_hash}_{col_part}"
 
 def generate_numeric_id(row_data: dict, hash_columns: list[str]) -> int:
     """Generate deterministic numeric ID from specified columns
-
+    
     Args:
         row_data: Dictionary containing the row data
         hash_columns: List of column names to include in hash
-
+        
     Returns:
         Positive integer suitable for database ID
     """
-
     # Extract values in consistent order
     values = []
     for col in sorted(hash_columns):  # Sort for consistency
-        value = str(row_data.get(col, "")).strip()
+        value = str(row_data.get(col, '')).strip()
         values.append(value)
-
+    
     # Create hash string
-    content = "|".join(values)
-
+    content = '|'.join(values)
+    
     # Generate hash
-    hash_bytes = hashlib.md5(content.encode("utf-8")).digest()
-
+    hash_bytes = hashlib.md5(content.encode('utf-8')).digest()
+    
     # Convert to positive integer (PostgreSQL INTEGER max is 2147483647)
-    numeric_id = int.from_bytes(hash_bytes[:8], byteorder="big")
-
+    numeric_id = int.from_bytes(hash_bytes[:8], byteorder='big')
+    
     # Ensure it fits in PostgreSQL INTEGER type
     return numeric_id % 2147483647
 
@@ -106,7 +110,7 @@ def load_csv(csv_path) -> pd.DataFrame:
 
         df.columns = df.columns.str.strip()
         print(df.shape)
-
+       
     except FileNotFoundError as e:
         print(f"File not found: {csv_path}")
         raise e
@@ -118,42 +122,3 @@ def load_csv(csv_path) -> pd.DataFrame:
         return pd.DataFrame()
 
     return df
-
-
-# if __name__ == "__main__":
-#     csv_path = (
-#         Path(ZIP_PATH)
-#         / "Individual_Quantitative_Dietary_Data_Food_and_Diet_E_All_Data_(Normalized)/Individual_Quantitative_Dietary_Data_Food_and_Diet_E_All_Data_(Normalized).csv"
-#     )
-#     df = pd.read_csv(csv_path, nrows=1000000)  # Sample first 10k rows
-
-#     values = [
-#         "All",
-#         "9-18 years",
-#         "9-13 years",
-#         "14-18 years",
-#         "19 years +",
-#         "19-50 years",
-#         "51 years +",
-#         "< 12 months",
-#         "1-8 years",
-#         "1-3 years",
-#         "4-8 years",
-#     ]
-
-#     cols = ["allages", "9t18y", "9t13y", "14t18y", "19ya", "19t50y", "51ya", "12mb", "1t8y", "1t3y", "4t8y"]
-
-#     for i, col in enumerate(cols):
-#         id = generate_numeric_id(
-#             {
-#                 "Population Age Group Code": col,
-#                 "source_dataset": "individual_quantitative_dietary_data_food_and_diet",
-#             },
-#             ["Population Age Group Code", "source_dataset"],
-#         )
-
-#         print(
-#             f"insert into population_age_groups (id, population_age_group_code, population_age_group, source_dataset, created_at, updated_at) values ({id}, '{col}', '{values[i]}', 'individual_quantitative_dietary_data_food_and_diet', current_timestamp, current_timestamp);"
-#         )
-
-#     # print(df["Population Age Group Code"].unique())

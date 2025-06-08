@@ -38,7 +38,13 @@ class EmploymentIndicatorsAgriculture(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #             #         #             #         #             #         #         #             #         #         #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_194bd308_uniq_uniq", 
+    #         'area_code_id', 'source_code_id', 'indicator_code_id', 'sex_code_id', 'element_code_id', 'flag_id', 'year', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<EmploymentIndicatorsAgriculture(id={self.id})>"

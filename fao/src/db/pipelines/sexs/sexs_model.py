@@ -26,6 +26,7 @@ class Sexs(Base):
     __table_args__ = (
         Index("ix_sexs_sex_code_src", 'sex_code', 'source_dataset', unique=True),
     )
-    
+    # TODO: Indices for dataset tables
+    #     
     def __repr__(self):
         return f"<Sexs(sex_code={self.sex_code})>"

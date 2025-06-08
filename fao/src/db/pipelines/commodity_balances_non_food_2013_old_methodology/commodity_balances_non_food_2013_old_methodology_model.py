@@ -33,7 +33,13 @@ class CommodityBalancesNonFood2013OldMethodology(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #             #         #         #             #         #         #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_214640b6_uniq_uniq", 
+    #         'area_code_id', 'item_code_id', 'element_code_id', 'flag_id', 'year', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<CommodityBalancesNonFood2013OldMethodology(id={self.id})>"

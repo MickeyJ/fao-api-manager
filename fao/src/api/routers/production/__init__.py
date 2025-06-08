@@ -5,18 +5,18 @@ from .production_crops_livestock import router as production_crops_livestock
 from .production_indices import router as production_indices
 
 production_api = APIRouter(
-  prefix=f"/production", 
+  prefix=f"/{current_version_prefix}", 
   tags=["production"],
 )
 
 production_api.include_router(
   production_crops_livestock, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/production", 
   tags=["production", "production_crops_livestock"],
 )
 production_api.include_router(
   production_indices, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/production", 
   tags=["production", "production_indices"],
 )
 

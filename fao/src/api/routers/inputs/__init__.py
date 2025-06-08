@@ -9,38 +9,38 @@ from .inputs_pesticides_trade import router as inputs_pesticides_trade
 from .inputs_pesticides_use import router as inputs_pesticides_use
 
 inputs_api = APIRouter(
-  prefix=f"/inputs", 
+  prefix=f"/{current_version_prefix}", 
   tags=["inputs"],
 )
 
 inputs_api.include_router(
   inputs_fertilizers_archive, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/inputs", 
   tags=["inputs", "inputs_fertilizers_archive"],
 )
 inputs_api.include_router(
   inputs_fertilizers_nutrient, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/inputs", 
   tags=["inputs", "inputs_fertilizers_nutrient"],
 )
 inputs_api.include_router(
   inputs_fertilizers_product, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/inputs", 
   tags=["inputs", "inputs_fertilizers_product"],
 )
 inputs_api.include_router(
   inputs_land_use, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/inputs", 
   tags=["inputs", "inputs_land_use"],
 )
 inputs_api.include_router(
   inputs_pesticides_trade, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/inputs", 
   tags=["inputs", "inputs_pesticides_trade"],
 )
 inputs_api.include_router(
   inputs_pesticides_use, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/inputs", 
   tags=["inputs", "inputs_pesticides_use"],
 )
 

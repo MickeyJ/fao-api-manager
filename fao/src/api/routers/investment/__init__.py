@@ -10,43 +10,43 @@ from .investment_machinery_archive import router as investment_machinery_archive
 from .investment_machinery import router as investment_machinery
 
 investment_api = APIRouter(
-  prefix=f"/investment", 
+  prefix=f"/{current_version_prefix}", 
   tags=["investment"],
 )
 
 investment_api.include_router(
   investment_capital_stock, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_capital_stock"],
 )
 investment_api.include_router(
   investment_country_investment_statistics_profile, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_country_investment_statistics_profile"],
 )
 investment_api.include_router(
   investment_credit_agriculture, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_credit_agriculture"],
 )
 investment_api.include_router(
   investment_foreign_direct_investment, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_foreign_direct_investment"],
 )
 investment_api.include_router(
   investment_government_expenditure, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_government_expenditure"],
 )
 investment_api.include_router(
   investment_machinery_archive, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_machinery_archive"],
 )
 investment_api.include_router(
   investment_machinery, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/investment", 
   tags=["investment", "investment_machinery"],
 )
 

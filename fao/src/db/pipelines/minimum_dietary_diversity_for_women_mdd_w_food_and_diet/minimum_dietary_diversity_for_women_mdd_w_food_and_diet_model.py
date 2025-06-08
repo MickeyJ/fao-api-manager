@@ -34,7 +34,13 @@ class MinimumDietaryDiversityForWomenMddWFoodAndDiet(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #             #         #             #         #             #         #         #         #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_77c4a4b1_uniq_uniq", 
+    #         'survey_code_id', 'food_group_code_id', 'indicator_code_id', 'geographic_level_code_id', 'element_code_id', 'flag_id', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<MinimumDietaryDiversityForWomenMddWFoodAndDiet(id={self.id})>"

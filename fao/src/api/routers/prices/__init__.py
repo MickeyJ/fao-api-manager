@@ -5,18 +5,18 @@ from .prices_archive import router as prices_archive
 from .prices import router as prices
 
 prices_api = APIRouter(
-  prefix=f"/prices", 
+  prefix=f"/{current_version_prefix}", 
   tags=["prices"],
 )
 
 prices_api.include_router(
   prices_archive, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/prices", 
   tags=["prices", "prices_archive"],
 )
 prices_api.include_router(
   prices, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/prices", 
   tags=["prices", "prices"],
 )
 

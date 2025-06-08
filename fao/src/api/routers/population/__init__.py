@@ -5,18 +5,18 @@ from .population_age_groups import router as population_age_groups
 from .population import router as population
 
 population_api = APIRouter(
-  prefix=f"/population", 
+  prefix=f"/{current_version_prefix}", 
   tags=["population"],
 )
 
 population_api.include_router(
   population_age_groups, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/population", 
   tags=["population", "population_age_groups"],
 )
 population_api.include_router(
   population, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/population", 
   tags=["population", "population"],
 )
 

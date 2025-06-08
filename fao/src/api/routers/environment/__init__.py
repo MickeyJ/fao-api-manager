@@ -15,68 +15,68 @@ from .environment_soil_nutrient_budget import router as environment_soil_nutrien
 from .environment_temperature_change import router as environment_temperature_change
 
 environment_api = APIRouter(
-  prefix=f"/environment", 
+  prefix=f"/{current_version_prefix}", 
   tags=["environment"],
 )
 
 environment_api.include_router(
   environment_bioenergy, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_bioenergy"],
 )
 environment_api.include_router(
   environment_cropland_nutrient_budget, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_cropland_nutrient_budget"],
 )
 environment_api.include_router(
   environment_emissions_by_sector, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_emissions_by_sector"],
 )
 environment_api.include_router(
   environment_emissions_intensities, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_emissions_intensities"],
 )
 environment_api.include_router(
   environment_food_waste_disposal, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_food_waste_disposal"],
 )
 environment_api.include_router(
   environment_land_cover, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_land_cover"],
 )
 environment_api.include_router(
   environment_land_use, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_land_use"],
 )
 environment_api.include_router(
   environment_livestock_manure, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_livestock_manure"],
 )
 environment_api.include_router(
   environment_livestock_patterns, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_livestock_patterns"],
 )
 environment_api.include_router(
   environment_pesticides, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_pesticides"],
 )
 environment_api.include_router(
   environment_soil_nutrient_budget, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_soil_nutrient_budget"],
 )
 environment_api.include_router(
   environment_temperature_change, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/environment", 
   tags=["environment", "environment_temperature_change"],
 )
 

@@ -30,143 +30,143 @@ from .sua_crops_livestock import router as sua_crops_livestock
 from .supply_utilization_accounts_food_and_diet import router as supply_utilization_accounts_food_and_diet
 
 other_api = APIRouter(
-  prefix=f"/other", 
+  prefix=f"/{current_version_prefix}", 
   tags=["other"],
 )
 
 other_api.include_router(
   area_codes, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "area_codes"],
 )
 other_api.include_router(
   item_codes, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "item_codes"],
 )
 other_api.include_router(
   elements, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "elements"],
 )
 other_api.include_router(
   sexs, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "sexs"],
 )
 other_api.include_router(
   flags, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "flags"],
 )
 other_api.include_router(
   currencies, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "currencies"],
 )
 other_api.include_router(
   sources, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "sources"],
 )
 other_api.include_router(
   surveys, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "surveys"],
 )
 other_api.include_router(
   releases, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "releases"],
 )
 other_api.include_router(
   purposes, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "purposes"],
 )
 other_api.include_router(
   donors, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "donors"],
 )
 other_api.include_router(
   geographic_levels, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "geographic_levels"],
 )
 other_api.include_router(
   aquastat, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "aquastat"],
 )
 other_api.include_router(
   climate_change_emissions_indicators, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "climate_change_emissions_indicators"],
 )
 other_api.include_router(
   consumer_price_indices, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "consumer_price_indices"],
 )
 other_api.include_router(
   cost_affordability_healthy_diet_co_ahd, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "cost_affordability_healthy_diet_co_ahd"],
 )
 other_api.include_router(
   deflators, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "deflators"],
 )
 other_api.include_router(
   development_assistance_to_agriculture, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "development_assistance_to_agriculture"],
 )
 other_api.include_router(
   exchange_rate, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "exchange_rate"],
 )
 other_api.include_router(
   fertilizers_detailed_trade_matrix, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "fertilizers_detailed_trade_matrix"],
 )
 other_api.include_router(
   household_consumption_and_expenditure_surveys_food_and_diet, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "household_consumption_and_expenditure_surveys_food_and_diet"],
 )
 other_api.include_router(
   individual_quantitative_dietary_data_food_and_diet, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "individual_quantitative_dietary_data_food_and_diet"],
 )
 other_api.include_router(
   macro_statistics_key_indicators, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "macro_statistics_key_indicators"],
 )
 other_api.include_router(
   minimum_dietary_diversity_for_women_mdd_w_food_and_diet, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "minimum_dietary_diversity_for_women_mdd_w_food_and_diet"],
 )
 other_api.include_router(
   sdg_bulk_downloads, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "sdg_bulk_downloads"],
 )
 other_api.include_router(
   sua_crops_livestock, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "sua_crops_livestock"],
 )
 other_api.include_router(
   supply_utilization_accounts_food_and_diet, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/other", 
   tags=["other", "supply_utilization_accounts_food_and_diet"],
 )
 

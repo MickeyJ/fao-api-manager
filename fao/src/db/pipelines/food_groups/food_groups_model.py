@@ -26,6 +26,7 @@ class FoodGroups(Base):
     __table_args__ = (
         Index("ix_food_gro_food_gro_src", 'food_group_code', 'source_dataset', unique=True),
     )
-    
+    # TODO: Indices for dataset tables
+    #     
     def __repr__(self):
         return f"<FoodGroups(food_group_code={self.food_group_code})>"

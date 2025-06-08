@@ -6,23 +6,23 @@ from .commodity_balances_non_food_2010 import router as commodity_balances_non_f
 from .commodity_balances_non_food import router as commodity_balances_non_food
 
 commodity_api = APIRouter(
-  prefix=f"/commodity", 
+  prefix=f"/{current_version_prefix}", 
   tags=["commodity"],
 )
 
 commodity_api.include_router(
   commodity_balances_non_food_2013_old_methodology, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/commodity", 
   tags=["commodity", "commodity_balances_non_food_2013_old_methodology"],
 )
 commodity_api.include_router(
   commodity_balances_non_food_2010, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/commodity", 
   tags=["commodity", "commodity_balances_non_food_2010"],
 )
 commodity_api.include_router(
   commodity_balances_non_food, 
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/commodity", 
   tags=["commodity", "commodity_balances_non_food"],
 )
 

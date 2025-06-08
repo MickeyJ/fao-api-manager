@@ -33,7 +33,13 @@ class EnvironmentTemperatureChange(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    
+    #     #         #         #             #         #             #         #             #         #         #             #         #         #             #         #         #             #         #         #             #             
+    #         # __table_args__ = (
+    #     Index("ix_300a6870_uniq_uniq", 
+    #         'area_code_id', 'element_code_id', 'flag_id', 'year', 'months_code', 'months', 'unit',
+    #         unique=True),
+    # )
+    #         
     def __repr__(self):
         # Show first few columns for datasets
         return f"<EnvironmentTemperatureChange(id={self.id})>"
