@@ -31,7 +31,7 @@ endif
 .PHONY: \
 	venv env-status \
 	initialize requirements install \
-	generator pre-test process-csv \
+	generator pre-test process-aquastat process-csv \
 	run-all-pipelines \
 	use-remote-db use-local-db db-init db-upgrade db-revision  \
 	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
@@ -78,9 +78,15 @@ pre-test:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --pre_test
 
+process-aquastat:
+	@echo "Generating code..."
+	$(ACTIVATE) $(PYTHON) -m generator.aquastat_pre_processor "C:\Users\18057\Documents\Data\fao-test-zips\all\AQUASTAT\bulk_eng(in).csv"
+
 process-csv:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --process_csv
+
+
 
 # =-=-=--=-=-=-=-=-
 # Pipeline commands

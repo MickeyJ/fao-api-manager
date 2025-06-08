@@ -15,10 +15,8 @@ class PopulationAgeGroups(Base):
     __tablename__ = "population_age_groups"
     # Lookup table - use domain primary key
     id = Column(Integer, primary_key=True)
-    population_age_group_code = Column(String, index=False)
-    population_age_group_code_1 = Column(String, index=False)
-    population_age_group = Column(String, index=False)
-    population_age_group_1 = Column(String, index=False)
+    population_age_group_code = Column(String, nullable=False, index=False)
+    population_age_group = Column(String, nullable=False, index=False)
     source_dataset = Column(String, nullable=False, index=False)
    
     created_at = Column(DateTime, default=func.now(), nullable=False)

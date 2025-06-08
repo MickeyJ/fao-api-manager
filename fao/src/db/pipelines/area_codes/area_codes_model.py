@@ -17,7 +17,7 @@ class AreaCodes(Base):
     id = Column(Integer, primary_key=True)
     area_code = Column(String, nullable=False, index=False)
     area = Column(String, nullable=False, index=False)
-    area_code_m49 = Column(String, nullable=False, index=False)
+    area_code_m49 = Column(String, index=False)
     source_dataset = Column(String, nullable=False, index=False)
    
     created_at = Column(DateTime, default=func.now(), nullable=False)

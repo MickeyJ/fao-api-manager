@@ -26,7 +26,7 @@ class PricesArchive(Base):
     # Foreign key to flags
     flag_id = Column(Integer, ForeignKey("flags.id"), index=True)
     year_code = Column(String(4), nullable=False, index=False)
-    year = Column(SmallInteger, nullable=False, index=False)
+    year = Column(SmallInteger, nullable=False, index=True)
     unit = Column(String(50), nullable=False, index=False)
     value = Column(Float, nullable=False, index=False)
    

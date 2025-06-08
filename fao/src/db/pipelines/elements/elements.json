@@ -7,14 +7,14 @@
     "index": false,
     "nullable": false,
     "null_count": 0,
-    "non_null_count": 485,
-    "unique_count": 300,
+    "non_null_count": 686,
+    "unique_count": 501,
     "sample_values": [
-      "6083",
-      "6084",
-      "6082",
-      "6086",
-      "726313"
+      "4197",
+      "4100",
+      "4101",
+      "4102",
+      "4103"
     ],
     "format_methods": [],
     "indexed": true,
@@ -28,14 +28,14 @@
     "index": false,
     "nullable": false,
     "null_count": 0,
-    "non_null_count": 485,
-    "unique_count": 223,
+    "non_null_count": 686,
+    "unique_count": 420,
     "sample_values": [
-      "Share of Value Added (Agriculture, Forestry and Fishing)",
-      "Spending, total (constant 2011 prices)",
-      "Researchers, total",
-      "Per 100,000 farmers",
-      "Emissions Share (CO2eq) (AR5)"
+      "Total dam capacity",
+      "Total area of the country (excl. coastal water)",
+      "Arable land area",
+      "Permanent crops area",
+      "Cultivated area (arable land + permanent crops)"
     ],
     "format_methods": []
   },
@@ -47,14 +47,14 @@
     "index": false,
     "nullable": false,
     "null_count": 0,
-    "non_null_count": 485,
-    "unique_count": 68,
+    "non_null_count": 686,
+    "unique_count": 69,
     "sample_values": [
-      "asti_expenditures",
-      "asti_expenditures",
-      "asti_researchers",
-      "asti_researchers",
-      "climate_change_emissions_indicators"
+      "aquastat",
+      "aquastat",
+      "aquastat",
+      "aquastat",
+      "aquastat"
     ],
     "format_methods": []
   }

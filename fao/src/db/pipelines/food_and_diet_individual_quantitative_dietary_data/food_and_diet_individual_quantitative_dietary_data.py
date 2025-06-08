@@ -27,6 +27,9 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     print(f"\nCleaning {table_name} data...")
     initial_count = len(df)
 
+    # Replace 'nan' strings with None for ALL columns
+    df = df.replace({'nan': None, 'NaN': None, 'NAN': None})
+
     # Rename columns to match lookup table standards
     column_renames = {"Population Group Code": "Population Age Group Code"}
     df = df.rename(columns=column_renames)

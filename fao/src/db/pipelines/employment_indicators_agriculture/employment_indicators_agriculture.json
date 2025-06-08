@@ -220,7 +220,7 @@
     "sql_column_name": "year",
     "inferred_sql_type": "SmallInteger",
     "sql_type_size": null,
-    "index": false,
+    "index": true,
     "nullable": false,
     "null_count": 0,
     "non_null_count": 1000,

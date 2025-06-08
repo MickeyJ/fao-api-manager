@@ -15,6 +15,7 @@ from fao.src.db.pipelines.purposes.purposes_model import Purposes
 from fao.src.db.pipelines.donors.donors_model import Donors
 from fao.src.db.pipelines.food_groups.food_groups_model import FoodGroups
 from fao.src.db.pipelines.geographic_levels.geographic_levels_model import GeographicLevels
+from fao.src.db.pipelines.aquastat.aquastat_model import Aquastat
 from fao.src.db.pipelines.asti_expenditures.asti_expenditures_model import AstiExpenditures
 from fao.src.db.pipelines.asti_researchers.asti_researchers_model import AstiResearchers
 from fao.src.db.pipelines.climate_change_emissions_indicators.climate_change_emissions_indicators_model import ClimateChangeEmissionsIndicators

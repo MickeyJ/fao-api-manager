@@ -1,4 +1,5 @@
 from typing import List, Dict, Literal
+import re
 from . import GLOBAL_COLUMN_RULES
 
 
@@ -15,9 +16,11 @@ def analyze_column(sample_rows: List[Dict], column_name: str) -> Dict:
     if column_name in GLOBAL_COLUMN_RULES:
         column_rules = GLOBAL_COLUMN_RULES[column_name]
         index = column_rules.index
+        # Only override the type if it's not already String
         if column_rules.sql_type:
-            sql_type = column_rules.sql_type
-            sql_type_size = column_rules.sql_type_size
+            if column_name != "Year" or sql_type != "String":
+                sql_type = column_rules.sql_type
+                sql_type_size = column_rules.sql_type_size
 
     return {
         "csv_column_name": column_name,
@@ -134,6 +137,15 @@ class ValueTypeChecker:
 
         # Check value patterns
         for val in values:
+
+            try:
+                float(val)  # This handles negative numbers and decimals correctly
+                # If it succeeds, continue checking other patterns
+            except ValueError:
+                # Not a valid number - if it has ANY special characters, it's a string
+                if not val.replace("_", "").isalnum():  # Allow underscores for some codes
+                    return True
+
             # Leading zeros (codes like '001', '012')
             if val.startswith("0") and len(val) > 1 and val.isdigit():
                 return True

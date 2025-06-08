@@ -8,13 +8,13 @@
     "nullable": false,
     "null_count": 0,
     "non_null_count": 1000,
-    "unique_count": 251,
+    "unique_count": 472,
     "sample_values": [
-      4,
-      8,
-      9,
-      16,
-      14
+      "aquastat-4",
+      "aquastat-8",
+      "aquastat-12",
+      "aquastat-20",
+      "aquastat-24"
     ],
     "format_methods": [],
     "indexed": true,
@@ -29,13 +29,13 @@
     "nullable": false,
     "null_count": 0,
     "non_null_count": 1000,
-    "unique_count": 252,
+    "unique_count": 266,
     "sample_values": [
+      "Afghanistan",
+      "Albania",
       "Algeria",
-      "Antigua and Barbuda",
-      "Argentina",
-      "Bangladesh",
-      "Barbados"
+      "Andorra",
+      "Angola"
     ],
     "format_methods": []
   },
@@ -45,16 +45,16 @@
     "inferred_sql_type": "String",
     "sql_type_size": null,
     "index": false,
-    "nullable": false,
-    "null_count": 0,
-    "non_null_count": 1000,
+    "nullable": true,
+    "null_count": 221,
+    "non_null_count": 779,
     "unique_count": 251,
     "sample_values": [
-      "'012",
-      "'028",
-      "'032",
-      "'050",
-      "'052"
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      NaN
     ],
     "format_methods": []
   },
@@ -69,11 +69,11 @@
     "non_null_count": 1000,
     "unique_count": 6,
     "sample_values": [
-      "asti_expenditures",
-      "asti_expenditures",
-      "asti_expenditures",
-      "asti_expenditures",
-      "asti_expenditures"
+      "aquastat",
+      "aquastat",
+      "aquastat",
+      "aquastat",
+      "aquastat"
     ],
     "format_methods": []
   }

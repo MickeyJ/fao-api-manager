@@ -30,7 +30,7 @@ class ForestryTradeFlows(Base):
     partner_country_code_m49 = Column(String, nullable=False, index=False)
     partner_countries = Column(String, nullable=False, index=False)
     year_code = Column(String(4), nullable=False, index=False)
-    year = Column(SmallInteger, nullable=False, index=False)
+    year = Column(SmallInteger, nullable=False, index=True)
     unit = Column(String(50), nullable=False, index=False)
     value = Column(Float, nullable=False, index=False)
     note = Column(String, index=False)

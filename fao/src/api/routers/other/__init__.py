@@ -13,6 +13,7 @@ from .releases import router as releases
 from .purposes import router as purposes
 from .donors import router as donors
 from .geographic_levels import router as geographic_levels
+from .aquastat import router as aquastat
 from .climate_change_emissions_indicators import router as climate_change_emissions_indicators
 from .consumer_price_indices import router as consumer_price_indices
 from .cost_affordability_healthy_diet_co_ahd import router as cost_affordability_healthy_diet_co_ahd
@@ -92,6 +93,11 @@ other_api.include_router(
   geographic_levels, 
   prefix=f"/{current_version_prefix}", 
   tags=["other", "geographic_levels"],
+)
+other_api.include_router(
+  aquastat, 
+  prefix=f"/{current_version_prefix}", 
+  tags=["other", "aquastat"],
 )
 other_api.include_router(
   climate_change_emissions_indicators, 
@@ -226,6 +232,11 @@ other_group_map = {
             "name": "geographic_levels",
             "description": "",
             "path": f"/{ current_version_prefix }/other/geographic_levels",
+        },
+        {
+            "name": "aquastat",
+            "description": "",
+            "path": f"/{ current_version_prefix }/other/aquastat",
         },
         {
             "name": "climate_change_emissions_indicators",

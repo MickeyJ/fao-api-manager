@@ -25,13 +25,14 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
     print(f"\nCleaning {table_name} data...")
     initial_count = len(df)
+
+    # Replace 'nan' strings with None for ALL columns
+    df = df.replace({'nan': None, 'NaN': None, 'NAN': None})
     
     # Basic column cleanup
     df['Population Age Group Code'] = df['Population Age Group Code'].astype(str).str.strip().str.replace("'", "")
     # Keep primary key as string
-    df['Population Age Group Code.1'] = df['Population Age Group Code.1'].astype(str).str.strip().str.replace("'", "")
     df['Population Age Group'] = df['Population Age Group'].astype(str).str.strip().str.replace("'", "")
-    df['Population Age Group.1'] = df['Population Age Group.1'].astype(str).str.strip().str.replace("'", "")
     df['source_dataset'] = df['source_dataset'].astype(str).str.strip().str.replace("'", "")
     
    
@@ -62,9 +63,7 @@ def insert(df: pd.DataFrame, session: Session):
         hash_columns = ["Population Age Group Code", "source_dataset"]
         record['id'] = generate_numeric_id(row.to_dict(), hash_columns)
         record['population_age_group_code'] = row['Population Age Group Code']
-        record['population_age_group_code_1'] = row['Population Age Group Code.1']
         record['population_age_group'] = row['Population Age Group']
-        record['population_age_group_1'] = row['Population Age Group.1']
         record['source_dataset'] = row['source_dataset']
         records.append(record)
     

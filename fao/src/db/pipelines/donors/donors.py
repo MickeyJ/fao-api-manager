@@ -25,6 +25,9 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
     print(f"\nCleaning {table_name} data...")
     initial_count = len(df)
+
+    # Replace 'nan' strings with None for ALL columns
+    df = df.replace({'nan': None, 'NaN': None, 'NAN': None})
     
     # Basic column cleanup
     df['Donor Code'] = df['Donor Code'].astype(str).str.strip().str.replace("'", "")

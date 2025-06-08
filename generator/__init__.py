@@ -83,7 +83,7 @@ class ColumnRule:
 GLOBAL_COLUMN_RULES = {
     # Exact name matches
     "Flag": ColumnRule(name="Flag", sql_type="String", sql_type_size=1, index=True, nullable=False),
-    "Year": ColumnRule(name="Year", sql_type="SmallInteger", nullable=False),
+    "Year": ColumnRule(name="Year", sql_type="SmallInteger", index=True, nullable=False),
     "Year Code": ColumnRule(name="Year Code", sql_type="String", sql_type_size=4, nullable=False),
     "Unit": ColumnRule(name="Unit", sql_type="String", sql_type_size=50, nullable=False),
     "Value": ColumnRule(name="Value", sql_type="Float", nullable=False),

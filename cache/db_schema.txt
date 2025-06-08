@@ -1,0 +1,1198 @@
+# FAO Database Schema
+
+# Generated from 84 tables
+
+# Format: column_name: type (nullable?) [FK->table] [idx]
+
+#============================================================
+
+
+## LOOKUP TABLES
+
+
+area_codes
+----------
+  id: Integer (PK)
+  area_code: String [uniq]
+  area: String
+  area_code_m49: String (null)
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+currencies
+----------
+  id: Integer (PK)
+  iso_currency_code: String [uniq]
+  currency: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+donors
+------
+  id: Integer (PK)
+  donor_code: String [uniq]
+  donor: String
+  donor_code_m49: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+elements
+--------
+  id: Integer (PK)
+  element_code: String [uniq]
+  element: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+flags
+-----
+  id: Integer (PK)
+  flag: String(1) [idx] [uniq]
+  description: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+food_groups
+-----------
+  id: Integer (PK)
+  food_group_code: String [uniq]
+  food_group: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+geographic_levels
+-----------------
+  id: Integer (PK)
+  geographic_level_code: String [uniq]
+  geographic_level: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+indicators
+----------
+  id: Integer (PK)
+  indicator_code: String [uniq]
+  indicator: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+item_codes
+----------
+  id: Integer (PK)
+  item_code: String [uniq]
+  item: String
+  item_code_cpc: String (null)
+  item_code_fbs: String (null)
+  item_code_sdg: String (null)
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+population_age_groups
+---------------------
+  id: Integer (PK)
+  population_age_group_code: String [uniq]
+  population_age_group: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+purposes
+--------
+  id: Integer (PK)
+  purpose_code: String [uniq]
+  purpose: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+releases
+--------
+  id: Integer (PK)
+  release_code: String [uniq]
+  release: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+sexs
+----
+  id: Integer (PK)
+  sex_code: String [uniq]
+  sex: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+sources
+-------
+  id: Integer (PK)
+  source_code: String [uniq]
+  source: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+surveys
+-------
+  id: Integer (PK)
+  survey_code: String [uniq]
+  survey: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+## DATASET TABLES
+
+
+aquastat
+--------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  unit: String(50) (null)
+  year: SmallInteger [idx]
+  year_code: String(4)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+asti_expenditures
+-----------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+asti_researchers
+----------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+climate_change_emissions_indicators
+-----------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+commodity_balances_non_food
+---------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+commodity_balances_non_food_2010
+--------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+commodity_balances_non_food_2013_old_methodology
+------------------------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+consumer_price_indices
+----------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  months_code: String(4)
+  months: String(20)
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+cost_affordability_healthy_diet_co_ahd
+--------------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  release_code_id: Integer [FK->releases]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+deflators
+---------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+development_assistance_to_agriculture
+-------------------------------------
+  id: Integer (PK)
+  donor_code_id: Integer [FK->donors]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  purpose_code_id: Integer [FK->purposes]
+  flag_id: Integer [FK->flags]
+  recipient_country_code: String
+  recipient_country_code_m49: String
+  recipient_country: String
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_agriculture_energy
+----------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_crops
+---------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  source_code_id: Integer [FK->sources]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_drained_organic_soils
+-------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  source_code_id: Integer [FK->sources]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_land_use_fires
+------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  source_code_id: Integer [FK->sources]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_land_use_forests
+--------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  source_code_id: Integer [FK->sources]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_livestock
+-------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  source_code_id: Integer [FK->sources]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_pre_post_production
+-----------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+emissions_totals
+----------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  source_code_id: Integer [FK->sources]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+employment_indicators_agriculture
+---------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  source_code_id: Integer [FK->sources]
+  indicator_code_id: Integer [FK->indicators]
+  sex_code_id: Integer [FK->sexs]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+employment_indicators_rural
+---------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  source_code_id: Integer [FK->sources]
+  indicator_code_id: Integer [FK->indicators]
+  sex_code_id: Integer [FK->sexs]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_bioenergy
+---------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_cropland_nutrient_budget
+------------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_emissions_by_sector
+-------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_emissions_intensities
+---------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_food_waste_disposal
+-------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_land_cover
+----------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_land_use
+--------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_livestock_manure
+----------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_livestock_patterns
+------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_pesticides
+----------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_soil_nutrient_budget
+--------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+environment_temperature_change
+------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  months_code: String(4)
+  months: String(20)
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+exchange_rate
+-------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  element_code_id: Integer [FK->elements]
+  iso_currency_code_id: Integer [FK->currencies]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  months_code: String(4)
+  months: String(20)
+  unit: String(50) (null)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+fertilizers_detailed_trade_matrix
+---------------------------------
+  id: Integer (PK)
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  reporter_country_code: String
+  reporter_country_code_m49: String
+  reporter_countries: String
+  partner_country_code: String
+  partner_country_code_m49: String
+  partner_countries: String
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+food_aid_shipments_wfp
+----------------------
+  id: Integer (PK)
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  recipient_country_code: String
+  recipient_country_code_m49: String
+  recipient_country: String
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+food_and_diet_individual_quantitative_dietary_data
+--------------------------------------------------
+  id: Integer (PK)
+  survey_code_id: Integer [FK->surveys]
+  geographic_level_code_id: Integer [FK->geographic_levels]
+  population_age_group_code_id: Integer [FK->population_age_groups]
+  food_group_code_id: Integer [FK->food_groups]
+  indicator_code_id: Integer [FK->indicators]
+  element_code_id: Integer [FK->elements]
+  sex_code_id: Integer [FK->sexs]
+  flag_id: Integer [FK->flags]
+  population_age_group_code: String
+  unit: String(50) (null)
+  value: Float (null)
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+food_balance_sheets
+-------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+food_balance_sheets_historic
+----------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+food_security_data
+------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: String [idx]
+  unit: String(50) (null)
+  value: Float (null)
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+forestry
+--------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+forestry_pulp_paper_survey
+--------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+forestry_trade_flows
+--------------------
+  id: Integer (PK)
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  reporter_country_code: String
+  reporter_country_code_m49: String
+  reporter_countries: String
+  partner_country_code: String
+  partner_country_code_m49: String
+  partner_countries: String
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+household_consumption_and_expenditure_surveys_food_and_diet
+-----------------------------------------------------------
+  id: Integer (PK)
+  survey_code_id: Integer [FK->surveys]
+  geographic_level_code_id: Integer [FK->geographic_levels]
+  food_group_code_id: Integer [FK->food_groups]
+  indicator_code_id: Integer [FK->indicators]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+indicators_from_household_surveys
+---------------------------------
+  id: Integer (PK)
+  survey_code_id: Integer [FK->surveys]
+  indicator_code_id: Integer [FK->indicators]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  breakdown_variable_code: String
+  breakdown_variable: String
+  breadown_by_sex_of_the_household_head_code: String
+  breadown_by_sex_of_the_household_head: String
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+individual_quantitative_dietary_data_food_and_diet
+--------------------------------------------------
+  id: Integer (PK)
+  survey_code_id: Integer [FK->surveys]
+  geographic_level_code_id: Integer [FK->geographic_levels]
+  population_age_group_code_id: Integer [FK->population_age_groups]
+  food_group_code_id: Integer [FK->food_groups]
+  indicator_code_id: Integer [FK->indicators]
+  element_code_id: Integer [FK->elements]
+  sex_code_id: Integer [FK->sexs]
+  flag_id: Integer [FK->flags]
+  unit: String(50) (null)
+  value: Float
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+inputs_fertilizers_archive
+--------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+inputs_fertilizers_nutrient
+---------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+inputs_fertilizers_product
+--------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+inputs_land_use
+---------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+inputs_pesticides_trade
+-----------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+inputs_pesticides_use
+---------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_capital_stock
+------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_country_investment_statistics_profile
+------------------------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_credit_agriculture
+-----------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_foreign_direct_investment
+------------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_government_expenditure
+---------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_machinery
+--------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+investment_machinery_archive
+----------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+macro_statistics_key_indicators
+-------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+minimum_dietary_diversity_for_women_mdd_w_food_and_diet
+-------------------------------------------------------
+  id: Integer (PK)
+  survey_code_id: Integer [FK->surveys]
+  food_group_code_id: Integer [FK->food_groups]
+  indicator_code_id: Integer [FK->indicators]
+  geographic_level_code_id: Integer [FK->geographic_levels]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+population
+----------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+prices
+------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  months_code: String(4)
+  months: String(20)
+  unit: String(50) (null)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+prices_archive
+--------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+production_crops_livestock
+--------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float (null)
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+production_indices
+------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float
+  created_at: DateTime
+  updated_at: DateTime
+
+sdg_bulk_downloads
+------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50) (null)
+  value: Float (null)
+  note: String
+  created_at: DateTime
+  updated_at: DateTime
+
+sua_crops_livestock
+-------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  item_code_id: Integer [FK->item_codes]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime
+
+supply_utilization_accounts_food_and_diet
+-----------------------------------------
+  id: Integer (PK)
+  area_code_id: Integer [FK->area_codes]
+  food_group_code_id: Integer [FK->food_groups]
+  indicator_code_id: Integer [FK->indicators]
+  element_code_id: Integer [FK->elements]
+  flag_id: Integer [FK->flags]
+  year_code: String(4)
+  year: SmallInteger [idx]
+  unit: String(50)
+  value: Float
+  note: String (null)
+  created_at: DateTime
+  updated_at: DateTime

@@ -20,9 +20,9 @@ class FAOReferenceDataExtractor:
     def run(self):
         """Main entry point - extract and analyze everything"""
 
-        if self.json_cache_path.exists():
-            logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
-            return
+        # if self.json_cache_path.exists():
+        #     logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
+        #     return
 
         logger.info("🚀 Starting lookup data extraction process...")
 
@@ -122,11 +122,11 @@ class FAOReferenceDataExtractor:
                 # Primary key
                 pk_value = str(row[pk_col]).strip()
                 if pk_value and pk_value != "nan":
-                    row_dict[pk_col] = pk_value
+                    row_dict[mapping["output_columns"]["pk"]] = pk_value  # Use standardized name
 
                     # Description
                     desc_value = str(row[desc_col]).strip()
-                    row_dict[desc_col] = desc_value
+                    row_dict[mapping["output_columns"]["desc"]] = desc_value  # Use standardized name
 
                     # Additional columns
                     for output_col, input_col in found_additional.items():
@@ -146,8 +146,6 @@ class FAOReferenceDataExtractor:
                     # Add row to list
                     lookup_data[lookup_name]["rows"].append(row_dict)
 
-                    # Add row to list
-                    lookup_data[lookup_name]["rows"].append(row_dict)
                     new_entries += 1
 
             if new_entries > 0:
@@ -210,7 +208,6 @@ class FAOReferenceDataExtractor:
             data = lookup_data[lookup_name]
 
             if data["rows"]:
-                # Create DataFrame from rows
                 df = pd.DataFrame(data["rows"])
 
                 # Remove any duplicate columns that pandas created

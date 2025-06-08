@@ -84,6 +84,9 @@ class Generator:
         self.generate_all_model_imports_file()
         self._generate_api_routers()
 
+        # Add schema documentation generation
+        self._generate_schema_documentation()
+
     def _group_modules_by_pipeline(self) -> None:
         """Group modules by their pipeline name"""
         for module in self.all_modules:
@@ -281,3 +284,78 @@ class Generator:
         """Generate utils.py for db"""
         content = self.template_renderer.render_database_utils_template()
         self.file_system.write_file_cache(self.paths.db / "utils.py", content)
+
+    def _generate_schema_documentation(self):
+        """Generate a compact schema documentation file"""
+        cache_dir = Path("./cache")
+        cache_dir.mkdir(exist_ok=True)
+
+        lines = ["# FAO Database Schema\n"]
+        lines.append(f"# Generated from {len(self.all_modules)} tables\n")
+        lines.append("# Format: column_name: type (nullable?) [FK->table] [idx]\n")
+        lines.append("#" + "=" * 60 + "\n")
+
+        # Group by lookup vs dataset for organization
+        lookups = [m for m in self.all_modules if m["is_lookup_module"]]
+        datasets = [m for m in self.all_modules if not m["is_lookup_module"]]
+
+        # Document lookups first
+        if lookups:
+            lines.append("\n## LOOKUP TABLES\n")
+            for module in sorted(lookups, key=lambda x: x["model"]["table_name"]):
+                lines.extend(self._format_table_schema(module))
+
+        # Then datasets
+        if datasets:
+            lines.append("\n## DATASET TABLES\n")
+            for module in sorted(datasets, key=lambda x: x["model"]["table_name"]):
+                lines.extend(self._format_table_schema(module))
+
+        # Write to file
+        schema_file = cache_dir / "db_schema.txt"
+        schema_file.write_text("\n".join(lines))
+        logger.info(f"📋 Generated database schema documentation: {schema_file}")
+
+    def _format_table_schema(self, module) -> List[str]:
+        """Format a single table's schema"""
+        lines = []
+        model = module["model"]
+
+        # Table header
+        lines.append(f"\n{model['table_name']}")
+        lines.append("-" * len(model["table_name"]))
+
+        # Always include id column first
+        lines.append("  id: Integer (PK)")
+
+        # Foreign key columns
+        for fk in model.get("foreign_keys", []):
+            fk_notation = f"[FK->{fk['table_name']}]"
+            lines.append(f"  {fk['hash_fk_sql_column_name']}: Integer {fk_notation}")
+
+        # Regular columns
+        for col in model["column_analysis"]:
+            if col["csv_column_name"] not in model.get("exclude_columns", []):
+                col_line = f"  {col['sql_column_name']}: {col['inferred_sql_type']}"
+
+                # Add size if specified
+                if col.get("sql_type_size"):
+                    col_line = f"  {col['sql_column_name']}: {col['inferred_sql_type']}({col['sql_type_size']})"
+
+                # Add nullable indicator
+                if col.get("nullable", True):
+                    col_line += " (null)"
+
+                # Add index indicators
+                if col.get("index"):
+                    col_line += " [idx]"
+                if col.get("original_pk"):  # For lookups
+                    col_line += " [uniq]"
+
+                lines.append(col_line)
+
+        # System columns
+        lines.append("  created_at: DateTime")
+        lines.append("  updated_at: DateTime")
+
+        return lines

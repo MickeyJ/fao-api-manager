@@ -1,7 +1,6 @@
 # templates/model.py.jinja2
 from sqlalchemy import (
     String,
-    SmallInteger,
     Float,
     Integer,
     DateTime,
@@ -26,7 +25,7 @@ class FoodSecurityData(Base):
     # Foreign key to flags
     flag_id = Column(Integer, ForeignKey("flags.id"), index=True)
     year_code = Column(String(4), nullable=False, index=False)
-    year = Column(SmallInteger, nullable=False, index=False)
+    year = Column(String, nullable=False, index=True)
     unit = Column(String(50), index=False)
     value = Column(Float, index=False)
     note = Column(String, index=False)

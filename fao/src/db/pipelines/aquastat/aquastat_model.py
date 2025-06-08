@@ -1,0 +1,37 @@
+# templates/model.py.jinja2
+from sqlalchemy import (
+    String,
+    SmallInteger,
+    Float,
+    Integer,
+    DateTime,
+    ForeignKey,
+    Index,
+    Column,
+    func,
+)
+from fao.src.db.database import Base
+
+
+class Aquastat(Base):
+    __tablename__ = "aquastat"
+     # Dataset table - use auto-increment id
+    id = Column(Integer, primary_key=True)
+    # Foreign key to area_codes
+    area_code_id = Column(Integer, ForeignKey("area_codes.id"), index=True)
+    # Foreign key to elements
+    element_code_id = Column(Integer, ForeignKey("elements.id"), index=True)
+    # Foreign key to flags
+    flag_id = Column(Integer, ForeignKey("flags.id"), index=True)
+    unit = Column(String(50), index=False)
+    year = Column(SmallInteger, nullable=False, index=True)
+    year_code = Column(String(4), nullable=False, index=False)
+    value = Column(Float, nullable=False, index=False)
+   
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    
+    
+    def __repr__(self):
+        # Show first few columns for datasets
+        return f"<Aquastat(id={self.id})>"
