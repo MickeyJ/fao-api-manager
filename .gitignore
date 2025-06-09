@@ -208,7 +208,7 @@ Thumbs.db
 
 
 */.generator_cache/*
-
+cache/fao_module_cache.json
 
 # Local configuration
 config.local.py
