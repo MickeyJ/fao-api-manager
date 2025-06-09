@@ -1,3 +1,4 @@
+import shutil
 from typing import List, Dict, Literal
 from collections import defaultdict
 from pathlib import Path
@@ -37,13 +38,19 @@ class Generator:
     def generate(self) -> None:
         """Main generation workflow"""
         # Step 1: Discover all modules
-        self._discover_modules()
+        self._format_modules()
 
-        # Step 3
+        # Step 2: Generate directories and files
         self._generate_directories()
         self._generate_files()
 
-    def _discover_modules(self):
+        # Step 3: Copy static files with diff detection
+        logger.info("\n📄 Processing static files...")
+        self.file_system.copy_static_files()
+
+        logger.info("\n✅ Generation complete!")
+
+    def _format_modules(self):
         """Discover modules from all pipelines"""
         from generator.fao_structure_modules import FAOStructureModules
         from generator.fao_foreign_key_mapper import FAOForeignKeyMapper

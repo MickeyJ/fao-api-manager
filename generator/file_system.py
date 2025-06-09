@@ -1,15 +1,104 @@
 from pathlib import Path
 from typing import Dict, Optional
-import json, difflib
+import json, difflib, shutil
+from . import logger
 
 
 class FileSystem:
     def __init__(self, output_dir: str | Path):
+        self.project_root = Path(__file__).parent.parent
+        self.static_files_dir = self.project_root / "static_api_files"
         self.output_dir = Path(output_dir)
         self.cache_dir = Path("./cache/.generator_cache") / self.output_dir.name
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self._update_all_generated = None  # For files without manual edits
         self._update_all_manual = None  # For files with manual edits
+
+    def copy_static_files(self):
+        """Copy static files with diff detection and user prompts"""
+
+        if not self.static_files_dir.exists():
+            logger.info("📄 No static_api_files directory found, skipping")
+            return
+
+        copied_count = 0
+        skipped_count = 0
+
+        for source_file in self.static_files_dir.rglob("*"):
+            # Skip cache directories and hidden files
+            if (
+                source_file.is_file()
+                and not source_file.name.startswith(".")
+                and "__pycache__" not in str(source_file)
+                and not source_file.suffix in {".pyc", ".pyo"}
+            ):
+
+                relative_path = source_file.relative_to(self.static_files_dir)
+                dest_file = self.output_dir / relative_path
+
+                # Read source content
+                source_content = source_file.read_text(encoding="utf-8")
+
+                # Check if destination exists
+                if dest_file.exists():
+                    current_content = dest_file.read_text(encoding="utf-8")
+
+                    # If content is different, show diff and prompt
+                    if current_content != source_content:
+                        print(f"\n{'='*60}")
+                        print(f"Static file would overwrite: {relative_path}")
+                        print(f"{'='*60}")
+
+                        self._show_diff(current_content, source_content, dest_file, "current file", "static file")
+
+                        # Reuse the prompt logic
+                        if self._prompt_for_static_update(relative_path):
+                            dest_file.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copy2(source_file, dest_file)
+                            copied_count += 1
+                            logger.info(f"✅ Updated static file: {relative_path}")
+                        else:
+                            skipped_count += 1
+                            logger.info(f"⏭️  Skipped static file: {relative_path}")
+                    else:
+                        # Content is identical, skip silently
+                        pass
+                else:
+                    # New file, just copy
+                    dest_file.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source_file, dest_file)
+                    copied_count += 1
+                    logger.info(f"📄 Added static file: {relative_path}")
+
+        # Summary
+        logger.info(f"📄 Static files: {copied_count} copied, {skipped_count} skipped")
+
+    def _prompt_for_static_update(self, file_path: Path) -> bool:
+        """Prompt for static file updates with 'all' option"""
+
+        # Check if user already decided for all static files
+        if hasattr(self, "_update_all_static") and self._update_all_static is not None:
+            return self._update_all_static
+
+        print("\nOptions:")
+        print("  [y] Yes      - Overwrite with static file")
+        print("  [n] No       - Keep current file")
+        print("  [a] All      - Overwrite all remaining conflicts with static files")
+        print("  [s] Skip all - Keep all current files (skip remaining static)")
+
+        while True:
+            choice = input("Update file? [y/n/a/s]: ").lower().strip()
+            if choice in ["y", "yes"]:
+                return True
+            elif choice in ["n", "no"]:
+                return False
+            elif choice in ["a", "all"]:
+                self._update_all_static = True
+                return True
+            elif choice in ["s", "skip", "skip all"]:
+                self._update_all_static = False
+                return False
+            print("Please enter 'y', 'n', 'a', or 's'")
 
     def create_dir(self, dir_path: str | Path) -> Path:
         dir_path = Path(self.output_dir / dir_path)

@@ -1,12 +1,12 @@
 from fastapi import APIRouter
-from ... import current_version_prefix
+from {{ project_name }}.src.core import settings
 
 {% for router in router_group %}
 from .{{router.name}} import router as {{router.name}}
 {% endfor %}
 
 {{group_name}}_api = APIRouter(
-  prefix=f"/{current_version_prefix}", 
+  prefix=f"/{settings.api_version_prefix}", 
   tags=["{{group_name}}"],
 )
 
@@ -25,7 +25,7 @@ from .{{router.name}} import router as {{router.name}}
         {
             "name": "{{ router.name }}",
             "description": "{{ router.description }}",
-            "path": f"/{ current_version_prefix }/{{ group_name }}/{{ router.name }}",
+            "path": f"/{ settings.api_version_prefix }/{{ group_name }}/{{ router.name }}",
         },
         {% endfor %}
     ],

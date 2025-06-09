@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, text
 from typing import Optional
+from {{ project_name }}.src.core import settings
 from {{ project_name }}.src.db.database import get_db
 from {{ project_name }}.src.db.pipelines.{{ router.pipeline_name }}.{{ router.name }}_model import {{ router.model.model_name }}
 {% if router.model.foreign_keys %}

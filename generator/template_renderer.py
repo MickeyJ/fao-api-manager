@@ -19,7 +19,7 @@ class TemplateRenderer:
     def render_empty_init_template(self) -> str:
         """Render __init__.py template"""
         template = self.jinja_env.get_template("__init__empty.py.jinja2")
-        return template.render()
+        return template.render(project_name=self.project_name)
 
     def render_pipeline_init_template(self, directory_name: str, modules) -> str:
         """Render __init__.py template"""
@@ -57,7 +57,7 @@ class TemplateRenderer:
     ) -> str:
         """Render SQLAlchemy model template"""
         template = self.jinja_env.get_template("base_modules.py.jinja2")
-        return template.render(base_chunk_size=base_chunk_size)
+        return template.render(base_chunk_size=base_chunk_size, project_name=self.project_name)
 
     def render_reference_module_template(
         self,
@@ -86,8 +86,8 @@ class TemplateRenderer:
         template = self.jinja_env.get_template("model.py.jinja2")
         return template.render(
             module=module,
-            project_name=self.project_name,
             safe_index_name=safe_index_name,
+            project_name=self.project_name,
         )
 
     def render_api_router_template(self, router: dict) -> str:
@@ -135,11 +135,11 @@ class TemplateRenderer:
     ) -> str:
         """Render database file template"""
         template = self.jinja_env.get_template("database.py.jinja2")
-        return template.render()
+        return template.render(project_name=self.project_name)
 
     def render_database_utils_template(
         self,
     ) -> str:
         """Render db utils template"""
         template = self.jinja_env.get_template("db.utils.py.jinja2")
-        return template.render()
+        return template.render(project_name=self.project_name)

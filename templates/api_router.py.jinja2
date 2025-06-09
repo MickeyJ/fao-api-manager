@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, text
 from typing import Optional
+from {{ project_name }}.src.core import settings
 from {{ project_name }}.src.db.database import get_db
 from {{ project_name }}.src.db.pipelines.{{ router.pipeline_name }}.{{ router.name }}_model import {{ router.model.model_name }}
 {% if router.model.foreign_keys %}
@@ -23,8 +24,8 @@ router = APIRouter(
 
 @router.get("/")
 def get_{{ router.name }}(
-    limit: int = Query(100, le=1000, ge=1, description="Maximum records to return"),
-    offset: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(settings.default_limit, le=settings.max_limit, ge=1, description="Maximum records to return"),
+    offset: int = Query(settings.default_offset, ge=0, description="Number of records to skip"),
     {% for fk in router.model.foreign_keys %}
     {{ fk.sql_column_name }}: Optional[str] = Query(None, description="Filter by {{ fk.table_name }} code"),
         {% if fk.reference_description_column %}
