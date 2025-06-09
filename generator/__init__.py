@@ -1,13 +1,18 @@
 import re, hashlib, logging, random, string
 import pandas as pd
 from pathlib import Path
+import os, sys
+from dotenv import load_dotenv
 
-SMALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\small"
-MEDIUM_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\medium"
-LARGE_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\large"
-ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
+load_dotenv(override=True)
 
-ZIP_PATH = ALL_ZIP_EXAMPLE
+FAO_ZIP_PATH = os.getenv("FAO_ZIP_PATH")
+API_OUTPUT_PATH = os.getenv("FAO_API_OUTPUT_PATH")
+
+
+if not FAO_ZIP_PATH or not API_OUTPUT_PATH:
+    print("❌ Error: FAO_ZIP_PATH and FAO_API_OUTPUT_PATH must be set in .env file")
+    sys.exit(1)
 
 # # Force reset logging configuration
 # for handler in logging.root.handlers[:]:

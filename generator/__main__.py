@@ -2,8 +2,10 @@ import argparse, json
 from pathlib import Path
 from generator.generator import Generator
 from generator.fao_reference_data_extractor import FAOReferenceDataExtractor
-from . import ZIP_PATH
+from . import FAO_ZIP_PATH, API_OUTPUT_PATH
 
+assert FAO_ZIP_PATH is not None, "FAO_ZIP_PATH must be set"
+assert API_OUTPUT_PATH is not None, "FAO_API_OUTPUT_PATH must be set"
 
 json_cache_path = Path("./cache/fao_module_cache.json")
 
@@ -14,10 +16,10 @@ def test_pre_generation():
     from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
     from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
 
-    # extractor = FAOReferenceDataExtractor(ZIP_PATH, json_cache_path)
+    # extractor = FAOReferenceDataExtractor(FAO_ZIP_PATH, json_cache_path)
     # extractor.run()
 
-    structure_modules = FAOStructureModules(ZIP_PATH, LOOKUP_MAPPINGS, json_cache_path)
+    structure_modules = FAOStructureModules(FAO_ZIP_PATH, LOOKUP_MAPPINGS, json_cache_path)
     structure_modules.run()
 
     fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path)
@@ -32,12 +34,12 @@ def test_pre_generation():
 
 def process_csv():
     """Process lookups from the synthetic_lookups directory"""
-    extractor = FAOReferenceDataExtractor(ZIP_PATH, json_cache_path)
+    extractor = FAOReferenceDataExtractor(FAO_ZIP_PATH, json_cache_path)
     extractor.run()
 
 
 def generate_all():
-    generator = Generator("./fao", ZIP_PATH)
+    generator = Generator(API_OUTPUT_PATH, FAO_ZIP_PATH)
     generator.generate()
 
 

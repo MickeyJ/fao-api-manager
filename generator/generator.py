@@ -22,8 +22,9 @@ class ProjectPath:
 
 class Generator:
     def __init__(self, output_dir: str | Path, input_dir: str):
-        self.project_name = clean_text(output_dir)
-        self.paths = ProjectPath(Path(output_dir))
+        self.project_name = "fao"  # Gets "fao" from the path
+        self.output_dir = Path(output_dir)
+        self.paths = ProjectPath(self.output_dir)
         self.input_dir = input_dir
         self.structure = Structure()
         self.file_system = FileSystem(self.paths.project)
@@ -175,12 +176,6 @@ class Generator:
                 safe_index_name,
             )
             self.file_system.write_file_cache(pipeline_dir / f"{module_name}_model.py", model_content)
-
-            # Generate analysis JSON
-            self.file_system.write_json_file(
-                self.paths.project / pipeline_dir / f"{module_name}.json",
-                module["model"]["column_analysis"],
-            )
 
     def _generate_api_routers(self):
         """Generate API routers for each pipeline"""

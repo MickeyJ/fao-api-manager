@@ -4,7 +4,7 @@ import zipfile
 import re
 from pathlib import Path
 from typing import Optional, Tuple
-from generator import logger, ZIP_PATH
+from generator import logger, FAO_ZIP_PATH
 
 
 class AQUASTATPreprocessor:
@@ -178,7 +178,7 @@ def main():
 
     # Configure paths
     input_csv = Path(sys.argv[1])
-    output_dir = Path(ZIP_PATH)  # Uses the configured ZIP_PATH from generator.__init__
+    output_dir = Path(FAO_ZIP_PATH)  # Uses the configured FAO_ZIP_PATH from generator.__init__
 
     if not input_csv.exists():
         print(f"Error: Input file {input_csv} not found")

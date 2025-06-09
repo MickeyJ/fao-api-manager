@@ -20,7 +20,7 @@ ETL-codebase-generator/
 ├── requirements.txt          # Python dependencies
 ├── Makefile                  # Build and setup commands
 ├── generator/                 # Core generation logic
-│   ├── __init__.py           # Configuration (ZIP_PATH)
+│   ├── __init__.py           # Configuration (FAO_ZIP_PATH)
 │   ├── template_renderer.py  # Jinja2 template rendering
 │   └── generator.py          # Pipeline code generator
 ├── templates/                # Jinja2 templates
@@ -31,9 +31,7 @@ ETL-codebase-generator/
 │ 
 │ # Generated Codebase
 ├── fao/ 
-├── requirements.in
-├── .env
-├── Makefile
+├── all_model_imports.py
 │   └──src/
 │      └── db/
 │          ├── __init__.py
@@ -91,7 +89,7 @@ ETL-codebase-generator/
 
 3. Configure the ZIP path in [`generator/__init__.py`](generator/__init__.py):
    ```python
-   ZIP_PATH = r"C:\path\to\your\fao\zip\files"
+   FAO_ZIP_PATH = r"C:\path\to\your\fao\zip\files"
    ```
 
 ## Usage

@@ -1,14 +1,42 @@
 import pandas as pd
 import zipfile, hashlib
 from pathlib import Path
+import os, sys
+from dotenv import load_dotenv
 
+load_dotenv(override=True)
 
-SMALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\small"
-MEDIUM_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\medium"
-LARGE_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\large"
-ALL_ZIP_EXAMPLE = r"C:\Users\18057\Documents\Data\fao-test-zips\all"
+FAO_ZIP_PATH = os.getenv("FAO_ZIP_PATH")
+API_OUTPUT_PATH = os.getenv("FAO_API_OUTPUT_PATH")
 
-ZIP_PATH = ALL_ZIP_EXAMPLE
+if not FAO_ZIP_PATH or not API_OUTPUT_PATH:
+    print("❌ Error: FAO_ZIP_PATH and FAO_API_OUTPUT_PATH must be set in .env file")
+    sys.exit(1)
+
+def calculate_optimal_chunk_size(df: pd.DataFrame, base_chunk_size: int = 10000) -> int:
+    """
+    Calculate optimal chunk size based on number of columns and PostgreSQL limits.
+    
+    PostgreSQL has a 65,535 parameter limit per statement.
+    Each row uses (number of columns) parameters.
+    """
+    num_columns = len(df.columns)
+    
+    # PostgreSQL's parameter limit with safety margin
+    max_params = 60000  # Leave some headroom from 65,535 limit
+    
+    # Calculate max rows that fit within parameter limit
+    max_rows_by_params = max_params // num_columns
+    
+    # Set reasonable bounds
+    min_chunk = 1000    # Don't go below this for efficiency
+    max_chunk = 50000   # Cap at 50k for memory/timeout safety
+    
+    # Use the smaller of: parameter limit, memory limit, or base preference
+    optimal_chunk = min(max_rows_by_params, base_chunk_size, max_chunk)
+    optimal_chunk = max(optimal_chunk, min_chunk)  # Ensure minimum
+    
+    return optimal_chunk
 
 def safe_index_name(table_name, column_name):
     # Always fits in 63 chars: ix_ + 8 hash chars + _ + column (max 50)
@@ -47,7 +75,7 @@ def generate_numeric_id(row_data: dict, hash_columns: list[str]) -> int:
 
 def get_csv_path_for(csv_path):
     """Get CSV path, extracting from ZIP if necessary"""
-    full_path = Path(ZIP_PATH) / csv_path
+    full_path = Path(FAO_ZIP_PATH) / csv_path
 
     if full_path.exists():
         return str(full_path)
@@ -56,10 +84,10 @@ def get_csv_path_for(csv_path):
     parts = Path(csv_path).parts
     if len(parts) >= 2:
         zip_name = parts[0] + ".zip"  # e.g., "Prices_E_All_Data_(Normalized).zip"
-        zip_path = Path(ZIP_PATH) / zip_name
+        zip_path = Path(FAO_ZIP_PATH) / zip_name
 
         if zip_path.exists():
-            extract_dir = Path(ZIP_PATH) / parts[0]
+            extract_dir = Path(FAO_ZIP_PATH) / parts[0]
             extract_dir.mkdir(exist_ok=True)
 
             with zipfile.ZipFile(zip_path, "r") as zf:
