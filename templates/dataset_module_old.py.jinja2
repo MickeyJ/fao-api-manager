@@ -1,0 +1,161 @@
+# templates/dataset_module.py.jinja2
+import pandas as pd
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from {{ project_name }}.src.db.utils import load_csv, get_csv_path_for, generate_numeric_id, calculate_optimal_chunk_size
+from {{ project_name }}.src.db.database import run_with_session
+from .{{ module.model.table_name }}_model import {{ module.model.model_name }}
+
+# Dataset CSV file
+CSV_PATH = get_csv_path_for("{{ module.file_info.csv_file }}")
+
+table_name = "{{ module.model.table_name }}"
+
+
+def load():
+    """Load the dataset CSV file"""
+    return load_csv(CSV_PATH)
+
+
+def clean(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean and prepare dataset data"""
+    if df.empty:
+        print(f"No {table_name} data to clean.")
+        return df
+
+    print(f"\nCleaning {table_name} data...")
+    initial_count = len(df)
+
+    # Replace 'nan' strings with None for ALL columns
+    df = df.replace({'nan': None, 'NaN': None, 'NAN': None})
+
+    {% if module.model.column_renames %}
+    # Rename columns to match lookup table standards
+    column_renames = {{ module.model.column_renames | tojson }}
+    df = df.rename(columns=column_renames)
+    print(f"  Renamed columns: {list(column_renames.keys())} → {list(column_renames.values())}")
+    {% endif %}
+    
+    # Basic column cleanup
+    {% for column in module.model.column_analysis %}
+        {% if module.model.exclude_columns | length and column.csv_column_name not in module.model.exclude_columns %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
+        
+            {% if column.inferred_sql_type == 'Integer' %}
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
+            {% elif column.inferred_sql_type == 'Float' %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].replace({'<0.1': 0.05, 'nan': None})
+    df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
+            {% endif %}
+        {% endif %}
+        {# Apply format methods for columns #}
+        {% if column.format_methods %}
+            {% for method in column.format_methods %}
+    df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].str.{{ method }}()
+            {% endfor %}
+        {% endif %}
+        {# spacer #}
+    {% endfor %}
+    
+    {% if module.model.foreign_keys %}
+    # Generate hash IDs for foreign key columns
+    dataset_name = "{{ module.model.table_name }}"  # This dataset's name
+    
+    {% for fk in module.model.foreign_keys %}
+    # Generate hash IDs for {{ fk.csv_column_name }}
+    df['{{ fk.hash_fk_sql_column_name }}'] = df['{{ fk.lookup_pk_csv_column }}'].apply(
+        lambda val: generate_numeric_id(
+            {
+                {% for col in fk.hash_columns %}
+                {% if col == 'source_dataset' %}
+                'source_dataset': dataset_name,
+                {% else %}
+                '{{ col }}': str(val),
+                {% endif %}
+                {% endfor %}
+            },
+            {{ fk.hash_columns | tojson }}
+        ) if pd.notna(val) and str(val).strip() else None
+    )
+    {% endfor %}
+    {% endif %}
+    
+    {% if module.model.exclude_columns %}
+    # Remove redundant columns that can be looked up via foreign keys
+    columns_to_drop = [col for col in {{ module.model.exclude_columns | tojson }} if col in df.columns]
+    if columns_to_drop:
+        df = df.drop(columns=columns_to_drop)
+        print(f"  Dropped redundant columns: {columns_to_drop}")
+    {% endif %}
+    
+    # Remove complete duplicates
+    df = df.drop_duplicates()
+    
+    final_count = len(df)
+    print(f"  Cleaned: {initial_count} → {final_count} rows")
+    return df
+
+
+def insert(df: pd.DataFrame, session: Session):
+    """Insert dataset data with chunking for large files"""
+    if df.empty:
+        print(f"No {table_name} data to insert.")
+        return
+
+
+    # Calculate optimal chunk size for this dataset
+    chunk_size = calculate_optimal_chunk_size(df, base_chunk_size=20000)
+    print(f"\nInserting {table_name} data ({len(df):,} rows)")
+    print(f"  Using dynamic chunk size: {chunk_size:,} rows (based on {len(df.columns)} columns)")
+    
+    total_rows = len(df)
+    total_inserted = 0
+    
+    # Process in chunks
+    for chunk_idx, start_idx in enumerate(range(0, total_rows, chunk_size)):
+        end_idx = min(start_idx + chunk_size, total_rows)
+        chunk_df = df.iloc[start_idx:end_idx]
+        
+        records = []
+        for _, row in chunk_df.iterrows():
+            record = {}
+             {% if module.model.foreign_keys %}
+            # Add the hash ID columns
+            {% for fk in module.model.foreign_keys %}
+            record['{{ fk.hash_fk_sql_column_name }}'] = row['{{ fk.hash_fk_sql_column_name }}']
+            {% endfor %}
+            {% endif %}
+            {% for column in module.model.column_analysis %}
+            {% if column.csv_column_name not in module.model.exclude_columns %}
+            record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
+            {% endif %}
+            {% endfor %}
+            records.append(record)
+        
+        if records:
+            try:
+                stmt = pg_insert({{ module.model.model_name }}).values(records)
+                stmt = stmt.on_conflict_do_nothing()
+                result = session.execute(stmt)
+                session.commit()
+                
+                total_inserted += result.rowcount
+                print(f"  Chunk {chunk_idx + 1}: Inserted {result.rowcount} rows " +
+                      f"(Total: {total_inserted:,}/{total_rows:,})")
+            except Exception as e:
+                print(f"  ❌ Error in chunk {chunk_idx + 1}: {e}")
+                session.rollback()
+                raise
+    
+    print(f"✅ {table_name} insert complete: {total_inserted:,} rows inserted")
+
+
+def run(db):
+    """Run the complete ETL pipeline for this dataset"""
+    df = load()
+    df = clean(df)
+    insert(df, db)
+
+
+if __name__ == "__main__":
+    run_with_session(run)

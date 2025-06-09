@@ -1,48 +1,39 @@
 import pandas as pd
 from {{ project_name }}.src.db.utils import get_csv_path_for
 from {{ project_name }}.src.db.database import run_with_session
-from {{ project_name }}.src.db.pipelines.base import BaseDatasetETL
+from {{ project_name }}.src.db.pipelines.base import BaseLookupETL
 from .{{ module.model.table_name }}_model import {{ module.model.model_name }}
 
 
-class {{ module.model.model_name }}ETL(BaseDatasetETL):
-    """ETL pipeline for {{ module.model.table_name }} dataset"""
+class {{ module.model.model_name }}ETL(BaseLookupETL):
+    """ETL pipeline for {{ module.model.table_name }} reference data"""
     
     def __init__(self):
         super().__init__(
             csv_path=get_csv_path_for("{{ module.file_info.csv_file }}"),
             model_class={{ module.model.model_name }},
             table_name="{{ module.model.table_name }}",
-            {% if module.model.column_renames %}
-            column_renames={{ module.model.column_renames | tojson }},
-            {% endif %}
-            {% if module.model.exclude_columns %}
-            exclude_columns={{ module.model.exclude_columns | tojson }},
-            {% endif %}
-            {% if module.model.foreign_keys %}
-            foreign_keys={{ module.model.foreign_keys | tojson }}
-            {% endif %}
+            hash_columns={{ module.model.hash_columns | tojson }},
+            pk_column="{{ module.model.pk_column }}"
         )
     
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Dataset-specific cleaning"""
+        """Reference-specific cleaning"""
         # Common cleaning first
         df = self.base_clean(df)
         
         # Column-specific cleaning
         {% for column in module.model.column_analysis %}
-        {% if column.csv_column_name not in module.model.exclude_columns %}
-        # {{ column.csv_column_name }}
         df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].astype(str).str.strip().str.replace("'", "")
         {% if column.format_methods %}
         {% for method in column.format_methods %}
         df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].str.{{ method }}()
         {% endfor %}
         {% endif %}
+        {% if column.sql_column_name != module.model.pk_sql_column_name %}
         {% if column.inferred_sql_type == 'Integer' %}
         df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
         {% elif column.inferred_sql_type == 'Float' %}
-        df['{{ column.csv_column_name }}'] = df['{{ column.csv_column_name }}'].replace({'<0.1': 0.05, 'nan': None})
         df['{{ column.csv_column_name }}'] = pd.to_numeric(df['{{ column.csv_column_name }}'], errors='coerce')
         {% endif %}
         {% endif %}
@@ -53,17 +44,8 @@ class {{ module.model.model_name }}ETL(BaseDatasetETL):
     def build_record(self, row: pd.Series) -> dict:
         """Build record for insertion"""
         record = {}
-        {% if module.model.foreign_keys %}
-        # Foreign key columns
-        {% for fk in module.model.foreign_keys %}
-        record['{{ fk.hash_fk_sql_column_name }}'] = row['{{ fk.hash_fk_sql_column_name }}']
-        {% endfor %}
-        {% endif %}
-        # Data columns
         {% for column in module.model.column_analysis %}
-        {% if column.csv_column_name not in module.model.exclude_columns %}
         record['{{ column.sql_column_name }}'] = row['{{ column.csv_column_name }}']
-        {% endif %}
         {% endfor %}
         return record
 
