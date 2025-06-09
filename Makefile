@@ -34,7 +34,10 @@ endif
 	generator pre-test process-aquastat process-csv \
 	run-all-pipelines \
 	use-remote-db use-local-db db-init db-upgrade db-revision  \
-	create-test-db drop-test-db create-test-db drop-test-db reset-test-db reset-db \
+	create-db-local-admin drop-db-local-admin create-test-db drop-test-db \
+	create-pipeline-prog-table-remote create-pipeline-prog-table-local create-pipeline-prog-table \
+	enable-rls-db-remote enable-rls all-table-row-count-local all-table-row-count \
+	reset-test-db reset-db \
 	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test \
 	run-pipelines \
 	api
@@ -122,7 +125,7 @@ db-revision:
 	@echo "Upgrading database..."
 	alembic revision --autogenerate -m "${msg}" 
 
-create-db:
+create-db-local-admin:
 	make use-local-db-admin
 	@echo "Creating database..."
 	$(MAKE) create-test-db
@@ -132,19 +135,51 @@ create-test-db:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_database.sql
 	make use-local-db
 
-drop-db:
+drop-db-local-admin:
 	make use-local-db-admin
-	@echo "Dropping database..."
 	$(MAKE) drop-test-db
-	@echo "Database 'fao' dropped"
 	make use-local-db
 
 drop-test-db:
+	@echo "Dropping database..."
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -c "DROP DATABASE IF EXISTS fao;"
-	make use-local-db
+	@echo "Database 'fao' dropped"
 
 reset-test-db: drop-test-db create-test-db
 	@echo "Test database reset complete"
+
+enable-rls-db-remote:
+	make use-remote-db
+	$(MAKE) enable-rls
+	make use-local-db
+
+enable-rls:
+	@echo "Enable RSL"
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/enable_rls.sql
+
+all-table-row-count-local:
+	make use-local-db
+	$(MAKE) all-table-row-count
+
+all-table-row-count:
+	@echo "Enable RSL"
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/show_all_table_row_count.sql
+
+
+
+create-pipeline-prog-table-local:
+	make use-local-db
+	$(MAKE) create-pipeline-prog-table
+
+create-pipeline-prog-table-remote:
+	make use-remote-db
+	$(MAKE) create-pipeline-prog-table
+	make use-local-db
+
+create-pipeline-prog-table:
+	@echo "Creating pipeline progress table..."
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/create_pipeline_progress_table.sql
+	@echo "Pipeline progress table created"
 
 reset-db:
 	@echo "Resetting database..."

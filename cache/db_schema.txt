@@ -161,7 +161,7 @@ aquastat
   flag_id: Integer [FK->flags]
   unit: String(50) (null)
   year: SmallInteger [idx]
-  year_code: String(4)
+  year_code: String(8)
   value: Float
   created_at: DateTime
   updated_at: DateTime
@@ -173,7 +173,7 @@ asti_expenditures
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -188,7 +188,7 @@ asti_researchers
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -203,7 +203,7 @@ climate_change_emissions_indicators
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -217,7 +217,7 @@ commodity_balances_non_food
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -231,7 +231,7 @@ commodity_balances_non_food_2010
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -246,7 +246,7 @@ commodity_balances_non_food_2013_old_methodology
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -262,7 +262,7 @@ consumer_price_indices
   flag_id: Integer [FK->flags]
   months_code: String(4)
   months: String(20)
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -278,7 +278,7 @@ cost_affordability_healthy_diet_co_ahd
   element_code_id: Integer [FK->elements]
   release_code_id: Integer [FK->releases]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -292,7 +292,7 @@ deflators
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -310,7 +310,7 @@ development_assistance_to_agriculture
   recipient_country_code: String
   recipient_country_code_m49: String
   recipient_country: String
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -325,7 +325,7 @@ emissions_agriculture_energy
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -340,7 +340,7 @@ emissions_crops
   element_code_id: Integer [FK->elements]
   source_code_id: Integer [FK->sources]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -356,7 +356,7 @@ emissions_drained_organic_soils
   element_code_id: Integer [FK->elements]
   source_code_id: Integer [FK->sources]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -372,7 +372,7 @@ emissions_land_use_fires
   element_code_id: Integer [FK->elements]
   source_code_id: Integer [FK->sources]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -388,7 +388,7 @@ emissions_land_use_forests
   element_code_id: Integer [FK->elements]
   source_code_id: Integer [FK->sources]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -404,7 +404,7 @@ emissions_livestock
   element_code_id: Integer [FK->elements]
   source_code_id: Integer [FK->sources]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -419,7 +419,7 @@ emissions_pre_post_production
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -434,7 +434,7 @@ emissions_totals
   element_code_id: Integer [FK->elements]
   source_code_id: Integer [FK->sources]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -451,7 +451,7 @@ employment_indicators_agriculture
   sex_code_id: Integer [FK->sexs]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -468,7 +468,7 @@ employment_indicators_rural
   sex_code_id: Integer [FK->sexs]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -483,7 +483,7 @@ environment_bioenergy
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -497,7 +497,7 @@ environment_cropland_nutrient_budget
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -512,7 +512,7 @@ environment_emissions_by_sector
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -526,7 +526,7 @@ environment_emissions_intensities
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -540,7 +540,7 @@ environment_food_waste_disposal
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -554,7 +554,7 @@ environment_land_cover
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -568,7 +568,7 @@ environment_land_use
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -582,7 +582,7 @@ environment_livestock_manure
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -597,7 +597,7 @@ environment_livestock_patterns
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -611,7 +611,7 @@ environment_pesticides
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -625,7 +625,7 @@ environment_soil_nutrient_budget
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -640,7 +640,7 @@ environment_temperature_change
   flag_id: Integer [FK->flags]
   months_code: String(4)
   months: String(20)
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -654,7 +654,7 @@ exchange_rate
   element_code_id: Integer [FK->elements]
   iso_currency_code_id: Integer [FK->currencies]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   months_code: String(4)
   months: String(20)
@@ -675,7 +675,7 @@ fertilizers_detailed_trade_matrix
   partner_country_code: String
   partner_country_code_m49: String
   partner_countries: String
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -691,7 +691,7 @@ food_aid_shipments_wfp
   recipient_country_code: String
   recipient_country_code_m49: String
   recipient_country: String
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -724,7 +724,7 @@ food_balance_sheets
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -739,7 +739,7 @@ food_balance_sheets_historic
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -753,7 +753,7 @@ food_security_data
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: String [idx]
   unit: String(50) (null)
   value: Float (null)
@@ -768,7 +768,7 @@ forestry
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -783,7 +783,7 @@ forestry_pulp_paper_survey
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -802,7 +802,7 @@ forestry_trade_flows
   partner_country_code: String
   partner_country_code_m49: String
   partner_countries: String
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -865,7 +865,7 @@ inputs_fertilizers_archive
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -879,7 +879,7 @@ inputs_fertilizers_nutrient
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -894,7 +894,7 @@ inputs_fertilizers_product
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -908,7 +908,7 @@ inputs_land_use
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -923,7 +923,7 @@ inputs_pesticides_trade
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -937,7 +937,7 @@ inputs_pesticides_use
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -952,7 +952,7 @@ investment_capital_stock
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -967,7 +967,7 @@ investment_country_investment_statistics_profile
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -982,7 +982,7 @@ investment_credit_agriculture
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -996,7 +996,7 @@ investment_foreign_direct_investment
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1011,7 +1011,7 @@ investment_government_expenditure
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -1026,7 +1026,7 @@ investment_machinery
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1041,7 +1041,7 @@ investment_machinery_archive
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1055,7 +1055,7 @@ macro_statistics_key_indicators
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1084,7 +1084,7 @@ population
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1099,7 +1099,7 @@ prices
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   months_code: String(4)
   months: String(20)
@@ -1115,7 +1115,7 @@ prices_archive
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1129,7 +1129,7 @@ production_crops_livestock
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float (null)
@@ -1144,7 +1144,7 @@ production_indices
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float
@@ -1158,7 +1158,7 @@ sdg_bulk_downloads
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50) (null)
   value: Float (null)
@@ -1173,7 +1173,7 @@ sua_crops_livestock
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float
@@ -1189,7 +1189,7 @@ supply_utilization_accounts_food_and_diet
   indicator_code_id: Integer [FK->indicators]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  year_code: String(4)
+  year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
   value: Float

@@ -54,7 +54,7 @@ fao-data-api/
 ```
 
 **Implementation Steps:**
-1. Create new `fao-data-api` repository
+1. Create new `fao-api` repository
 2. Move only runtime code (no generator)
 3. Create proper .gitignore
 4. Remove all hardcoded paths
@@ -180,9 +180,9 @@ async def fao_exception_handler(request: Request, exc: FAOAPIError):
 ```
 
 ### Deliverables - Phase 1
-- [ ] Two separate, clean repositories
-- [ ] Zero hardcoded configuration values
-- [ ] Base classes reducing code by ~70%
+- [✅] Two separate, clean repositories
+- [↩] Zero hardcoded configuration values
+- [✅] Base classes reducing code by ~70%
 - [ ] Consistent error handling across all endpoints
 - [ ] Professional project structure
 
@@ -590,6 +590,11 @@ async def get_export_status(job_id: str):
             "size_bytes": job["file_size"]
         }
 ```
+
+### 3.5 Download FAO Datasets Dynamically
+
+**Needs more thought, but this endpoint might work:**
+ - https://bulks-faostat.fao.org/production/datasets_E.json
 
 ### Deliverables - Phase 3
 - [ ] Data quality metadata endpoints
