@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from .structure import Structure
 from .file_system import FileSystem
 from .template_renderer import TemplateRenderer
-from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
+from generator.fao_reference_data_extractor import REFERENCE_MAPPINGS
 from . import logger, clean_text, format_column_name, safe_index_name
 
 
@@ -22,8 +22,8 @@ class ProjectPath:
 
 class Generator:
     def __init__(self, output_dir: str | Path, input_dir: str):
-        self.project_name = "fao"  # Gets "fao" from the path
-        self.output_dir = Path(output_dir)
+        self.project_name = "fao"
+        self.output_dir = Path(output_dir) / self.project_name
         self.paths = ProjectPath(self.output_dir)
         self.input_dir = input_dir
         self.structure = Structure()
@@ -52,11 +52,11 @@ class Generator:
         cache_bust = False
 
         # Structure discovery
-        structure_modules = FAOStructureModules(self.input_dir, LOOKUP_MAPPINGS, json_cache_path, cache_bust)
+        structure_modules = FAOStructureModules(self.input_dir, REFERENCE_MAPPINGS, json_cache_path, cache_bust)
         structure_modules.run()
 
         # Add foreign keys
-        fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path, cache_bust)
+        fk_mapper = FAOForeignKeyMapper(structure_modules.results, REFERENCE_MAPPINGS, json_cache_path, cache_bust)
         enhanced_results = fk_mapper.enhance_datasets_with_foreign_keys()
 
         # Save and use results
@@ -64,8 +64,8 @@ class Generator:
 
         # Step 2: Convert to module format
         # Just use the modules directly!
-        for lookup_name, lookup in enhanced_results["lookups"].items():
-            self.all_modules.append(lookup)
+        for reference_name, reference in enhanced_results["references"].items():
+            self.all_modules.append(reference)
 
         for dataset_name, dataset in enhanced_results["datasets"].items():
             self.all_modules.append(dataset)
@@ -82,6 +82,7 @@ class Generator:
             self._generate_pipeline_and_models(pipeline_name, modules)
         self._generate_all_pipelines_main()
         self._generate_pipelines_init()
+        self._generate_base_modules_file()
         self.generate_all_model_imports_file()
         self._generate_api_routers()
 
@@ -141,6 +142,12 @@ class Generator:
         content = self.template_renderer.render_pipelines_init_template()
         self.file_system.write_file_cache(self.paths.db_pipelines / "__init__.py", content)
 
+    def _generate_base_modules_file(self):
+        """Generate db/models/__init__.py with all model imports"""
+
+        content = self.template_renderer.render_base_modules_template(base_chunk_size=40000)
+        self.file_system.write_file_cache(self.paths.db_pipelines / "base.py", content)
+
     def generate_all_model_imports_file(self):
         """Generate project file with all model imports for alembic migrations"""
         imports = []
@@ -162,8 +169,8 @@ class Generator:
             module_name = module["name"]
 
             module_template = (
-                self.template_renderer.render_lookup_module_template
-                if module["is_lookup_module"]
+                self.template_renderer.render_reference_module_template
+                if module["is_reference_module"]
                 else self.template_renderer.render_dataset_module_template
             )
 
@@ -293,14 +300,14 @@ class Generator:
         lines.append("# Format: column_name: type (nullable?) [FK->table] [idx]\n")
         lines.append("#" + "=" * 60 + "\n")
 
-        # Group by lookup vs dataset for organization
-        lookups = [m for m in self.all_modules if m["is_lookup_module"]]
-        datasets = [m for m in self.all_modules if not m["is_lookup_module"]]
+        # Group by reference vs dataset for organization
+        references = [m for m in self.all_modules if m["is_reference_module"]]
+        datasets = [m for m in self.all_modules if not m["is_reference_module"]]
 
-        # Document lookups first
-        if lookups:
-            lines.append("\n## LOOKUP TABLES\n")
-            for module in sorted(lookups, key=lambda x: x["model"]["table_name"]):
+        # Document references first
+        if references:
+            lines.append("\n## REFERENCE TABLES\n")
+            for module in sorted(references, key=lambda x: x["model"]["table_name"]):
                 lines.extend(self._format_table_schema(module))
 
         # Then datasets
@@ -347,7 +354,7 @@ class Generator:
                 # Add index indicators
                 if col.get("index"):
                     col_line += " [idx]"
-                if col.get("original_pk"):  # For lookups
+                if col.get("original_pk"):  # For references
                     col_line += " [uniq]"
 
                 lines.append(col_line)

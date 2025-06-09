@@ -16,7 +16,7 @@ from {{ project_name }}.src.db.database import Base
 class {{ module.model.model_name }}(Base):
     __tablename__ = "{{ module.model.table_name }}"
     {# readability spacer #}
-    {% if module.is_lookup_module %}
+    {% if module.is_reference_module %}
     # Lookup table - use domain primary key
     id = Column(Integer, primary_key=True)
     {# readability spacer #}
@@ -27,7 +27,7 @@ class {{ module.model.model_name }}(Base):
     {{ column.sql_column_name }} = Column({{ column.inferred_sql_type }}{% if column.null_count == 0 %}, nullable=False{% endif %}, index={{ column.index}})
             {% endif %}
         {% endfor %}
-    {% else %} {# NOT module.is_lookup_module #}
+    {% else %} {# NOT module.is_reference_module #}
     # Dataset table - use auto-increment id
     id = Column(Integer, primary_key=True)
     {# readability spacer #}
@@ -46,12 +46,12 @@ class {{ module.model.model_name }}(Base):
             {% endif %}
         {% endfor %}
     {# readability spacer #}
-    {% endif %} {# end module.is_lookup_module #}  
+    {% endif %} {# end module.is_reference_module #}  
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     
-    {% if module.is_lookup_module %}
-    # Composite indexes for lookup tables
+    {% if module.is_reference_module %}
+    # Composite indexes for reference tables
     __table_args__ = (
         Index("ix_{{ module.model.table_name[:8] }}_{{ module.model.pk_sql_column_name[:8] }}_src", '{{ module.model.pk_sql_column_name }}', 'source_dataset', unique=True),
     )
@@ -85,7 +85,7 @@ class {{ module.model.model_name }}(Base):
     {% endif %}
     
     def __repr__(self):
-        {% if module.is_lookup_module %}
+        {% if module.is_reference_module %}
         return f"<{{ module.model.model_name }}({{ module.model.pk_sql_column_name }}={self.{{ module.model.pk_sql_column_name }}})>"
         {% else %}
         # Show first few columns for datasets

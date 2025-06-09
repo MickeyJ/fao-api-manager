@@ -30,7 +30,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.replace({'nan': None, 'NaN': None, 'NAN': None})
 
     {% if module.model.column_renames %}
-    # Rename columns to match lookup table standards
+    # Rename columns to match reference table standards
     column_renames = {{ module.model.column_renames | tojson }}
     df = df.rename(columns=column_renames)
     print(f"  Renamed columns: {list(column_renames.keys())} → {list(column_renames.values())}")
@@ -63,7 +63,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     
     {% for fk in module.model.foreign_keys %}
     # Generate hash IDs for {{ fk.csv_column_name }}
-    df['{{ fk.hash_fk_sql_column_name }}'] = df['{{ fk.lookup_pk_csv_column }}'].apply(
+    df['{{ fk.hash_fk_sql_column_name }}'] = df['{{ fk.reference_pk_csv_column }}'].apply(
         lambda val: generate_numeric_id(
             {
                 {% for col in fk.hash_columns %}

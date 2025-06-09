@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv(override=True)
 
+
 # Build DATABASE_URL at module level (just string manipulation, no connection)
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")

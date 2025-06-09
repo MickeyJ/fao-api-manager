@@ -5,7 +5,7 @@ from typing import Optional
 from {{ project_name }}.src.db.database import get_db
 from {{ project_name }}.src.db.pipelines.{{ router.pipeline_name }}.{{ router.name }}_model import {{ router.model.model_name }}
 {% if router.model.foreign_keys %}
-# Import core/lookup tables for joins
+# Import core/reference tables for joins
 {% set imported_tables = [] %}
 {% for fk in router.model.foreign_keys %}
 {% if fk.table_name not in imported_tables %}
@@ -27,8 +27,8 @@ def get_{{ router.name }}(
     offset: int = Query(0, ge=0, description="Number of records to skip"),
     {% for fk in router.model.foreign_keys %}
     {{ fk.sql_column_name }}: Optional[str] = Query(None, description="Filter by {{ fk.table_name }} code"),
-        {% if fk.lookup_description_column %}
-    {{ fk.lookup_description_column }}: Optional[str] = Query(None, description="Filter by {{ fk.table_name }} description"),
+        {% if fk.reference_description_column %}
+    {{ fk.reference_description_column }}: Optional[str] = Query(None, description="Filter by {{ fk.table_name }} description"),
         {% endif %}
     {% endfor %}
     db: Session = Depends(get_db)
@@ -38,8 +38,8 @@ def get_{{ router.name }}(
     Filter options:
     {% for fk in router.model.foreign_keys %}
     - {{ fk.sql_column_name }}: Filter by {{ fk.table_name }} code
-        {% if fk.lookup_description_column %}
-    - {{ fk.lookup_description_column }}: Filter by {{ fk.table_name }} description (partial match)
+        {% if fk.reference_description_column %}
+    - {{ fk.reference_description_column }}: Filter by {{ fk.table_name }} description (partial match)
         {% endif %}
     {% endfor %}
     """
@@ -49,8 +49,8 @@ def get_{{ router.name }}(
             {{ router.model.model_name }},
             {% for fk in router.model.foreign_keys %}
             {{ fk.model_name }}.{{ fk.sql_column_name }}.label("{{ fk.table_name }}_code"),
-            {% if fk.lookup_description_column %}
-            {{ fk.model_name }}.{{ fk.lookup_description_column }}.label("{{ fk.table_name }}_desc"),
+            {% if fk.reference_description_column %}
+            {{ fk.model_name }}.{{ fk.reference_description_column }}.label("{{ fk.table_name }}_desc"),
             {% endif %}
             {% endfor %}
         )
@@ -64,8 +64,8 @@ def get_{{ router.name }}(
     {% for fk in router.model.foreign_keys %}
     if {{ fk.sql_column_name }}:
         query = query.where({{ fk.model_name }}.{{ fk.sql_column_name }} == {{ fk.sql_column_name }})
-    if {{ fk.lookup_description_column }}:
-        query = query.where({{ fk.model_name }}.{{ fk.lookup_description_column }}.ilike("%" + {{ fk.lookup_description_column }} + "%"))
+    if {{ fk.reference_description_column }}:
+        query = query.where({{ fk.model_name }}.{{ fk.reference_description_column }}.ilike("%" + {{ fk.reference_description_column }} + "%"))
     {% endfor %}
    
     

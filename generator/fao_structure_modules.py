@@ -11,17 +11,19 @@ from .value_type_checker import analyze_column
 class FAOStructureModules:
     """First pass - just discover what files we have"""
 
-    def __init__(self, input_dir: str | Path, lookup_mappings: Dict, json_cache_path: Path, cache_bust: bool = False):
+    def __init__(
+        self, input_dir: str | Path, reference_mappings: Dict, json_cache_path: Path, cache_bust: bool = False
+    ):
         self.input_dir = Path(input_dir)
         self.json_cache_path = json_cache_path
-        self.synthetic_lookups_dir = self.input_dir / "synthetic_lookups"
-        self.lookup_mappings = lookup_mappings
-        self.results = {"lookups": {}, "datasets": {}}
+        self.synthetic_references_dir = self.input_dir / "synthetic_references"
+        self.reference_mappings = reference_mappings
+        self.results = {"references": {}, "datasets": {}}
         self.structure = Structure()
         self.cache_bust = cache_bust
 
     def run(self) -> None:
-        """Discover all lookups and datasets"""
+        """Discover all references and datasets"""
 
         if self.json_cache_path.exists() and not self.cache_bust:
             logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
@@ -30,10 +32,10 @@ class FAOStructureModules:
             return
 
         logger.info("🔍 Starting FAO module structuring...")
-        lookups = self._make_lookups()
+        references = self._make_references()
         datasets = self._make_datasets()
 
-        self.results = {"lookups": lookups, "datasets": datasets}  # Store in instance
+        self.results = {"references": references, "datasets": datasets}  # Store in instance
 
     def save(self) -> Path:
         """Save discovery results to JSON"""
@@ -56,14 +58,14 @@ class FAOStructureModules:
         logger.info(f"💾 Saved discovery results to {self.json_cache_path}")
         return self.json_cache_path
 
-    def _make_lookups(self) -> Dict[str, dict]:
-        """Discover all synthetic lookup files"""
-        lookups = {}
+    def _make_references(self) -> Dict[str, dict]:
+        """Discover all synthetic reference files"""
+        references = {}
         logger.info(f"📊 Creating Lookup Data Pipeline Structures")
 
-        for lookup_key, mapping in self.lookup_mappings.items():
-            lookup_name = mapping["lookup_name"]
-            csv_path = self.synthetic_lookups_dir / f"{lookup_name}.csv"
+        for reference_key, mapping in self.reference_mappings.items():
+            reference_name = mapping["reference_name"]
+            csv_path = self.synthetic_references_dir / f"{reference_name}.csv"
 
             if csv_path.exists():
                 csv_info = self._get_csv_info(csv_path)
@@ -85,10 +87,10 @@ class FAOStructureModules:
 
                     column_analysis.append(col_spec)
 
-                # Build lookup structure
-                lookup = {
-                    "name": lookup_name,
-                    "is_lookup_module": True,
+                # Build reference structure
+                reference = {
+                    "name": reference_name,
+                    "is_reference_module": True,
                     "file_info": {
                         "csv_file": str(csv_path.relative_to(self.input_dir).as_posix()),
                         "csv_filename": csv_path.name,
@@ -96,8 +98,8 @@ class FAOStructureModules:
                         "row_count": row_count,
                     },
                     "model": {
-                        "table_name": to_snake_case(lookup_name),
-                        "model_name": snake_to_pascal_case(lookup_name),
+                        "table_name": to_snake_case(reference_name),
+                        "model_name": snake_to_pascal_case(reference_name),
                         "pk_column": mapping["output_columns"]["pk"],
                         "pk_sql_column_name": format_column_name(mapping["output_columns"]["pk"]),
                         "hash_columns": mapping.get("hash_columns", []),
@@ -115,28 +117,28 @@ class FAOStructureModules:
 
                 # Build composite unique index on original PK + source_dataset
                 original_pk_col = format_column_name(mapping["output_columns"]["pk"])
-                index_name = safe_index_name(lookup["model"]["table_name"], f"{original_pk_col}_src")
+                index_name = safe_index_name(reference["model"]["table_name"], f"{original_pk_col}_src")
 
-                lookup["model"]["indexes"].append(
+                reference["model"]["indexes"].append(
                     {
                         "name": index_name,
                         "columns": [original_pk_col, "source_dataset"],
                         "unique": True,
-                        "description": "Ensures unique lookup values per source dataset",
+                        "description": "Ensures unique reference values per source dataset",
                     }
                 )
 
-                lookups[lookup_name] = lookup
-                logger.info(f"  🛢 {lookup_name}: {row_count} rows")
+                references[reference_name] = reference
+                logger.info(f"  🛢 {reference_name}: {row_count} rows")
             else:
-                logger.warning(f"  ⚠️ Missing {lookup_name}.csv")
+                logger.warning(f"  ⚠️ Missing {reference_name}.csv")
 
-        return lookups
+        return references
 
     # In FAOStructureModules, when processing columns
-    def _find_lookup_mapping_for_column(self, column_name: str):
-        """Find the lookup mapping that contains this column as a primary key variation"""
-        for lookup_key, mapping in self.lookup_mappings.items():
+    def _find_reference_mapping_for_column(self, column_name: str):
+        """Find the reference mapping that contains this column as a primary key variation"""
+        for reference_key, mapping in self.reference_mappings.items():
             if column_name in mapping["primary_key_variations"]:
                 return mapping
         return {}
@@ -154,8 +156,8 @@ class FAOStructureModules:
 
         for path in self.input_dir.iterdir():
             if path.is_dir() and not path.name.startswith("."):
-                # Skip synthetic_lookups
-                if path.name == "synthetic_lookups":
+                # Skip synthetic_references
+                if path.name == "synthetic_references":
                     continue
 
                 # Check if it looks like a FAO dataset
@@ -188,7 +190,7 @@ class FAOStructureModules:
         column_analysis = []
         for column_name in column_names:
             col_spec = analyze_column(sample_rows=sample_rows, column_name=column_name)
-            mapping = self._find_lookup_mapping_for_column(col_spec["csv_column_name"])
+            mapping = self._find_reference_mapping_for_column(col_spec["csv_column_name"])
             if mapping and "format_methods" in mapping:
                 format_methods = mapping.get("format_methods", {})
                 if col_spec["csv_column_name"] in format_methods:
@@ -207,7 +209,7 @@ class FAOStructureModules:
 
         return {
             "name": dataset_name,
-            "is_lookup_module": False,
+            "is_reference_module": False,
             "file_info": {
                 "csv_file": str(main_file.relative_to(self.input_dir).as_posix()),
                 "csv_filename": main_file.name,

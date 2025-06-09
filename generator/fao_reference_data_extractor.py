@@ -1,4 +1,4 @@
-# generator/lookup_extractor.py
+# generator/reference_extractor.py
 import zipfile, json
 from pathlib import Path
 from typing import Dict, List, Set
@@ -15,7 +15,7 @@ class FAOReferenceDataExtractor:
         self.analysis_dir = Path("./cache")
         self.json_cache_path = json_cache_path
         self.structure = Structure()
-        self.extracted_lookups = {}  # Will store discovered lookups
+        self.extracted_references = {}  # Will store discovered references
 
     def run(self):
         """Main entry point - extract and analyze everything"""
@@ -24,10 +24,10 @@ class FAOReferenceDataExtractor:
         #     logger.info(f"📁 Using cached module structure from {self.json_cache_path}")
         #     return
 
-        logger.info("🚀 Starting lookup data extraction process...")
+        logger.info("🚀 Starting reference data extraction process...")
 
         self.extract_all_zips()
-        self.create_all_synth_lookups()
+        self.create_all_synth_references()
 
     def extract_all_zips(self):
         """Extract all ZIP files to their current directory"""
@@ -49,37 +49,37 @@ class FAOReferenceDataExtractor:
         # Extract ALL zips for now to ensure we don't miss anything
         return name.endswith(".zip")
 
-    def create_all_synth_lookups(self):
-        """Extract all lookup data - prioritizing values found in datasets"""
-        logger.info("🔍 Starting full lookup extraction...")
+    def create_all_synth_references(self):
+        """Extract all reference data - prioritizing values found in datasets"""
+        logger.info("🔍 Starting full reference extraction...")
 
         # Initialize storage
-        lookup_data = {}
-        for key, mapping in LOOKUP_MAPPINGS.items():
-            lookup_name = mapping["lookup_name"]
-            lookup_data[lookup_name] = {"rows": []}
+        reference_data = {}
+        for key, mapping in REFERENCE_MAPPINGS.items():
+            reference_name = mapping["reference_name"]
+            reference_data[reference_name] = {"rows": []}
 
         # PHASE 1: Process dataset files FIRST (these are the values actually used)
-        logger.info("\n📊 Phase 1: Extracting lookups from all csv files...")
-        self._process_all_csv_files(lookup_data)
+        logger.info("\n📊 Phase 1: Extracting references from all csv files...")
+        self._process_all_csv_files(reference_data)
 
         # Log what we found
-        for lookup_name, data in lookup_data.items():
+        for reference_name, data in reference_data.items():
             if data["rows"]:  # Changed from data["core"]
-                logger.info(f"  Found {len(data['rows'])} rows for {lookup_name}")
+                logger.info(f"  Found {len(data['rows'])} rows for {reference_name}")
 
-        # PHASE 2: Supplement with lookup CSV files (better descriptions, additional columns)
-        # logger.info("\n📋 Phase 2: Supplementing from lookup CSV files...")
-        # self._process_lookup_files(lookup_data)
+        # PHASE 2: Supplement with reference CSV files (better descriptions, additional columns)
+        # logger.info("\n📋 Phase 2: Supplementing from reference CSV files...")
+        # self._process_reference_files(reference_data)
 
         # Save synthetic CSV files
-        self._save_synthetic_csvs(lookup_data)
+        self._save_synthetic_csvs(reference_data)
 
-        return lookup_data
+        return reference_data
 
-    def _extract_with_additional_columns(self, df: pd.DataFrame, mapping: Dict, lookup_data: Dict, csv_file: Path):
-        """Extract lookup data including additional columns"""
-        lookup_name = mapping["lookup_name"]
+    def _extract_with_additional_columns(self, df: pd.DataFrame, mapping: Dict, reference_data: Dict, csv_file: Path):
+        """Extract reference data including additional columns"""
+        reference_name = mapping["reference_name"]
 
         # Find primary key and description columns
         pk_col = None
@@ -109,8 +109,8 @@ class FAOReferenceDataExtractor:
             unique_data = df[extract_cols].drop_duplicates()
 
             # Initialize rows list if not exists
-            if "rows" not in lookup_data[lookup_name]:
-                lookup_data[lookup_name]["rows"] = []
+            if "rows" not in reference_data[reference_name]:
+                reference_data[reference_name]["rows"] = []
 
             new_entries = 0
             for _, row in unique_data.iterrows():
@@ -137,29 +137,29 @@ class FAOReferenceDataExtractor:
                     # ADD SOURCE DATASET COLUMN
                     row_dict["source_dataset"] = dataset_name
 
-                    # TODO: processing for months lookup file
+                    # TODO: processing for months reference file
                     # df["Month Number"] = df["Months Code"].apply(
                     #     lambda x: int(str(x)[-2:]) if str(x).startswith("70") and x != "7021" else None
                     # )
                     # df["Quarter"] = df["Month Number"].apply(lambda x: f"Q{((x-1)//3)+1}" if x else None)
 
                     # Add row to list
-                    lookup_data[lookup_name]["rows"].append(row_dict)
+                    reference_data[reference_name]["rows"].append(row_dict)
 
                     new_entries += 1
 
             if new_entries > 0:
-                logger.debug(f"  ✓ Found {new_entries} rows for {lookup_name}")
+                logger.debug(f"  ✓ Found {new_entries} rows for {reference_name}")
 
-    def _process_all_csv_files(self, lookup_data: Dict):
-        """Process dataset files for any additional lookup values"""
+    def _process_all_csv_files(self, reference_data: Dict):
+        """Process dataset files for any additional reference values"""
         # This is your existing extraction logic
         total_files = 0
         for extract_dir in self.zip_dir.iterdir():
             if (
                 extract_dir.is_dir()
                 and not extract_dir.name.startswith(".")
-                and not extract_dir.name.startswith("synthetic_lookups")
+                and not extract_dir.name.startswith("synthetic_references")
             ):
                 logger.info(f"  📁 {extract_dir.name}")
                 for csv_file in extract_dir.rglob("*.csv"):
@@ -180,8 +180,8 @@ class FAOReferenceDataExtractor:
                             df = pd.read_csv(csv_file, dtype=str, encoding=encoding)
                             df.columns = df.columns.str.strip()
 
-                            for key, mapping in LOOKUP_MAPPINGS.items():
-                                self._extract_with_additional_columns(df, mapping, lookup_data, csv_file)
+                            for key, mapping in REFERENCE_MAPPINGS.items():
+                                self._extract_with_additional_columns(df, mapping, reference_data, csv_file)
 
                             total_files += 1
                             if total_files % 25 == 0:
@@ -196,16 +196,16 @@ class FAOReferenceDataExtractor:
 
         logger.info(f"  ✅ Processed {total_files} dataset files")
 
-    def _save_synthetic_csvs(self, lookup_data: Dict):
-        """Save extracted lookup data as synthetic CSV files"""
-        output_dir = self.zip_dir / "synthetic_lookups"
+    def _save_synthetic_csvs(self, reference_data: Dict):
+        """Save extracted reference data as synthetic CSV files"""
+        output_dir = self.zip_dir / "synthetic_references"
         output_dir.mkdir(exist_ok=True)
 
-        logger.info(f"\n💾 Saving synthetic lookup CSVs to {output_dir}")
+        logger.info(f"\n💾 Saving synthetic reference CSVs to {output_dir}")
 
-        for key, mapping in LOOKUP_MAPPINGS.items():
-            lookup_name = mapping["lookup_name"]
-            data = lookup_data[lookup_name]
+        for key, mapping in REFERENCE_MAPPINGS.items():
+            reference_name = mapping["reference_name"]
+            data = reference_data[reference_name]
 
             if data["rows"]:
                 df = pd.DataFrame(data["rows"])
@@ -245,19 +245,19 @@ class FAOReferenceDataExtractor:
                         columns.append(col)
 
                 # Save to CSV with proper column order
-                output_file = output_dir / f"{lookup_name}.csv"
+                output_file = output_dir / f"{reference_name}.csv"
                 df[columns].to_csv(output_file, index=False)
 
-                logger.info(f"  ✅ Saved {lookup_name}.csv ({len(df)} rows)")
+                logger.info(f"  ✅ Saved {reference_name}.csv ({len(df)} rows)")
             else:
-                logger.info(f"  ⏭️  Skipped {lookup_name}.csv (no data found)")
+                logger.info(f"  ⏭️  Skipped {reference_name}.csv (no data found)")
 
 
-# In lookup_extractor.py, add after the class definition starts:
+# In reference_extractor.py, add after the class definition starts:
 
-LOOKUP_MAPPINGS = {
+REFERENCE_MAPPINGS = {
     "area_codes": {
-        "lookup_name": "area_codes",
+        "reference_name": "area_codes",
         "primary_key_variations": ["Area Code"],
         "description_variations": ["Area"],
         "output_columns": {"pk": "Area Code", "desc": "Area"},
@@ -268,7 +268,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "item_codes": {
-        "lookup_name": "item_codes",
+        "reference_name": "item_codes",
         "primary_key_variations": ["Item Code"],
         "description_variations": ["Item"],
         "output_columns": {"pk": "Item Code", "desc": "Item"},
@@ -281,7 +281,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "elements": {
-        "lookup_name": "elements",
+        "reference_name": "elements",
         "primary_key_variations": ["Element Code"],
         "description_variations": ["Element"],
         "output_columns": {"pk": "Element Code", "desc": "Element"},
@@ -290,7 +290,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "population_groups": {
-        "lookup_name": "population_age_groups",
+        "reference_name": "population_age_groups",
         "primary_key_variations": ["Population Age Group Code", "Population Group Code"],
         "description_variations": ["Population Age Group", "Population Group", "Population Age Group.1"],
         "output_columns": {"pk": "Population Age Group Code", "desc": "Population Age Group"},
@@ -299,7 +299,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "sexs": {
-        "lookup_name": "sexs",
+        "reference_name": "sexs",
         "primary_key_variations": ["Sex Code"],
         "description_variations": ["Sex"],
         "output_columns": {"pk": "Sex Code", "desc": "Sex"},
@@ -308,7 +308,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "flags": {
-        "lookup_name": "flags",
+        "reference_name": "flags",
         "primary_key_variations": ["Flag"],
         "description_variations": ["Description"],
         "output_columns": {"pk": "Flag", "desc": "Description"},
@@ -319,7 +319,7 @@ LOOKUP_MAPPINGS = {
         },
     },
     "currencies": {
-        "lookup_name": "currencies",
+        "reference_name": "currencies",
         "primary_key_variations": ["ISO Currency Code"],
         "description_variations": ["Currency"],
         "output_columns": {"pk": "ISO Currency Code", "desc": "Currency"},
@@ -328,7 +328,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "sources": {
-        "lookup_name": "sources",
+        "reference_name": "sources",
         "primary_key_variations": ["Source Code"],
         "description_variations": ["Source"],
         "output_columns": {"pk": "Source Code", "desc": "Source"},
@@ -337,7 +337,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "surveys": {
-        "lookup_name": "surveys",
+        "reference_name": "surveys",
         "primary_key_variations": ["Survey Code"],
         "description_variations": ["Survey"],
         "output_columns": {"pk": "Survey Code", "desc": "Survey"},
@@ -346,7 +346,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "releases": {
-        "lookup_name": "releases",
+        "reference_name": "releases",
         "primary_key_variations": ["Release Code"],
         "description_variations": ["Release"],
         "output_columns": {"pk": "Release Code", "desc": "Release"},
@@ -355,7 +355,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "indicators": {
-        "lookup_name": "indicators",
+        "reference_name": "indicators",
         "primary_key_variations": ["Indicator Code"],
         "description_variations": ["Indicator"],
         "output_columns": {"pk": "Indicator Code", "desc": "Indicator"},
@@ -364,7 +364,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "purposes": {
-        "lookup_name": "purposes",
+        "reference_name": "purposes",
         "primary_key_variations": ["Purpose Code"],
         "description_variations": ["Purpose"],
         "output_columns": {"pk": "Purpose Code", "desc": "Purpose"},
@@ -373,7 +373,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "donors": {
-        "lookup_name": "donors",
+        "reference_name": "donors",
         "primary_key_variations": ["Donor Code"],
         "description_variations": ["Donor"],
         "output_columns": {"pk": "Donor Code", "desc": "Donor"},
@@ -384,7 +384,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "food_groups": {
-        "lookup_name": "food_groups",
+        "reference_name": "food_groups",
         "primary_key_variations": ["Food Group Code"],
         "description_variations": ["Food Group"],
         "output_columns": {"pk": "Food Group Code", "desc": "Food Group"},
@@ -393,7 +393,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     "geographic_levels": {
-        "lookup_name": "geographic_levels",
+        "reference_name": "geographic_levels",
         "primary_key_variations": ["Geographic Level Code"],
         "description_variations": ["Geographic Level"],
         "output_columns": {"pk": "Geographic Level Code", "desc": "Geographic Level"},
@@ -402,7 +402,7 @@ LOOKUP_MAPPINGS = {
         "format_methods": {},
     },
     # "months": {
-    #     "lookup_name": "months",
+    #     "reference_name": "months",
     #     "primary_key_variations": ["Months Code", "Month Code"],
     #     "description_variations": ["Months", "Month"],
     #     "output_columns": {"pk": "Month Code", "desc": "Month"},

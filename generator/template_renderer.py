@@ -51,12 +51,20 @@ class TemplateRenderer:
         template = self.jinja_env.get_template("all_model_imports.py.jinja2")
         return template.render(imports=imports, project_name=self.project_name)
 
-    def render_lookup_module_template(
+    def render_base_modules_template(
+        self,
+        base_chunk_size: Optional[int] = 40000,
+    ) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("base_modules.py.jinja2")
+        return template.render(base_chunk_size=base_chunk_size)
+
+    def render_reference_module_template(
         self,
         module: Dict,
     ) -> str:
         """Render pipeline_module template (e.g., items.py, areas.py)"""
-        template = self.jinja_env.get_template("lookup_module.py.jinja2")
+        template = self.jinja_env.get_template("reference_module.py.jinja2")
         return template.render(
             module=module,
             project_name=self.project_name,
@@ -135,40 +143,3 @@ class TemplateRenderer:
         """Render db utils template"""
         template = self.jinja_env.get_template("db.utils.py.jinja2")
         return template.render()
-
-    def render_requirements_template(
-        self,
-    ) -> str:
-        """Render SQLAlchemy model template"""
-        template = self.jinja_env.get_template("requirements.in.jinja2")
-        return template.render()
-
-    def render_makefile_template(
-        self,
-    ) -> str:
-        """Render SQLAlchemy model template"""
-        template = self.jinja_env.get_template("Makefile.jinja2")
-        return template.render()
-
-    def render_env_templates(
-        self,
-    ) -> List[Dict]:
-        """Render .env template"""
-        return [
-            {
-                "file_name": ".env",
-                "content": self.jinja_env.get_template(".env.jinja2").render(),
-            },
-            {
-                "file_name": "local.env",
-                "content": self.jinja_env.get_template("local.env.jinja2").render(),
-            },
-            {
-                "file_name": "local-admin.env",
-                "content": self.jinja_env.get_template("local-admin.env.jinja2").render(),
-            },
-            {
-                "file_name": "remote.env",
-                "content": self.jinja_env.get_template("remote.env.jinja2").render(),
-            },
-        ]

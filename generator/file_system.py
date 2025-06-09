@@ -6,7 +6,7 @@ import json, difflib
 class FileSystem:
     def __init__(self, output_dir: str | Path):
         self.output_dir = Path(output_dir)
-        self.cache_dir = Path("./cache/.generator_cache")
+        self.cache_dir = Path("./cache/.generator_cache") / self.output_dir.name
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self._update_all_generated = None  # For files without manual edits
         self._update_all_manual = None  # For files with manual edits

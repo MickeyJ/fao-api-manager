@@ -14,15 +14,15 @@ def test_pre_generation():
     """Test the FAO data discovery"""
     from generator.fao_structure_modules import FAOStructureModules
     from generator.fao_foreign_key_mapper import FAOForeignKeyMapper
-    from generator.fao_reference_data_extractor import LOOKUP_MAPPINGS
+    from generator.fao_reference_data_extractor import REFERENCE_MAPPINGS
 
     # extractor = FAOReferenceDataExtractor(FAO_ZIP_PATH, json_cache_path)
     # extractor.run()
 
-    structure_modules = FAOStructureModules(FAO_ZIP_PATH, LOOKUP_MAPPINGS, json_cache_path)
+    structure_modules = FAOStructureModules(FAO_ZIP_PATH, REFERENCE_MAPPINGS, json_cache_path)
     structure_modules.run()
 
-    fk_mapper = FAOForeignKeyMapper(structure_modules.results, LOOKUP_MAPPINGS, json_cache_path)
+    fk_mapper = FAOForeignKeyMapper(structure_modules.results, REFERENCE_MAPPINGS, json_cache_path)
     enhanced_datasets = fk_mapper.enhance_datasets_with_foreign_keys()
 
     structure_modules.save()
@@ -33,7 +33,7 @@ def test_pre_generation():
 
 
 def process_csv():
-    """Process lookups from the synthetic_lookups directory"""
+    """Process references from the synthetic_references directory"""
     extractor = FAOReferenceDataExtractor(FAO_ZIP_PATH, json_cache_path)
     extractor.run()
 
@@ -47,7 +47,7 @@ def main():
     parser = argparse.ArgumentParser(description="FAO data pipeline generator")
 
     parser.add_argument(
-        "--process_csv", action="store_true", help="pre-process CSV files and create core/lookup csv files"
+        "--process_csv", action="store_true", help="pre-process CSV files and create core/reference csv files"
     )
     parser.add_argument("--pre_test", action="store_true", help="Generate all pipelines")
     parser.add_argument("--all", action="store_true", help="Generate all pipelines")

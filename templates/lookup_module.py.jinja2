@@ -6,19 +6,19 @@ from {{ project_name }}.src.db.database import run_with_session
 from .{{ module.model.table_name }}_model import {{ module.model.model_name }}
 
 
-# Direct path to synthetic lookup CSV
+# Direct path to synthetic reference CSV
 CSV_PATH = get_csv_path_for("{{ module.file_info.csv_file }}")
 
 table_name = "{{ module.model.table_name }}"
 
 
 def load():
-    """Load the lookup CSV file"""
+    """Load the reference CSV file"""
     return load_csv(CSV_PATH)
 
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean and prepare lookup data"""
+    """Clean and prepare reference data"""
     if df.empty:
         print(f"No {table_name} data to clean.")
         return df
@@ -61,7 +61,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def insert(df: pd.DataFrame, session: Session):
-    """Insert lookup data - simple bulk insert since conflicts are already resolved"""
+    """Insert reference data - simple bulk insert since conflicts are already resolved"""
     if df.empty:
         print(f"No {table_name} data to insert.")
         return
@@ -96,7 +96,7 @@ def insert(df: pd.DataFrame, session: Session):
 
 
 def run(db):
-    """Run the complete ETL pipeline for this lookup table"""
+    """Run the complete ETL pipeline for this reference table"""
     df = load()
     df = clean(df)
     insert(df, db)

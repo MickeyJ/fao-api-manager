@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 FAO_ZIP_PATH = os.getenv("FAO_ZIP_PATH")
-API_OUTPUT_PATH = os.getenv("FAO_API_OUTPUT_PATH")
 
 def calculate_optimal_chunk_size(df: pd.DataFrame, base_chunk_size: int = 10000) -> int:
     """
@@ -19,7 +18,7 @@ def calculate_optimal_chunk_size(df: pd.DataFrame, base_chunk_size: int = 10000)
     num_columns = len(df.columns)
     
     # PostgreSQL's parameter limit with safety margin
-    max_params = 60000  # Leave some headroom from 65,535 limit
+    max_params = 100000  # Leave some headroom from 65,535 limit
     
     # Calculate max rows that fit within parameter limit
     max_rows_by_params = max_params // num_columns
@@ -71,6 +70,8 @@ def generate_numeric_id(row_data: dict, hash_columns: list[str]) -> int:
 
 def get_csv_path_for(csv_path):
     """Get CSV path, extracting from ZIP if necessary"""
+    assert FAO_ZIP_PATH is not None, "FAO_ZIP_PATH must be set"
+
     full_path = Path(FAO_ZIP_PATH) / csv_path
 
     if full_path.exists():
