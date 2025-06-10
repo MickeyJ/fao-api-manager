@@ -129,17 +129,3 @@ class TemplateRenderer:
         return template.render(
             project_name=self.project_name,
         )
-
-    def render_database_template(
-        self,
-    ) -> str:
-        """Render database file template"""
-        template = self.jinja_env.get_template("database.py.jinja2")
-        return template.render(project_name=self.project_name)
-
-    def render_database_utils_template(
-        self,
-    ) -> str:
-        """Render db utils template"""
-        template = self.jinja_env.get_template("db.utils.py.jinja2")
-        return template.render(project_name=self.project_name)

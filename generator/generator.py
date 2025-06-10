@@ -270,8 +270,6 @@ class Generator:
         self.file_system.create_dir(self.paths.api_routers)
 
     def _generate_project_files(self):
-        self._generate_database_file()
-        self._generate_database_utils_file()
         self._generate_empty_init_files()
         self._generate_project_main()
 
@@ -286,16 +284,6 @@ class Generator:
         self.file_system.write_file("__init__.py", content)
         self.file_system.write_file(self.paths.src / "__init__.py", content)
         self.file_system.write_file(self.paths.db / "__init__.py", content)
-
-    def _generate_database_file(self):
-        """Generate database.py for db"""
-        content = self.template_renderer.render_database_template()
-        self.file_system.write_file_cache(self.paths.db / "database.py", content)
-
-    def _generate_database_utils_file(self):
-        """Generate utils.py for db"""
-        content = self.template_renderer.render_database_utils_template()
-        self.file_system.write_file_cache(self.paths.db / "utils.py", content)
 
     def _generate_schema_documentation(self):
         """Generate a compact schema documentation file"""

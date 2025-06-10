@@ -1,9 +1,22 @@
-from fastapi import FastAPI
+from typing import cast, Any
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 import uvicorn
+from . import api_map
 from {{ project_name }}.src.core import settings
 from ..core.middleware import add_version_headers
-from . import api_map
+from fao.src.core.exceptions import FAOAPIError
+from fao.src.core.error_handlers import (
+    fao_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+    sqlalchemy_exception_handler,
+    health_check_exception_handler,
+    generic_exception_handler
+)
 
 # Import all the routers
 {% for group_name, router_group in routers.items() %}
@@ -20,8 +33,30 @@ app = FastAPI(
     redoc_url=settings.redoc_url,
 )
 
+# Register handlers (with type: ignore if needed)
+app.add_exception_handler(
+    FAOAPIError, 
+    cast(Any, fao_exception_handler)
+)
+app.add_exception_handler(
+    RequestValidationError, 
+    cast(Any, validation_exception_handler)
+)
+app.add_exception_handler(
+    HTTPException, 
+    cast(Any, http_exception_handler)
+)
+app.add_exception_handler(
+    SQLAlchemyError, 
+    cast(Any, sqlalchemy_exception_handler)
+)
+app.add_exception_handler(Exception, health_check_exception_handler) 
+app.add_exception_handler(Exception, generic_exception_handler) 
+
+
 # Custom middleware
 app.middleware("http")(add_version_headers)
+
 
 # CORS middleware
 app.add_middleware(
