@@ -103,4 +103,4 @@ def is_valid_element_code(code: str, db: Session) -> bool:
 
 def is_valid_year_range(year_start: int, year_end: int):
     """Shared validation function"""
-    return year_start > year_end
+    return year_start < year_end
