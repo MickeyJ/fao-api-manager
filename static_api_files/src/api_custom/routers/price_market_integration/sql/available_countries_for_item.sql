@@ -1,8 +1,8 @@
 WITH country_price_stats AS (
     SELECT 
-        ac.id,
+        ac.id as area_id,
         ac.area_code,
-        ac.area as country_name,
+        ac.area as area_name,
         COUNT(DISTINCT p.year) as years_with_data,
         -- Count only annual records for fair comparison
         COUNT(CASE WHEN p.months = 'Annual value' OR p.months_code = '7021' THEN 1 END) as annual_records,
@@ -27,13 +27,13 @@ ranked_countries AS (
     WHERE annual_records >= 5  -- At least 5 years of annual data
 )
 SELECT 
-    id,
+    area_id,
     area_code,
-    country_name,
+    area_name,
     years_with_data,
     annual_records,
     first_year || '-' || last_year as year_range,
     ROUND(avg_price::numeric, 2) as avg_price
 FROM ranked_countries
 WHERE data_rank <= 40
-ORDER BY data_rank, country_name;
+ORDER BY data_rank, area_name;

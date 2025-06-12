@@ -1,5 +1,6 @@
 WITH annual_prices AS (
     SELECT
+        ac.id as area_id,
         ac.area_code,
         ac.area as country_name,
         p.year,
@@ -13,12 +14,14 @@ WITH annual_prices AS (
         AND e.element_code = '5532'
         AND p.year >= :start_year
         AND ac.area_code = ANY(:selected_area_codes)
-    GROUP BY ac.area_code, ac.area, p.year
+    GROUP BY ac.id, ac.area_code, ac.area, p.year
 ),
 price_ratios AS (
     SELECT
+        p1.area_id as country1_id,
         p1.area_code as country1_code,
         p1.country_name as country1,
+        p2.area_id as country2_id,
         p2.area_code as country2_code,
         p2.country_name as country2,
         p1.year,
@@ -33,8 +36,11 @@ price_ratios AS (
 SELECT
     country1,
     country2,
+    country1_id,  -- ADD THIS
+    country2_id,  -- ADD THIS
     country1_code,  -- ADD THIS
     country2_code,  -- ADD THIS
+
     JSON_AGG(
         JSON_BUILD_OBJECT(
             'year', year,
@@ -55,4 +61,4 @@ SELECT
         ELSE 'none'
     END as integration_level
 FROM price_ratios
-GROUP BY country1, country2, country1_code, country2_code;  -- UPDATE GROUP BY
+GROUP BY country1, country2, country1_id, country2_id, country1_code, country2_code;  -- UPDATE GROUP BY

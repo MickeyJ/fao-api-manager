@@ -1,4 +1,5 @@
 from pathlib import Path
+import numpy as np
 from typing import List, Optional
 from fastapi import APIRouter, Query, Depends
 from sqlalchemy.orm import Session
@@ -52,6 +53,47 @@ class MarketIntegrationResponse(BaseModel):
     parameters: dict
     integration_pairs: List[MarketIntegrationPair]
     summary: dict
+
+
+def calculate_price_correlation(time_series, current_metrics):
+    # Need at least 2 data points
+    if len(time_series) < 2:
+        return {
+            "correlation": None,
+            "correlation_based_integration": "insufficient_data",
+            "ratio_based_integration": current_metrics["integration_level"],
+        }
+
+    # Calculate year-over-year returns
+    returns1 = []
+    returns2 = []
+
+    for i in range(1, len(time_series)):
+        return1 = (time_series[i]["price1"] - time_series[i - 1]["price1"]) / time_series[i - 1]["price1"]
+        return2 = (time_series[i]["price2"] - time_series[i - 1]["price2"]) / time_series[i - 1]["price2"]
+        returns1.append(return1)
+        returns2.append(return2)
+
+    # Calculate Pearson correlation
+    correlation = np.corrcoef(returns1, returns2)[0, 1]
+
+    # Handle NaN case (when all values are identical)
+    if np.isnan(correlation):
+        correlation = 0.0
+
+    # Determine integration level based on correlation
+    if correlation > 0.7:
+        correlation_integration = "high"
+    elif correlation > 0.3:
+        correlation_integration = "moderate"
+    else:
+        correlation_integration = "none"
+
+    return {
+        "correlation": round(float(correlation), 3),  # Convert numpy float to Python float
+        "correlation_based_integration": correlation_integration,
+        "ratio_based_integration": current_metrics["integration_level"],
+    }
 
 
 # "flag": "A",
@@ -126,23 +168,34 @@ def get_market_integration(
             dataset="prices", filters={"item_code": item_code, "area_codes": area_codes, "year_start": year_start}
         )
 
-    # Format response
     comparisons = []
     for row in results:
+
+        metrics = {
+            "years_compared": row["years_compared"],
+            "avg_ratio": float(row["avg_ratio"]),
+            "volatility": float(row["ratio_volatility"]),
+            "min_ratio": float(row["min_ratio"]),
+            "max_ratio": float(row["max_ratio"]),
+            "integration_level": row["integration_level"],
+        }
+
         comparisons.append(
             {
                 "country_pair": {
-                    "country1": {"name": row["country1"], "code": row["country1_code"]},
-                    "country2": {"name": row["country2"], "code": row["country2_code"]},
+                    "country1": {
+                        "area_id": row["country1_id"],
+                        "area_code": row["country1_code"],
+                        "area_name": row["country1"],
+                    },
+                    "country2": {
+                        "area_id": row["country2_id"],
+                        "area_code": row["country2_code"],
+                        "area_name": row["country2"],
+                    },
                 },
-                "metrics": {
-                    "years_compared": row["years_compared"],
-                    "avg_ratio": float(row["avg_ratio"]),
-                    "volatility": float(row["ratio_volatility"]),
-                    "min_ratio": float(row["min_ratio"]),
-                    "max_ratio": float(row["max_ratio"]),
-                    "integration_level": row["integration_level"],
-                },
+                "metrics": metrics,
+                "calculated_metrics": calculate_price_correlation(row["time_series"], metrics),
                 "time_series": row["time_series"],  # Already JSON from query
             }
         )
