@@ -13,10 +13,12 @@ WITH country_price_stats AS (
     JOIN area_codes ac ON p.area_code_id = ac.id
     JOIN item_codes ic ON p.item_code_id = ic.id
     JOIN elements e ON p.element_code_id = e.id
+    JOIN flags f ON p.flag_id = f.id
     WHERE 
         ic.item_code = :item_code
-        AND e.element_code IN ('5532')
-        AND p.year >= 2010
+        AND e.element_code = :element_code
+        AND p.year >= :start_year
+        AND f.flag = 'A'  -- Official figures only
     GROUP BY ac.id, ac.area_code, ac.area
 ),
 ranked_countries AS (

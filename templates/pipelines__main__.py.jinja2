@@ -54,5 +54,16 @@ def run_all_pipelines(db):
 {% endfor %}
     print("✅ All pipelines complete!")
 
+    # TODO: Figure this out later, after implementing the dataset download/update
+    # def refresh_all_materialized_views(db):
+    #     views = [
+    #         "item_stats_usd", "item_stats_lcu",
+    #         "price_ratios_usd", "price_ratios_lcu", 
+    #         "price_details_usd", "price_details_lcu"
+    #     ]
+    #     for view in views:
+    #         db.execute(text(f"REFRESH MATERIALIZED VIEW {view}"))
+    #     db.commit()
+
 if __name__ == "__main__":
     run_with_session(run_all_pipelines)
