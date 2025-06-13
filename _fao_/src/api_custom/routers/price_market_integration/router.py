@@ -5,11 +5,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import table, column, text, select, and_, or_, func, literal
 
 # Correct imports following project patterns
-from fao.src.db.database import get_db
-from fao.src.core import settings
-from fao.src.core.utils import load_sql, calculate_price_correlation
-from fao.src.core.validation import is_valid_item_code, is_valid_element_code, is_valid_area_code, is_valid_year_range
-from fao.src.core.exceptions import (
+from _fao_.src.db.database import get_db
+from _fao_.src.core import settings
+from _fao_.src.core.utils import load_sql, calculate_price_correlation
+from _fao_.src.core.validation import is_valid_item_code, is_valid_element_code, is_valid_area_code, is_valid_year_range
+from _fao_.src.core.exceptions import (
     invalid_parameter,
     invalid_item_code,
     invalid_element_code,
@@ -17,147 +17,18 @@ from fao.src.core.exceptions import (
     missing_parameter,
     no_data_found,
 )
-from fao.src.db.pipelines.exchange_rate.exchange_rate_model import ExchangeRate
-from fao.src.db.pipelines.item_codes.item_codes_model import ItemCodes
-from fao.src.db.pipelines.area_codes.area_codes_model import AreaCodes
-from fao.src.db.pipelines.elements.elements_model import Elements
-from fao.src.db.pipelines.flags.flags_model import Flags
-from fao.src.db.pipelines.prices.prices_model import Prices
+from _fao_.src.db.pipelines.exchange_rate.exchange_rate_model import ExchangeRate
+from _fao_.src.db.pipelines.item_codes.item_codes_model import ItemCodes
+from _fao_.src.db.pipelines.area_codes.area_codes_model import AreaCodes
+from _fao_.src.db.pipelines.elements.elements_model import Elements
+from _fao_.src.db.pipelines.flags.flags_model import Flags
+from _fao_.src.db.pipelines.prices.prices_model import Prices
 
 
 router = APIRouter(prefix=f"/{settings.api_version_prefix}/market-integration", tags=["prices", "analytics", "custom"])
 
 PRICE_ELEMENT_CODE = "5530"
-START_YEAR = 1990
-
-
-# @router.get("/correlations")
-# def get_market_integration(
-#     item_code: str = Query(..., description="FAO item code"),
-#     element_code: str = Query(PRICE_ELEMENT_CODE, description="Element code for price data"),
-#     year_start: int = Query(START_YEAR, description="Start year"),
-#     area_codes: Optional[List[str]] = Query(None, description="Specific countries to analyze"),
-#     db: Session = Depends(get_db),
-# ):
-#     """
-#     Calculate market integration (price correlations) between countries for a commodity.
-
-#     High correlation (>0.8) indicates integrated markets where prices move together.
-#     Low correlation (<0.5) suggests isolated markets with independent price movements.
-#     """
-
-#     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#     # Item Code validation
-#     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#     if not item_code:
-#         raise missing_parameter("item_code")
-
-#     if not is_valid_item_code(item_code, db):
-#         raise invalid_item_code(item_code)
-
-#     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#     # Element Code validation
-#     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#     if not element_code:
-#         raise missing_parameter("element_code")
-
-#     if element_code and not is_valid_element_code(element_code, db):
-#         raise invalid_element_code(element_code)
-
-#     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#     # Area Code validation
-#     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-#     if not area_codes:
-#         raise missing_parameter("area_codes")
-
-#     if len(area_codes) > 4:
-#         raise invalid_parameter(
-#             param="area_codes", value=f"{len(area_codes)} items", reason="maximum 4 area codes allowed"
-#         )
-
-#     for area_code in area_codes:
-#         if area_code and not is_valid_area_code(area_code, db):
-#             raise invalid_area_code(area_code)
-
-#     # Load SQL from file
-#     market_integration_query = load_sql("sql/market_integration_USD.sql", Path(__file__).parent)
-
-#     if element_code == "5530":  # LCU prices
-#         market_integration_query = load_sql("sql/market_integration_LCU.sql", Path(__file__).parent)
-
-#     # Execute with parameters
-#     results = (
-#         db.execute(
-#             text(market_integration_query),
-#             {
-#                 "item_code": item_code,
-#                 "element_code": element_code,
-#                 "start_year": year_start,
-#                 "selected_area_codes": area_codes,
-#             },
-#         )
-#         .mappings()
-#         .all()
-#     )
-
-#     if not results:
-#         return {
-#             "item": {"code": item_code, "name": "Unknown"},
-#             "analysis_period": {
-#                 "start_year": year_start,
-#                 "end_year": None,
-#             },
-#             "countries_analyzed": len(area_codes),
-#             "comparisons_count": 0,
-#             "comparisons": [],
-#         }
-
-#     comparisons = []
-#     for row in results:
-
-#         metrics = {
-#             "years_compared": row["years_compared"],
-#             "avg_ratio": float(row["avg_ratio"]),
-#             "volatility": float(row["ratio_volatility"]),
-#             "min_ratio": float(row["min_ratio"]),
-#             "max_ratio": float(row["max_ratio"]),
-#             "integration_level": row["integration_level"],
-#         }
-
-#         comparisons.append(
-#             {
-#                 "country_pair": {
-#                     "country1": {
-#                         "area_id": row["country1_id"],
-#                         "area_code": row["country1_code"],
-#                         "area_name": row["country1"],
-#                     },
-#                     "country2": {
-#                         "area_id": row["country2_id"],
-#                         "area_code": row["country2_code"],
-#                         "area_name": row["country2"],
-#                     },
-#                 },
-#                 "metrics": metrics,
-#                 "calculated_metrics": calculate_price_correlation(row["time_series"], metrics),
-#                 "time_series": row["time_series"],  # Already JSON from query
-#             }
-#         )
-
-#     # Get item details
-#     item_info = db.query(ItemCodes).filter(ItemCodes.item_code == item_code).first()
-
-#     return {
-#         "element_code": element_code,
-#         "item": {"code": item_code, "name": item_info.item if item_info else "Unknown"},
-#         "analysis_period": {
-#             "start_year": year_start,
-#             "end_year": max(max(point["year"] for point in comp["time_series"]) for comp in comparisons),
-#         },
-#         "countries_analyzed": len(area_codes),
-#         "comparisons_count": len(comparisons),
-#         "comparisons": comparisons,
-#     }
+START_YEAR = 1991
 
 
 @router.get("/correlations")
@@ -199,9 +70,9 @@ def get_market_integration(
     if not area_codes:
         raise missing_parameter("area_codes")
 
-    if len(area_codes) > 4:
+    if len(area_codes) > 5:
         raise invalid_parameter(
-            param="area_codes", value=f"{len(area_codes)} items", reason="maximum 4 area codes allowed"
+            param="area_codes", value=f"{len(area_codes)} items", reason="maximum 5 area codes allowed"
         )
 
     for area_code in area_codes:
@@ -222,86 +93,121 @@ def get_market_integration(
         column("country1_code"),
         column("country2_code"),
         column("item_code"),
-        column("time_series"),
-        column("years_compared"),
-        column("avg_ratio"),
-        column("ratio_volatility"),
-        column("min_ratio"),
-        column("max_ratio"),
-        column("integration_level"),
+        column("item_name"),
+        column("year"),
+        column("price1"),
+        column("price2"),
+        column("price_ratio"),
     )
 
-    # Build the query - SQLAlchemy handles parameterization
-    query = select(view).where(
-        and_(view.c.item_code == item_code, view.c.country1_code.in_(area_codes), view.c.country2_code.in_(area_codes))
+    # Build the query with year filtering
+    query = (
+        select(view)
+        .where(
+            and_(
+                view.c.item_code == item_code,
+                view.c.country1_code.in_(area_codes),
+                view.c.country2_code.in_(area_codes),
+                view.c.year >= year_start,
+            )
+        )
+        .order_by(view.c.country1_code, view.c.country2_code, view.c.year)
     )
 
     # Execute
     results = db.execute(query).mappings().all()
 
-    if not results:
-        return {
-            "item": {"code": item_code, "name": "Unknown"},
-            "analysis_period": {
-                "start_year": year_start,
-                "end_year": None,
-            },
-            "countries_analyzed": len(area_codes),
-            "comparisons_count": 0,
-            "comparisons": [],
-        }
+    # Group by country pair and calculate metrics
+    from collections import defaultdict
+    import statistics
 
-    comparisons = []
+    grouped_data = defaultdict(list)
     for row in results:
-        # Filter time series to only include years >= year_start
-        filtered_time_series = [point for point in row["time_series"] if point["year"] >= year_start]
-
-        # Skip if no data after filtering
-        if not filtered_time_series:
+        # Ensure consistent ordering
+        if row["country1_code"] < row["country2_code"]:
+            pair_key = (row["country1_code"], row["country2_code"])
+            grouped_data[pair_key].append(row)
+        else:
+            # Skip reversed duplicates
             continue
 
+    comparisons = []
+    for (c1_code, c2_code), rows in grouped_data.items():
+        # Sort by year
+        rows.sort(key=lambda x: x["year"])
+
+        # Build time series
+        time_series = [
+            {
+                "year": row["year"],
+                "price1": float(row["price1"]),
+                "price2": float(row["price2"]),
+                "ratio": float(row["price_ratio"]),
+            }
+            for row in rows
+        ]
+
+        # Calculate metrics
+        ratios = [float(row["price_ratio"]) for row in rows]
+
+        # Calculate integration level based on volatility
+        volatility = statistics.stdev(ratios) if len(ratios) > 1 else 0
+        if volatility < 0.1:
+            integration_level = "high"
+        elif volatility < 0.2:
+            integration_level = "moderate"
+        elif volatility < 0.3:
+            integration_level = "low"
+        else:
+            integration_level = "none"
+
         metrics = {
-            "years_compared": len(filtered_time_series),  # Recalculate after filtering
-            "avg_ratio": float(row["avg_ratio"]),
-            "volatility": float(row["ratio_volatility"]),
-            "min_ratio": float(row["min_ratio"]),
-            "max_ratio": float(row["max_ratio"]),
-            "integration_level": row["integration_level"],
+            "years_compared": len(rows),
+            "avg_ratio": round(statistics.mean(ratios), 3),
+            "volatility": round(volatility, 3),
+            "min_ratio": round(min(ratios), 3),
+            "max_ratio": round(max(ratios), 3),
+            "integration_level": integration_level,
         }
 
+        first_row = rows[0]
         comparisons.append(
             {
                 "country_pair": {
                     "country1": {
-                        "area_id": row["country1_id"],
-                        "area_code": row["country1_code"],
-                        "area_name": row["country1"],
+                        "area_id": first_row["country1_id"],
+                        "area_code": first_row["country1_code"],
+                        "area_name": first_row["country1"],
                     },
                     "country2": {
-                        "area_id": row["country2_id"],
-                        "area_code": row["country2_code"],
-                        "area_name": row["country2"],
+                        "area_id": first_row["country2_id"],
+                        "area_code": first_row["country2_code"],
+                        "area_name": first_row["country2"],
                     },
                 },
                 "metrics": metrics,
-                "calculated_metrics": calculate_price_correlation(filtered_time_series, metrics),
-                "time_series": filtered_time_series,
+                "calculated_metrics": calculate_price_correlation(time_series, metrics),
+                "time_series": time_series,
             }
         )
 
-    # Get item details
-    item_info = db.query(ItemCodes).filter(ItemCodes.item_code == item_code).first()
+    # Sort for consistent output
+    comparisons.sort(
+        key=lambda x: (x["country_pair"]["country1"]["area_code"], x["country_pair"]["country2"]["area_code"])
+    )
+
+    # Get item name from first result or query separately if needed
+    item_name = results[0]["item_name"] if results else "Unknown"
 
     return {
         "element_code": element_code,
-        "item": {"code": item_code, "name": item_info.item if item_info else "Unknown"},
+        "item": {
+            "code": item_code,
+            "name": item_name,
+        },
         "analysis_period": {
             "start_year": year_start,
-            "end_year": (
-                max(max(point["year"] for point in comp["time_series"]) for comp in comparisons)
-                if comparisons
-                else None
-            ),
+            "end_year": max(r["year"] for r in results) if results else year_start,
         },
         "countries_analyzed": len(area_codes),
         "comparisons_count": len(comparisons),
@@ -314,7 +220,7 @@ def get_multi_line_price_trends(
     item_code: str = Query(None, description="Item FAO code (2-4 digits)"),
     area_codes: List[str] = Query(None, description="List of up to 5 area FAO codes"),
     element_code: str = Query(PRICE_ELEMENT_CODE, description="Element code for price data"),
-    year_start: int = Query(1990, description="Start year"),
+    year_start: int = Query(START_YEAR, description="Start year"),
     year_end: int = Query(2023, description="End year"),
     db: Session = Depends(get_db),
 ):
@@ -560,7 +466,7 @@ def get_countries_with_price_data(
     # Load SQL query
     query_sql = load_sql("sql/available_countries_for_item.sql", Path(__file__).parent)
 
-    params = {"item_code": item_code, "element_code": element_code, "start_year": 1990}
+    params = {"item_code": item_code, "element_code": element_code, "start_year": START_YEAR}
 
     results = db.execute(text(query_sql), params).mappings().all()
 

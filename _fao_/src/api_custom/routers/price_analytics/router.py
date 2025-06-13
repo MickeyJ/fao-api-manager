@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, text
 from typing import Optional
-from .....src.db.database import get_db
-from .....src.core import settings
+from _fao_.src.db.database import get_db
+from _fao_.src.core import settings
 
 
 def load_sql(filename: str) -> str:

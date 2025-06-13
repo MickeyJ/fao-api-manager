@@ -1,8 +1,8 @@
 # static_api_files/src/core/middleware.py
 from fastapi import Request
 from datetime import datetime
-from ..core import settings
-from ..core.versioning import VERSIONS
+from _fao_.src.core import settings
+from _fao_.src.core.versioning import VERSIONS
 
 
 async def add_version_headers(request: Request, call_next):

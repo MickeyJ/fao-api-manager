@@ -1,5 +1,4 @@
-from typing import List, Dict, Literal
-import re
+from typing import List, Dict
 from . import GLOBAL_COLUMN_RULES
 
 

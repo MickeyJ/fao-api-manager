@@ -1,9 +1,8 @@
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Optional
-import pandas as pd
-from . import logger, safe_index_name
+from typing import Dict
+from .logger import logger
+from . import safe_index_name
 
 
 def format_column_name(column_name: str) -> str:

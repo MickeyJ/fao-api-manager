@@ -4,9 +4,9 @@ from sqlalchemy import text, func
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from typing import Dict, List, Optional, Type
-from ..utils import load_csv, generate_numeric_id, calculate_optimal_chunk_size
-from ..database import run_with_session
-from ..system_models import PipelineProgress
+from _fao_.src.db.utils import load_csv, generate_numeric_id, calculate_optimal_chunk_size
+from _fao_.src.db.database import run_with_session
+from _fao_.src.db.system_models import PipelineProgress
 
 
 class BaseETL(ABC):

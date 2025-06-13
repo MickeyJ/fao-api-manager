@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 from typing import Dict, Tuple, Any
-from generator import logger
+from .logger import logger
 
 
 class CSVCache:

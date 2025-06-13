@@ -1,7 +1,7 @@
 # static_api_files/src/api_custom/routers/versions.py
 from fastapi import APIRouter
-from ....core.versioning import VERSIONS
-from ....core import settings
+from _fao_.src.core.versioning import VERSIONS
+from _fao_.src.core import settings
 
 router = APIRouter(prefix="/versions", tags=["versions"])
 

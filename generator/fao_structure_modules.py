@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 from typing import List, Dict, Optional
 import pandas as pd
-from . import logger, to_snake_case, snake_to_pascal_case, format_column_name, safe_index_name
+from .logger import logger
+from . import to_snake_case, snake_to_pascal_case, format_column_name, safe_index_name
 from .structure import Structure
 from .value_type_checker import analyze_column
 

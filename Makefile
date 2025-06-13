@@ -90,14 +90,6 @@ process-csv:
 	$(ACTIVATE) $(PYTHON) -m generator --process_csv
 
 
-
-# =-=-=--=-=-=-=-=-
-# Pipeline commands
-# =-=-=--=-=-=-=-=-
-run-all-pipelines:
-	@echo "Running pipeline..."
-	$(ACTIVATE) $(PYTHON) -m fao.src.db.pipelines
-
 # =-=-=--=-=-=-=-=-
 # Database commands
 # =-=-=--=-=-=-=-=-
@@ -112,6 +104,40 @@ use-local-db:
 use-local-db-admin:
 	cp local-admin.env .env
 	@echo "Switched to local database as admin"
+
+check-views-local:
+	make use-local-db-admin
+	@echo "Checking Local Materialized Views..."
+	$(MAKE) check-views
+	make use-local-db
+
+check-views-remote:
+	make use-remote-db
+	@echo "Checking Remote Materialized Views..."
+	$(MAKE) check-views
+	make use-local-db
+
+check-views:
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/check_views.sql
+	
+
+db-stats-remote:
+	make use-remote-db
+	@echo "Database size info..."
+	$(MAKE) db-stats
+
+db-stats:
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/db_size_stats.sql
+	make use-local-db
+
+db-create-mv-indexes-remote:
+	make use-remote-db
+	@echo "Creating Indexes for Materialized Views..."
+	$(MAKE) db-create-mv-indexes
+
+db-create-mv-indexes:
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_mv_indexes.sql
+	make use-local-db
 
 db-init:
 	@echo "Initialize Alembic"

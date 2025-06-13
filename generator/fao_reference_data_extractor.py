@@ -1,10 +1,10 @@
 # generator/reference_extractor.py
-import zipfile, json
+import zipfile
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict
 import pandas as pd
 from generator.structure import Structure
-from . import logger
+from .logger import logger
 
 
 class FAOReferenceDataExtractor:

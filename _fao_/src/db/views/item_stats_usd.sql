@@ -1,3 +1,5 @@
+DROP MATERIALIZED VIEW IF EXISTS item_stats_usd CASCADE;
+CREATE MATERIALIZED VIEW item_stats_usd AS
 SELECT 
     ic.id,
     ic.item as name,
@@ -15,9 +17,9 @@ JOIN prices p ON ic.id = p.item_code_id
 JOIN elements e ON e.id = p.element_code_id
 JOIN flags f ON f.id = p.flag_id
 WHERE 
-    e.element_code = '5530'  -- LCU prices
+    e.element_code = '5532'  -- USD prices
     AND ic.source_dataset = 'prices'
-    AND f.flag = 'A'
+    AND f.flag != 'I'
     AND p.year >= 1990
 GROUP BY ic.id, ic.item, ic.item_code, ic.item_code_cpc
 HAVING 
@@ -26,4 +28,5 @@ HAVING
 ORDER BY 
     COUNT(DISTINCT p.area_code_id) DESC,  -- Most countries first
     COUNT(DISTINCT p.year) DESC,          -- Then most years
-    COUNT(p.id) DESC;                     -- Then most data points
+    COUNT(p.id) DESC
+WITH NO DATA;

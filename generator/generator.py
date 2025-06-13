@@ -7,7 +7,8 @@ from .structure import Structure
 from .file_system import FileSystem
 from .template_renderer import TemplateRenderer
 from generator.fao_reference_data_extractor import REFERENCE_MAPPINGS
-from . import logger, clean_text, format_column_name, safe_index_name
+from .logger import logger
+from . import safe_index_name
 
 
 @dataclass

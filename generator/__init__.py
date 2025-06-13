@@ -1,4 +1,4 @@
-import re, hashlib, logging, random, string
+import re, hashlib, random, string
 import pandas as pd
 from pathlib import Path
 import os, sys
@@ -13,13 +13,6 @@ API_OUTPUT_PATH = os.getenv("FAO_API_OUTPUT_PATH")
 if not FAO_ZIP_PATH or not API_OUTPUT_PATH:
     print("❌ Error: FAO_ZIP_PATH and FAO_API_OUTPUT_PATH must be set in .env file")
     sys.exit(1)
-
-# # Force reset logging configuration
-# for handler in logging.root.handlers[:]:
-#     logging.root.removeHandler(handler)
-
-logging.basicConfig(level=logging.INFO, format="%(lineno)d: %(message)s")
-logger = logging.getLogger(__name__)
 
 
 def format_column_name(file_name: str) -> str:

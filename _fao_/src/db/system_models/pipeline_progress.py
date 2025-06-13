@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
-from fao.src.db.database import Base
+from _fao_.src.db.database import Base
 
 
 class PipelineProgress(Base):

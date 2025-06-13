@@ -6,9 +6,9 @@ from functools import lru_cache
 
 # Type checking imports (doesn't run at runtime)
 if TYPE_CHECKING:
-    from fao.src.db.pipelines.area_codes.area_codes_model import AreaCodes
-    from fao.src.db.pipelines.item_codes.item_codes_model import ItemCodes
-    from fao.src.db.pipelines.elements.elements_model import Elements
+    from _fao_.src.db.pipelines.area_codes.area_codes_model import AreaCodes
+    from _fao_.src.db.pipelines.item_codes.item_codes_model import ItemCodes
+    from _fao_.src.db.pipelines.elements.elements_model import Elements
 
 
 class ValidationCache:
@@ -39,7 +39,7 @@ _cache = ValidationCache(ttl_seconds=3600)
 
 def get_valid_area_codes(db: Session) -> Set[str]:
     """Get valid area codes with caching"""
-    from fao.src.db.pipelines.area_codes.area_codes_model import AreaCodes
+    from _fao_.src.db.pipelines.area_codes.area_codes_model import AreaCodes
 
     cached = _cache.get("area_codes")
     if cached is not None:
@@ -55,7 +55,7 @@ def get_valid_area_codes(db: Session) -> Set[str]:
 def get_valid_item_codes(db: Session) -> Set[str]:
     """Get valid item codes with caching"""
     # Local import for this specific model
-    from fao.src.db.pipelines.item_codes.item_codes_model import ItemCodes
+    from _fao_.src.db.pipelines.item_codes.item_codes_model import ItemCodes
 
     cached = _cache.get("item_codes")
     if cached is not None:
@@ -70,7 +70,7 @@ def get_valid_item_codes(db: Session) -> Set[str]:
 
 def get_valid_element_codes(db: Session) -> Set[str]:
     """Get valid element codes with caching"""
-    from fao.src.db.pipelines.elements.elements_model import Elements
+    from _fao_.src.db.pipelines.elements.elements_model import Elements
 
     cached = _cache.get("element_codes")
     if cached is not None:
