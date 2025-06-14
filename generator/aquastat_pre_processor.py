@@ -4,7 +4,8 @@ import zipfile
 import re
 from pathlib import Path
 from typing import Optional, Tuple
-from generator import logger, FAO_ZIP_PATH
+from .logger import logger
+from . import FAO_ZIP_PATH
 
 
 class AQUASTATPreprocessor:

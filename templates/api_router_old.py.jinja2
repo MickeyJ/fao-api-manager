@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, text
 from typing import Optional
@@ -14,32 +14,6 @@ from {{ project_name }}.src.db.pipelines.{{ fk.pipeline_name }}.{{ fk.table_name
 {% set _ = imported_tables.append(fk.table_name) %}
 {% endif %}
 {% endfor %}
-
-# Import validation and exception functions
-{% set validation_imports = [] %}
-{% set exception_imports = [] %}
-{% for fk in router.model.foreign_keys %}
-    {% if fk.validation_func %}
-        {% set _ = validation_imports.append(fk.validation_func) %}
-    {% endif %}
-    {% if fk.exception_func %}
-        {% set _ = exception_imports.append(fk.exception_func) %}
-    {% endif %}
-{% endfor %}
-{% if validation_imports %}
-from {{ project_name }}.src.core.validation import (
-    {% for func in validation_imports | unique %}
-    {{ func }},
-    {% endfor %}
-)
-{% endif %}
-{% if exception_imports %}
-from {{ project_name }}.src.core.exceptions import (
-    {% for func in exception_imports | unique %}
-    {{ func }},
-    {% endfor %}
-)
-{% endif %}
 {% endif %}
 
 router = APIRouter(
@@ -71,15 +45,6 @@ def get_{{ router.name }}(
     {% endfor %}
     """
     
-    # Validate parameters
-    {% for fk in router.model.foreign_keys %}
-    {% if fk.validation_func and fk.exception_func %}
-    if {{ fk.sql_column_name }}:
-        if not {{ fk.validation_func }}({{ fk.sql_column_name }}, db):
-            raise {{ fk.exception_func }}({{ fk.sql_column_name }})
-    {% endif %}
-    {% endfor %}
-    
     query = (
         select(
             {{ router.model.model_name }},
@@ -100,10 +65,8 @@ def get_{{ router.name }}(
     {% for fk in router.model.foreign_keys %}
     if {{ fk.sql_column_name }}:
         query = query.where({{ fk.model_name }}.{{ fk.sql_column_name }} == {{ fk.sql_column_name }})
-    {% if fk.reference_description_column %}
     if {{ fk.reference_description_column }}:
         query = query.where({{ fk.model_name }}.{{ fk.reference_description_column }}.ilike("%" + {{ fk.reference_description_column }} + "%"))
-    {% endif %}
     {% endfor %}
    
     

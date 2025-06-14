@@ -8,7 +8,7 @@ logger.remove()
 # Add console handler with custom format
 logger.add(
     sys.stderr,
-    format="<level>{level: <8}</level>| <cyan>{file.name}:{function}:{line}</cyan> - <level>{message}</level>",
+    format="<level>{level: <8}</level>[<cyan>{file.name}:{function}:{line}</cyan>]\n<level>{message}</level>\n",
     level="INFO",
     colorize=True,
 )

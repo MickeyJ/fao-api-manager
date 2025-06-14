@@ -28,19 +28,13 @@ else
     PYTHON = python
 endif
 
-.PHONY: \
-	venv env-status \
-	initialize requirements install \
-	generator pre-test process-aquastat process-csv \
-	run-all-pipelines \
-	use-remote-db use-local-db db-init db-upgrade db-revision  \
-	create-db-local-admin drop-db-local-admin create-test-db drop-test-db \
-	create-pipeline-prog-table-remote create-pipeline-prog-table-local create-pipeline-prog-table \
-	enable-rls-db-remote enable-rls all-table-row-count-local all-table-row-count \
-	reset-test-db reset-db \
-	show-all-tables clear-all-tables rm-codebase reset-and-test pipe-reset-and-test \
-	run-pipelines \
-	api
+.PHONY: all venv env-status initialize requirements install generate pre-test process-aquastat process-csv \
+	init-datasets update-datasets check-updates dataset-status use-remote-db use-local-db use-local-db-admin \
+	check-views-local check-views-remote check-views db-stats-remote db-stats create-db-local-admin drop-db-local-admin \
+	clear-all-tables-local enable-rls-db-remote show-all-tables NO-DIRECT-USE-create-db NO-DIRECT-USE-drop-db \
+	NO-DIRECT-USE-reset-db NO-DIRECT-USE-clear-all-tables NO-DIRECT-USE-enable-rls all-table-row-count-local \
+	all-table-row-count create-pipeline-prog-table-local create-pipeline-prog-table-remote create-pipeline-prog-table \
+	reset-db show-all-tables clear-all-tables rm-codebase db-reset-and-test pipe-reset-and-test run-pipelines api
 
 # =-=-=--=-=-=-=-=-=-=
 #  Python Environment
@@ -77,6 +71,10 @@ generate:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --all
 
+process-and-generate:
+	@echo "Generating code..."
+	$(ACTIVATE) $(PYTHON) -m generator --process_and_generate
+
 pre-test:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --pre_test
@@ -88,6 +86,25 @@ process-aquastat:
 process-csv:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --process_csv
+
+# =-=-=--=-=-=-=-=-=
+# FAO Dataset Management
+# =-=-=--=-=-=-=-=-=
+init-datasets:
+	@echo "Initializing dataset tracking from existing files..."
+	$(ACTIVATE) $(PYTHON) -m generator --init_datasets
+
+update-datasets:
+	@echo "Downloading/updating FAO datasets..."
+	$(ACTIVATE) $(PYTHON) -m generator --update_datasets
+
+check-updates:
+	@echo "Checking for FAO dataset updates..."
+	$(ACTIVATE) $(PYTHON) -m generator --check_updates
+
+dataset-status:
+	@echo "Showing FAO dataset status..."
+	$(ACTIVATE) $(PYTHON) -m generator --dataset_status
 
 
 # =-=-=--=-=-=-=-=-
@@ -129,60 +146,62 @@ db-stats-remote:
 db-stats:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/db_size_stats.sql
 	make use-local-db
-
-db-create-mv-indexes-remote:
-	make use-remote-db
-	@echo "Creating Indexes for Materialized Views..."
-	$(MAKE) db-create-mv-indexes
-
-db-create-mv-indexes:
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_mv_indexes.sql
-	make use-local-db
-
-db-init:
-	@echo "Initialize Alembic"
-	alembic init migrations
-
-db-upgrade:
-	@echo "Upgrading database..."
-	alembic upgrade head
-
-db-revision:
-	@echo "Upgrading database..."
-	alembic revision --autogenerate -m "${msg}" 
-
+# =-=-=--=-=-=-=-=-=-=-=--=-=-=-=-=-
+# 			Database Modifications
+# =-=-=--=-=-=-=-=-=-=-=--=-=-=-=-=-
 create-db-local-admin:
-	make use-local-db-admin
-	@echo "Creating database..."
-	$(MAKE) create-test-db
+	make use-local-db
+	@echo " "
+	@echo "Creating local database 'fao'..."
+	$(MAKE) NO-DIRECT-USE-create-db
 	@echo "Database created with permissions"
-
-create-test-db:
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_database.sql
 	make use-local-db
 
 drop-db-local-admin:
 	make use-local-db-admin
-	$(MAKE) drop-test-db
+	@echo " "
+	@echo "Dropping local database 'fao'..."
+	$(MAKE) NO-DIRECT-USE-drop-db
+	@echo " "
+	@echo "Database 'fao' dropped"
 	make use-local-db
 
-drop-test-db:
-	@echo "Dropping database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -c "DROP DATABASE IF EXISTS fao;"
-	@echo "Database 'fao' dropped"
-
-reset-test-db: drop-test-db create-test-db
-	@echo "Test database reset complete"
+clear-all-tables-local:
+	make use-local-db
+	@echo " "
+	@echo "Clear all local tables..."
+	$(MAKE) NO-DIRECT-USE-clear-all-tables
+	make use-local-db
 
 enable-rls-db-remote:
 	make use-remote-db
 	$(MAKE) enable-rls
 	make use-local-db
 
-enable-rls:
+show-all-tables:
+	@echo "Showing all tables in the database..."
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/select_all_tables.sql
+
+NO-DIRECT-USE-create-db:
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/create_database.sql
+
+NO-DIRECT-USE-drop-db:
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -c "DROP DATABASE IF EXISTS fao;"
+
+NO-DIRECT-USE-reset-db:
+	@echo "Resetting database..."
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/drop_tables.sql
+	@echo "Database reset complete"
+
+NO-DIRECT-USE-clear-all-tables:
+	@echo "Showing all tables in the database..."
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/clear_all_tables.sql
+
+
+
+NO-DIRECT-USE-enable-rls:
 	@echo "Enable RSL"
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/enable_rls.sql
-
 all-table-row-count-local:
 	make use-local-db
 	$(MAKE) all-table-row-count
@@ -190,48 +209,3 @@ all-table-row-count-local:
 all-table-row-count:
 	@echo "Enable RSL"
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/show_all_table_row_count.sql
-
-
-
-create-pipeline-prog-table-local:
-	make use-local-db
-	$(MAKE) create-pipeline-prog-table
-
-create-pipeline-prog-table-remote:
-	make use-remote-db
-	$(MAKE) create-pipeline-prog-table
-	make use-local-db
-
-create-pipeline-prog-table:
-	@echo "Creating pipeline progress table..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/create_pipeline_progress_table.sql
-	@echo "Pipeline progress table created"
-
-reset-db:
-	@echo "Resetting database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/drop_tables.sql
-	@echo "Database reset complete"
-
-show-all-tables:
-	@echo "Showing all tables in the database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/select_all_tables.sql
-
-clear-all-tables:
-	@echo "Showing all tables in the database..."
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/clear_all_tables.sql
-
-rm-codebase:
-	@echo "Removing generated code and cache..."
-	rm -rf fao \
-	analysis/csv_analysis_cache.json \
-	analysis/pipeline_spec.json
-
-db-reset-and-test: clear-all-tables rm-codebase generate
-pipe-reset-and-test: rm-codebase generate
-
-run-pipelines:
-	@echo "Running all pipelines..."
-	$(ACTIVATE) $(PYTHON) -m fao.src.db.pipelines
-
-api:
-	$(ACTIVATE) $(PYTHON) -m fao.src.api

@@ -74,6 +74,7 @@ class FAOForeignKeyMapper:
                     if column_name != reference_pk:
                         column_renames[column_name] = reference_pk
                         logger.info(f"  📝 Will rename column: {column_name} → {reference_pk}")
+                        all_exclude_columns.add(reference_pk)
 
                     # Find columns to exclude (non-PK reference columns in dataset)
                     for reference_col_analysis in reference["model"]["column_analysis"]:
@@ -105,6 +106,8 @@ class FAOForeignKeyMapper:
                         "reference_pk_csv_column": reference_pk,
                         "hash_columns": reference["model"]["hash_columns"],
                         "format_methods": mapping["format_methods"].get(column_name, []),
+                        "validation_func": mapping.get("validation_func"),
+                        "exception_func": mapping.get("exception_func"),
                         # NEW: Add basic reference table info
                         "reference_column_count": len(reference["model"]["column_analysis"]),
                         "reference_description_column": next(

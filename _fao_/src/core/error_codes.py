@@ -23,6 +23,16 @@ class ErrorCode(str, Enum):
     INVALID_YEAR_RANGE = "INVALID_YEAR_RANGE"
     INVALID_ELEMENT_CODE = "INVALID_ELEMENT_CODE"
     INVALID_FLAG_CODE = "INVALID_FLAG_CODE"
+    INVALID_DONOR_CODE = "INVALID_DONOR_CODE"
+    INVALID_SOURCE_CODE = "INVALID_SOURCE_CODE"
+    INVALID_PURPOSE_CODE = "INVALID_PURPOSE_CODE"
+    INVALID_SEX_CODE = "INVALID_SEX_CODE"
+    INVALID_CURRENCY_CODE = "INVALID_CURRENCY_CODE"
+    INVALID_SURVEY_CODE = "INVALID_SURVEY_CODE"
+    INVALID_POPULATION_AGE_GROUP_CODE = "INVALID_POPULATION_AGE_GROUP_CODE"
+    INVALID_INDICATOR_CODE = "INVALID_INDICATOR_CODE"
+    INVALID_FOOD_GROUP_CODE = "INVALID_FOOD_GROUP_CODE"
+    INVALID_GEOGRAPHIC_LEVEL_CODE = "INVALID_GEOGRAPHIC_LEVEL_CODE"
     INVALID_DATE_FORMAT = "INVALID_DATE_FORMAT"
     INVALID_LIMIT = "INVALID_LIMIT"
     INVALID_OFFSET = "INVALID_OFFSET"
@@ -82,11 +92,21 @@ class ErrorCode(str, Enum):
 ERROR_MESSAGES: Dict[ErrorCode, str] = {
     # Validation errors
     ErrorCode.INVALID_PARAMETER: "Invalid value for parameter '{param}': {reason}",
-    ErrorCode.INVALID_AREA_CODE: "Invalid area code '{value}'. Must be a valid ISO3 country code or FAO area code.",
-    ErrorCode.INVALID_ITEM_CODE: "Invalid item code '{value}'. Use /item_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_AREA_CODE: "Invalid area code '{value}'. Must be a valid ISO3 country code or FAO area code. Use /other/area_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_ITEM_CODE: "Invalid item code '{value}'. Use /other/item_codes endpoint to see valid codes.",
     ErrorCode.INVALID_YEAR_RANGE: "Year {value} is outside valid range (1961-2024)",
-    ErrorCode.INVALID_ELEMENT_CODE: "Invalid element code '{value}'. Use /elements endpoint to see valid codes.",
-    ErrorCode.INVALID_FLAG_CODE: "Invalid flag code '{value}'. Must be one of: A, E, I, M, P, X, T, F",
+    ErrorCode.INVALID_ELEMENT_CODE: "Invalid element code '{value}'. Use /other/elements endpoint to see valid codes.",
+    ErrorCode.INVALID_FLAG_CODE: "Invalid flag code '{value}'. Use /other/flags endpoint to see valid codes",
+    ErrorCode.INVALID_DONOR_CODE: "Invalid donor code '{value}'. Use /other/donors endpoint to see valid codes.",
+    ErrorCode.INVALID_SOURCE_CODE: "Invalid source code '{value}'. Use /other/sources endpoint to see valid codes.",
+    ErrorCode.INVALID_PURPOSE_CODE: "Invalid purpose code '{value}'. Use /other/purposes endpoint to see valid codes.",
+    ErrorCode.INVALID_SEX_CODE: "Invalid sex code '{value}'. Use /other/sexs endpoint to see valid codes.",
+    ErrorCode.INVALID_CURRENCY_CODE: "Invalid currency code '{value}'. Use /other/currencies endpoint to see valid codes.",
+    ErrorCode.INVALID_SURVEY_CODE: "Invalid survey code '{value}'. Use /other/surveys endpoint to see valid codes.",
+    ErrorCode.INVALID_POPULATION_AGE_GROUP_CODE: "Invalid population age group code '{value}'. Use /population/population_age_groups endpoint to see valid codes.",
+    ErrorCode.INVALID_INDICATOR_CODE: "Invalid indicator code '{value}'. Use /indicators/indicators endpoint to see valid codes.",
+    ErrorCode.INVALID_FOOD_GROUP_CODE: "Invalid food group code '{value}'. Use /food/food_groups endpoint to see valid codes.",
+    ErrorCode.INVALID_GEOGRAPHIC_LEVEL_CODE: "Invalid geographic level code '{value}'. Use /other/geographic_levels endpoint to see valid codes.",
     ErrorCode.INVALID_DATE_FORMAT: "Invalid date format. Expected: {expected_format}",
     ErrorCode.INVALID_LIMIT: "Limit must be between 1 and {max_limit}. Received: {value}",
     ErrorCode.INVALID_OFFSET: "Offset must be non-negative. Received: {value}",

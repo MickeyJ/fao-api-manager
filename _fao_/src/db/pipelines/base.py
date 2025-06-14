@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from typing import Dict, List, Optional, Type
 from _fao_.src.db.utils import load_csv, generate_numeric_id, calculate_optimal_chunk_size
-from _fao_.src.db.database import run_with_session
+from _fao_.logger import logger
 from _fao_.src.db.system_models import PipelineProgress
 
 
@@ -20,6 +20,26 @@ class BaseETL(ABC):
     def load(self) -> pd.DataFrame:
         """Load the CSV file - common for all pipelines"""
         return load_csv(self.csv_path)
+
+    def update_pipeline_progress(self, session, last_row, total_rows, status="in_progress"):
+        """Update progress tracking"""
+        # Check if record exists
+        progress = session.query(PipelineProgress).filter_by(table_name=self.table_name).first()
+
+        if progress:
+            # Update existing
+            progress.last_row_processed = last_row
+            progress.total_rows = total_rows
+            progress.status = status
+            progress.last_chunk_time = func.now()
+        else:
+            # Create new
+            progress = PipelineProgress(
+                table_name=self.table_name, last_row_processed=last_row, total_rows=total_rows, status=status
+            )
+            session.add(progress)
+
+        session.commit()
 
     @abstractmethod
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -49,10 +69,10 @@ class BaseLookupETL(BaseETL):
     def base_clean(self, df: pd.DataFrame) -> pd.DataFrame:
         """Common cleaning for all references"""
         if df.empty:
-            print(f"No {self.table_name} data to clean.")
+            logger.warning(f"No {self.table_name} data to clean.")
             return df
 
-        print(f"\nCleaning {self.table_name} data...")
+        logger.info(f"\nCleaning {self.table_name} data...")
         initial_count = len(df)
 
         # Replace 'nan' strings with None
@@ -65,16 +85,18 @@ class BaseLookupETL(BaseETL):
         df = df.dropna(subset=[self.pk_column])
 
         final_count = len(df)
-        print(f"  Cleaned: {initial_count} → {final_count} rows")
+        logger.info(f"  Cleaned: {initial_count} → {final_count} rows")
         return df
 
     def insert(self, df: pd.DataFrame, session: Session) -> None:
         """Common insert logic for references"""
         if df.empty:
-            print(f"No {self.table_name} data to insert.")
+            logger.warning(f"No {self.table_name} data to insert.")
             return
 
-        print(f"\nInserting {self.table_name} data...")
+        logger.info(f"\nInserting {self.table_name} data...")
+
+        self.update_pipeline_progress(session, 0, len(df))
 
         records = []
         for _, row in df.iterrows():
@@ -90,10 +112,11 @@ class BaseLookupETL(BaseETL):
                 session.commit()
                 print(f"  ✅ Inserted {result.rowcount} rows")
             except Exception as e:
-                print(f"  ❌ Error during bulk insert: {e}")
+                logger.error(f"  ❌ Error during bulk insert: {e} - {records[:5]}")
                 session.rollback()
                 raise
 
+        self.update_pipeline_progress(session, len(records), len(df), status="completed")
         print(f"✅ {self.table_name} insert complete")
 
     @abstractmethod
@@ -122,10 +145,10 @@ class BaseDatasetETL(BaseETL):
     def base_clean(self, df: pd.DataFrame) -> pd.DataFrame:
         """Common cleaning for all datasets"""
         if df.empty:
-            print(f"No {self.table_name} data to clean.")
+            logger.warning(f"No {self.table_name} data to clean.")
             return df
 
-        print(f"\nCleaning {self.table_name} data...")
+        logger.info(f"\nCleaning {self.table_name} data...")
         initial_count = len(df)
 
         # Replace 'nan' strings with None
@@ -134,12 +157,20 @@ class BaseDatasetETL(BaseETL):
         # Rename columns if needed
         if self.column_renames:
             df = df.rename(columns=self.column_renames)
-            print(f"  Renamed columns: {list(self.column_renames.keys())} → {list(self.column_renames.values())}")
+            logger.debug(
+                f"  Renamed columns: {list(self.column_renames.keys())} → {list(self.column_renames.values())}"
+            )
 
         # Generate foreign key hash IDs
         if self.foreign_keys:
             dataset_name = self.table_name
             for fk in self.foreign_keys:
+                # in case another issue like this happens heres how I found it in the error log data - "Flag":\s*"(?![XIEA]")[^"]*"
+                # Example of "format_methods" - {"reference_pk_csv_column": "Flag", "format_methods": ["upper"], ... }
+                if fk["format_methods"]:
+                    for method in fk["format_methods"]:
+                        df[fk["reference_pk_csv_column"]] = getattr(df[fk["reference_pk_csv_column"]].str, method)()
+
                 df[fk["hash_fk_sql_column_name"]] = df[fk["reference_pk_csv_column"]].apply(
                     lambda val: (
                         generate_numeric_id(
@@ -151,11 +182,8 @@ class BaseDatasetETL(BaseETL):
                     )
                 )
 
-        # Drop excluded columns
-        columns_to_drop = [col for col in self.exclude_columns if col in df.columns]
-        if columns_to_drop:
-            df = df.drop(columns=columns_to_drop)
-            print(f"  Dropped redundant columns: {columns_to_drop}")
+        # Don't drop excluded columns - let build_record handle what to insert
+        logger.debug(f"  Excluded columns (kept for reference): {self.exclude_columns}")
 
         # Remove duplicates
         df = df.drop_duplicates()
@@ -180,30 +208,10 @@ class BaseDatasetETL(BaseETL):
 
         return result[0] if result else 0
 
-    def update_progress(self, session, last_row, total_rows, status="in_progress"):
-        """Update progress tracking"""
-        # Check if record exists
-        progress = session.query(PipelineProgress).filter_by(table_name=self.table_name).first()
-
-        if progress:
-            # Update existing
-            progress.last_row_processed = last_row
-            progress.total_rows = total_rows
-            progress.status = status
-            progress.last_chunk_time = func.now()
-        else:
-            # Create new
-            progress = PipelineProgress(
-                table_name=self.table_name, last_row_processed=last_row, total_rows=total_rows, status=status
-            )
-            session.add(progress)
-
-        session.commit()
-
     def insert(self, df: pd.DataFrame, session: Session) -> None:
         """Common insert logic for datasets with chunking"""
         if df.empty:
-            print(f"No {self.table_name} data to insert.")
+            logger.debug(f"No {self.table_name} data to insert.")
             return
 
         # Check for resume point
@@ -211,17 +219,17 @@ class BaseDatasetETL(BaseETL):
         original_total = len(df)
 
         if start_row > 0:
-            print(f"📍 Resuming {self.table_name} from row {start_row:,}/{original_total:,}")
+            logger.info(f"📍 Resuming {self.table_name} from row {start_row:,}/{original_total:,}")
             df = df.iloc[start_row:]
             if df.empty:
-                print(f"✅ {self.table_name} already complete!")
-                self.update_progress(session, original_total, original_total, status="completed")
+                logger.info(f"✅ {self.table_name} already complete!")
+                self.update_pipeline_progress(session, original_total, original_total, status="completed")
                 return
 
         # Calculate chunk size
-        chunk_size = calculate_optimal_chunk_size(df, base_chunk_size=40000)
-        print(f"\nInserting {self.table_name} data ({len(df):,} rows remaining)")
-        print(f"  Using chunk size: {chunk_size:,} rows")
+        chunk_size = 15000
+        logger.info(f"\nInserting {self.table_name} data ({len(df):,} rows remaining)")
+        logger.info(f"  Using chunk size: {chunk_size:,} rows")
 
         total_inserted = 0
 
@@ -247,22 +255,51 @@ class BaseDatasetETL(BaseETL):
                     total_inserted += result.rowcount
 
                     # Update progress after each chunk
-                    self.update_progress(session, absolute_position, original_total)
+                    self.update_pipeline_progress(session, absolute_position, original_total)
 
-                    print(
+                    logger.info(
                         f"  Chunk {chunk_idx + 1}: Inserted {result.rowcount} rows "
                         + f"(Progress: {absolute_position:,}/{original_total:,} - "
                         + f"{(absolute_position/original_total*100):.1f}%)"
                     )
 
                 except Exception as e:
-                    print(f"  ❌ Error at row {absolute_position:,}: {e}")
+                    logger.error(f"  ❌ Error at row {absolute_position:,}: {e}")
+
+                    # Save the original chunk data
+                    chunk_file = f"error_{self.table_name}_chunk_{chunk_idx}_original.json"
+                    logger.error(f"  💾 Saving original chunk data to {chunk_file}")
+                    chunk_df.to_json(chunk_file, orient="records", indent=2)
+
+                    # Log the chunk data for debugging
+                    error_file = f"error_{self.table_name}_chunk_{chunk_idx}.json"
+                    logger.error(f"  💾 Saving failed chunk data to {error_file}")
+
+                    # Save the chunk data
+                    import json
+
+                    with open(error_file, "w") as f:
+                        json.dump(records, f, indent=2, default=str)
+
+                    # Log first few records for quick inspection
+                    logger.error(f"  📊 First 3 records in failed chunk:")
+                    for i, record in enumerate(records[:3]):
+                        logger.error(f"    Record {i}: {record}")
+
+                    # If it's a FK constraint error, try to identify the problematic value
+                    if "foreign key constraint" in str(e).lower():
+                        logger.error(f"  🔍 Checking for problematic foreign keys...")
+                        for fk in self.foreign_keys:
+                            fk_column = fk["hash_fk_sql_column_name"]
+                            unique_fk_values = set(rec.get(fk_column) for rec in records if rec.get(fk_column))
+                            logger.error(f"    {fk_column} values in chunk: {list(unique_fk_values)[:10]}...")
+
                     session.rollback()
                     raise
 
         # Mark as complete
-        self.update_progress(session, original_total, original_total, status="completed")
-        print(f"✅ {self.table_name} complete: {total_inserted:,} rows inserted")
+        self.update_pipeline_progress(session, original_total, original_total, status="completed")
+        logger.info(f"✅ {self.table_name} complete: {total_inserted:,} rows inserted")
 
     @abstractmethod
     def build_record(self, row: pd.Series) -> Dict:

@@ -1,7 +1,10 @@
 import json
 import zipfile
 from pathlib import Path
+from {{ project_name }}.logger import logger
+from sqlalchemy import text
 from {{ project_name }}.src.db.database import run_with_session
+from {{ project_name }}.src.db.system_models import PipelineProgress
 {% for pipeline_name in pipeline_names %}
 from .{{ pipeline_name }}.__main__ import run_all as run_{{ pipeline_name }}
 {% endfor %}
@@ -11,13 +14,13 @@ def ensure_zips_extracted():
     manifest_path = Path(__file__).parent.parent.parent / "extraction_manifest.json"
     
     if not manifest_path.exists():
-        print("⚠️  No extraction manifest found - ZIPs may not be extracted")
+        logger.error("⚠️  No extraction manifest found - ZIPs may not be extracted")
         return
     
     with open(manifest_path, 'r') as f:
         manifest = json.load(f)
     
-    print("📦 Checking ZIP extractions...")
+    logger.info("📦 Checking ZIP extractions...")
     
     for extraction in manifest["extractions"]:
         zip_path = Path(extraction["zip_path"])
@@ -25,13 +28,13 @@ def ensure_zips_extracted():
         
         # Check if extraction is needed
         if not extract_dir.exists() or not _extraction_is_current(zip_path, extract_dir):
-            print(f"📂 Extracting {zip_path.name}...")
+            logger.info(f"📂 Extracting {zip_path.name}...")
             extract_dir.mkdir(exist_ok=True)
             
             with zipfile.ZipFile(zip_path, 'r') as zf:
                 zf.extractall(extract_dir)
         else:
-            print(f"✅ {zip_path.name} already extracted")
+            logger.info(f"✅ {zip_path.name} already extracted")
 
 def _extraction_is_current(zip_path: Path, extract_dir: Path) -> bool:
     """Check if extraction is up to date"""
@@ -46,24 +49,51 @@ def _extraction_is_current(zip_path: Path, extract_dir: Path) -> bool:
     except (OSError, FileNotFoundError):
         return False
 
+def get_pipeline_status(db) -> dict:
+    """Get status of all pipelines from pipeline_progress table"""
+    progress_records = db.query(PipelineProgress).all()
+    return {p.table_name: p for p in progress_records}
+
 def run_all_pipelines(db):
     ensure_zips_extracted()
     print("🚀 Starting all data pipelines...")
-{% for pipeline_name in pipeline_names %}
-    run_{{ pipeline_name }}(db)
-{% endfor %}
-    print("✅ All pipelines complete!")
+    
+    # Get pipeline status
+    pipeline_status = get_pipeline_status(db)
+    
+    # Pipeline mapping
+    pipeline_runners = {
+        {% for pipeline_name in pipeline_names %}
+        "{{ pipeline_name }}": run_{{ pipeline_name }},
+        {% endfor %}
+    }
+    
+    completed_count = 0
+    in_progress_count = 0
+    to_run_count = 0
+    
+    # Check each pipeline
+    for pipeline_name, runner in pipeline_runners.items():
+        progress = pipeline_status.get(pipeline_name)
 
-    # TODO: Figure this out later, after implementing the dataset download/update
-    # def refresh_all_materialized_views(db):
-    #     views = [
-    #         "item_stats_usd", "item_stats_lcu",
-    #         "price_ratios_usd", "price_ratios_lcu", 
-    #         "price_details_usd", "price_details_lcu"
-    #     ]
-    #     for view in views:
-    #         db.execute(text(f"REFRESH MATERIALIZED VIEW {view}"))
-    #     db.commit()
+        logger.info(f"Pipeline Progress: {progress}")
+        
+        if progress and progress.status == "completed":
+            print(f"✅ Skipping {pipeline_name} - already completed ({progress.total_rows:,} rows)")
+            completed_count += 1
+        elif progress and progress.status == "in_progress":
+            print(f"🔄 Resuming {pipeline_name} from row {progress.last_row_processed:,}/{progress.total_rows:,}")
+            runner(db)
+            in_progress_count += 1
+        else:
+            print(f"🆕 Starting {pipeline_name}")
+            runner(db)
+            to_run_count += 1
+    
+    print(f"\n✅ Pipeline execution complete!")
+    print(f"   Skipped (completed): {completed_count}")
+    print(f"   Resumed: {in_progress_count}")
+    print(f"   Started fresh: {to_run_count}")
 
 if __name__ == "__main__":
     run_with_session(run_all_pipelines)

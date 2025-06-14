@@ -1,5 +1,5 @@
 # fao/src/db/models/dataset_metadata.py
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, func
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from _fao_.src.db.database import Base
@@ -9,7 +9,7 @@ class DatasetMetadata(Base):
     __tablename__ = "dataset_metadata"
 
     id = Column(Integer, primary_key=True)
-    dataset_code = Column(String(10), unique=True, nullable=False)
+    dataset_code = Column(String(10), unique=True, nullable=True)
     dataset_name = Column(String(255), nullable=False)
 
     # FAO metadata
@@ -19,7 +19,7 @@ class DatasetMetadata(Base):
     fao_file_location = Column(Text)
 
     # Our tracking
-    download_date = Column(DateTime, default=datetime.utcnow)
+    download_date = Column(DateTime, default=func.now())
     local_file_path = Column(Text)
     file_hash = Column(String(64))  # SHA256 hash of the ZIP
     csv_content_hash = Column(String(64))  # SHA256 hash of CSV contents
@@ -35,3 +35,8 @@ class DatasetMetadata(Base):
 
     def __repr__(self):
         return f"<DatasetMetadata({self.dataset_code}: {self.dataset_name})>"
+
+
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
+from datetime import datetime
+from ..database import Base  # Use the existing Base

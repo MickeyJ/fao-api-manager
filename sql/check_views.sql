@@ -30,7 +30,19 @@ WHERE c.relname IN (
 );
 
 
-
+-- Show all materialized views with their indexes
+SELECT 
+    mv.schemaname,
+    mv.matviewname as view_name,
+    pg_size_pretty(pg_relation_size(mv.matviewname::regclass)) as view_size,
+    idx.indexname as index_name,
+    idx.indexdef as index_definition
+FROM pg_matviews mv
+LEFT JOIN pg_indexes idx 
+    ON idx.tablename = mv.matviewname 
+    AND idx.schemaname = mv.schemaname
+WHERE mv.schemaname = 'public'
+ORDER BY mv.matviewname, idx.indexname;
 
 
 

@@ -20,16 +20,19 @@ DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_POR
 # Base can be created immediately
 Base = declarative_base()
 
+
 @lru_cache
 def get_engine():
     """Create engine only when needed"""
     print(f"DB_HOST: {DB_HOST}")  # Move the print here
-    return create_engine(DATABASE_URL, echo=True)
+    return create_engine(DATABASE_URL, echo=False)
+
 
 @lru_cache
 def get_session_factory():
     """Create session factory only when needed"""
     return sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+
 
 def get_db():
     """Dependency to get DB session"""
@@ -39,6 +42,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 def run_with_session(fn):
     db = next(get_db())

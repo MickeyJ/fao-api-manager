@@ -3,6 +3,7 @@ from pathlib import Path
 from generator.generator import Generator
 from generator.fao_reference_data_extractor import FAOReferenceDataExtractor
 from generator.fao_dataset_downloader import FAODatasetDownloader
+from generator.aquastat_pre_processor import AQUASTATPreprocessor
 from .logger import logger
 from . import FAO_ZIP_PATH, API_OUTPUT_PATH
 
@@ -34,6 +35,20 @@ def test_pre_generation():
     # raise NotImplementedError("Tests not yet implemented.")
 
 
+def process_aquastat():
+    aquastat_file = r"C:\Users\18057\Documents\Data\fao-test-zips\all\AQUASTAT\bulk_eng(in).csv"
+    aquastat_input_csv = Path(aquastat_file)
+    output_dir = Path(FAO_ZIP_PATH)  # Uses the configured FAO_ZIP_PATH from generator.__init__
+
+    if not aquastat_input_csv.exists():
+        logger.error(f"Error: Input file {aquastat_input_csv} not found")
+    else:
+        logger.info(f"Processing AQUASTAT data from {aquastat_input_csv}")
+        # Run preprocessor
+        aquastat_preprocessor = AQUASTATPreprocessor(aquastat_input_csv, output_dir)
+        aquastat_preprocessor.run(create_zip=True)
+
+
 def process_csv():
     """Process references from the synthetic_references directory"""
     extractor = FAOReferenceDataExtractor(FAO_ZIP_PATH, json_cache_path)
@@ -45,12 +60,19 @@ def generate_all():
     generator.generate()
 
 
+def process_and_generate():
+    """Process aquastat, references and generate codebase"""
+    process_aquastat()
+    process_csv()
+    generate_all()
+
+
 # In generator/__main__.py, update the imports and functions:
 
 
 def update_datasets():
     """Download/update FAO datasets"""
-    from static_api_files.src.db.database import run_with_session
+    from _fao_.src.db.database import run_with_session
     from generator.fao_dataset_downloader import FAODatasetDownloader
 
     def _update(db):
@@ -62,7 +84,7 @@ def update_datasets():
 
 def check_updates():
     """Check for available updates without downloading"""
-    from static_api_files.src.db.database import run_with_session
+    from _fao_.src.db.database import run_with_session
     from generator.fao_dataset_downloader import FAODatasetDownloader
 
     def _check(db):
@@ -82,7 +104,7 @@ def check_updates():
 
 def dataset_status():
     """Show detailed dataset status"""
-    from static_api_files.src.db.database import run_with_session
+    from _fao_.src.db.database import run_with_session
     from generator.fao_dataset_downloader import FAODatasetDownloader
 
     def _status(db):
@@ -107,6 +129,34 @@ def dataset_status():
     run_with_session(_status)
 
 
+def init_dataset_db(verbose=True):
+    """Initialize database with existing dataset files"""
+    from _fao_.src.db.database import run_with_session
+    from generator.fao_dataset_downloader import FAODatasetDownloader
+
+    def _init(db):
+        downloader = FAODatasetDownloader(db, Path(FAO_ZIP_PATH))
+        results = downloader.initialize_from_existing_files(verbose=verbose)
+
+        # Show final status
+        logger.info("\n📊 Final Status:")
+        datasets = downloader.get_dataset_status()
+
+        downloaded_count = sum(1 for ds in datasets if ds.is_downloaded)
+        extracted_count = sum(1 for ds in datasets if ds.is_extracted)
+
+        logger.info(f"  Total datasets tracked: {len(datasets)}")
+        logger.info(f"  Downloaded: {downloaded_count}")
+        logger.info(f"  Extracted: {extracted_count}")
+
+        # If there were errors, remind about the error report
+        if results.get("error_details"):
+            logger.info(f"\n⚠️  There were {len(results['error_details'])} errors during processing.")
+            logger.info(f"  Check initialization_errors.json for details.")
+
+    run_with_session(_init)
+
+
 def main():
     parser = argparse.ArgumentParser(description="FAO data pipeline generator")
 
@@ -118,6 +168,12 @@ def main():
     parser.add_argument("--update_datasets", action="store_true", help="Download/update FAO datasets")
     parser.add_argument("--check_updates", action="store_true", help="Check for dataset updates")
     parser.add_argument("--dataset_status", action="store_true", help="Show detailed dataset status")
+    parser.add_argument(
+        "--init_datasets", action="store_true", help="Initialize database with existing downloaded datasets"
+    )
+    parser.add_argument(
+        "--process_and_generate", action="store_true", help="Process AQUASTAT, references and generate codebase"
+    )
 
     args = parser.parse_args()
 
@@ -133,6 +189,10 @@ def main():
         check_updates()
     elif args.dataset_status:
         dataset_status()
+    elif args.init_datasets:
+        init_dataset_db()
+    elif args.process_and_generate:
+        process_and_generate()
 
     else:
         # Default behavior

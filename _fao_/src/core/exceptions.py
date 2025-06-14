@@ -297,6 +297,116 @@ def invalid_element_code(value: str) -> ValidationError:
     )
 
 
+def invalid_flag(value: str) -> ValidationError:
+    """Create an error for invalid flag."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_FLAG_CODE, value=value),
+        error_code=ErrorCode.INVALID_FLAG_CODE,
+        param="flag",
+        detail=f"Received: '{value}'. Use /flags endpoint to see valid codes.",
+    )
+
+
+def invalid_donor_code(value: str) -> ValidationError:
+    """Create an error for invalid donor code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_DONOR_CODE, value=value),
+        error_code=ErrorCode.INVALID_DONOR_CODE,
+        param="donor_code",
+        detail=f"Received: '{value}'. Use /donors endpoint to see valid codes.",
+    )
+
+
+def invalid_source_code(value: str) -> ValidationError:
+    """Create an error for invalid source code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_SOURCE_CODE, value=value),
+        error_code=ErrorCode.INVALID_SOURCE_CODE,
+        param="source_code",
+        detail=f"Received: '{value}'. Use /sources endpoint to see valid codes.",
+    )
+
+
+def invalid_purpose_code(value: str) -> ValidationError:
+    """Create an error for invalid purpose code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_PURPOSE_CODE, value=value),
+        error_code=ErrorCode.INVALID_PURPOSE_CODE,
+        param="purpose_code",
+        detail=f"Received: '{value}'. Use /purposes endpoint to see valid codes.",
+    )
+
+
+def invalid_sex_code(value: str) -> ValidationError:
+    """Create an error for invalid sex code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_SEX_CODE, value=value),
+        error_code=ErrorCode.INVALID_SEX_CODE,
+        param="sex_code",
+        detail=f"Received: '{value}'. Use /sexs endpoint to see valid codes.",
+    )
+
+
+def invalid_currency_code(value: str) -> ValidationError:
+    """Create an error for invalid currency code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_CURRENCY_CODE, value=value),
+        error_code=ErrorCode.INVALID_CURRENCY_CODE,
+        param="currency_code",
+        detail=f"Received: '{value}'. Use /currencies endpoint to see valid codes.",
+    )
+
+
+def invalid_survey_code(value: str) -> ValidationError:
+    """Create an error for invalid survey code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_SURVEY_CODE, value=value),
+        error_code=ErrorCode.INVALID_SURVEY_CODE,
+        param="survey_code",
+        detail=f"Received: '{value}'. Use /surveys endpoint to see valid codes.",
+    )
+
+
+def invalid_population_age_group_code(value: str) -> ValidationError:
+    """Create an error for invalid population age group code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_POPULATION_AGE_GROUP_CODE, value=value),
+        error_code=ErrorCode.INVALID_POPULATION_AGE_GROUP_CODE,
+        param="population_age_group_code",
+        detail=f"Received: '{value}'. Use /population_age_groups endpoint to see valid codes.",
+    )
+
+
+def invalid_indicator_code(value: str) -> ValidationError:
+    """Create an error for invalid indicator code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_INDICATOR_CODE, value=value),
+        error_code=ErrorCode.INVALID_INDICATOR_CODE,
+        param="indicator_code",
+        detail=f"Received: '{value}'. Use /indicators endpoint to see valid codes.",
+    )
+
+
+def invalid_food_group_code(value: str) -> ValidationError:
+    """Create an error for invalid food group code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_FOOD_GROUP_CODE, value=value),
+        error_code=ErrorCode.INVALID_FOOD_GROUP_CODE,
+        param="food_group_code",
+        detail=f"Received: '{value}'. Use /food_groups endpoint to see valid codes.",
+    )
+
+
+def invalid_geographic_level_code(value: str) -> ValidationError:
+    """Create an error for invalid geographic level code."""
+    return ValidationError(
+        message=get_error_message(ErrorCode.INVALID_GEOGRAPHIC_LEVEL_CODE, value=value),
+        error_code=ErrorCode.INVALID_GEOGRAPHIC_LEVEL_CODE,
+        param="geographic_level_code",
+        detail=f"Received: '{value}'. Use /geographic_levels endpoint to see valid codes.",
+    )
+
+
 def invalid_year_range(value: int) -> ValidationError:
     """Create an error for year outside valid range."""
     return ValidationError(
