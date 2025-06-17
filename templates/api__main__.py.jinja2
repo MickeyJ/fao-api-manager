@@ -1,8 +1,10 @@
 from typing import cast, Any
+from scalar_fastapi import get_scalar_api_reference
+from scalar_fastapi.scalar_fastapi import Layout
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse  
 from sqlalchemy.exc import SQLAlchemyError
 import uvicorn
 from . import api_map
@@ -104,6 +106,105 @@ def version_root():
         "status": "active",
         "endpoints": api_map["endpoints"]
     }
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("static/favicon.svg")
+
+@app.get("/db-stats")
+async def db_stats():
+    return FileResponse("static/db-stats.txt")
+
+@app.get("/docs", include_in_schema=False)
+async def scalar_docs():
+    return get_scalar_api_reference(
+        openapi_url=str(app.openapi_url),
+        title="FAO API Documentation",
+        layout=Layout.MODERN,
+        scalar_theme="""
+        .dark-mode {
+            /* Main colors */
+            --scalar-color-1: #e2e8f0;
+            --scalar-color-2: #cbd5e1;
+            --scalar-color-3: #94a3b8;
+            --scalar-color-accent: #00d4aa;
+
+            /* Backgrounds - dark grey with subtle blue hints */
+            --scalar-background-1: #1a1a1f;
+            --scalar-background-2: #2a2a30;
+            --scalar-background-3: #3a3a42;
+            --scalar-background-accent: #064e3b;
+
+            /* Borders */
+            --scalar-border-color: rgba(100, 116, 139, 0.2);
+
+            /* Status colors */
+            --scalar-color-green: #10b981;
+            --scalar-color-red: #ef4444;
+            --scalar-color-yellow: #f59e0b;
+            --scalar-color-blue: #3b82f6;
+            --scalar-color-orange: #f97316;
+            --scalar-color-purple: #8b5cf6;
+
+            /* Buttons */
+            --scalar-button-1: #00d4aa;
+            --scalar-button-1-color: #1a1a1f;
+            --scalar-button-1-hover: #00b894;
+
+            /* Scrollbars */
+            --scalar-scrollbar-color: rgba(100, 116, 139, 0.3);
+            --scalar-scrollbar-color-active: rgba(100, 116, 139, 0.6);
+        }
+
+        /* Sidebar specific styling */
+        .dark-mode .t-doc__sidebar {
+            --sidebar-background-1: #1a1a1f;
+            --sidebar-item-hover-background: #2a2a30;
+            --sidebar-item-active-background: #064e3b;
+            --sidebar-color-active: #00d4aa;
+            --sidebar-border-color: rgba(100, 116, 139, 0.2);
+        }
+
+        /* Custom additions for extra coolness */
+        .dark-mode {
+            background: linear-gradient(135deg, #1a1a1f 0%, #2a2a30 100%);
+        }
+        """,
+        scalar_favicon_url="favicon.ico",
+        show_sidebar=True,
+        hide_download_button=False,
+        dark_mode=True,
+        default_open_all_tags=False,
+    )
+
+@app.get("/rapidoc", response_class=HTMLResponse, include_in_schema=False)
+async def rapidoc_docs():
+    return HTMLResponse(
+        """
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+    </head>
+    <body>
+        <rapi-doc 
+            spec-url="/openapi.json"
+            show-method-in-nav-bar="as-colored-text"
+            nav-bg-color="#24292e"
+            nav-text-color="#e1e4e8"
+            nav-hover-bg-color="#f6f8fa"
+            theme="dark"
+            render-style="read"
+            show-header="false"
+            allow-authentication="false"
+            allow-server-selection="false"
+            default-schema-tab="example">
+        </rapi-doc>
+    </body>
+    </html>
+    """
+    )
 
 if __name__ == "__main__":
     import uvicorn

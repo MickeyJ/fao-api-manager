@@ -1,6 +1,6 @@
 # FAO Database Schema
 
-# Generated from 84 tables
+# Generated from 87 tables
 
 # Format: column_name: type (nullable?) [FK->table] [idx]
 
@@ -96,6 +96,16 @@ item_codes
   created_at: DateTime
   updated_at: DateTime
 
+partner_country_codes
+---------------------
+  id: Integer (PK)
+  partner_country_code: String [uniq]
+  partner_countries: String
+  partner_country_code_m49: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
 population_age_groups
 ---------------------
   id: Integer (PK)
@@ -114,11 +124,31 @@ purposes
   created_at: DateTime
   updated_at: DateTime
 
+recipient_country_codes
+-----------------------
+  id: Integer (PK)
+  recipient_country_code: String [uniq]
+  recipient_country: String
+  recipient_country_code_m49: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
 releases
 --------
   id: Integer (PK)
   release_code: String [uniq]
   release: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+reporter_country_codes
+----------------------
+  id: Integer (PK)
+  reporter_country_code: String [uniq]
+  reporter_countries: String
+  reporter_country_code_m49: String
   source_dataset: String
   created_at: DateTime
   updated_at: DateTime
@@ -289,13 +319,11 @@ development_assistance_to_agriculture
 -------------------------------------
   id: Integer (PK)
   donor_code_id: Integer [FK->donors]
+  recipient_country_code_id: Integer [FK->recipient_country_codes]
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   purpose_code_id: Integer [FK->purposes]
   flag_id: Integer [FK->flags]
-  recipient_country_code: String
-  recipient_country_code_m49: String
-  recipient_country: String
   year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
@@ -582,15 +610,11 @@ exchange_rate
 fertilizers_detailed_trade_matrix
 ---------------------------------
   id: Integer (PK)
+  reporter_country_code_id: Integer [FK->reporter_country_codes]
+  partner_country_code_id: Integer [FK->partner_country_codes]
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  reporter_country_code: String
-  reporter_country_code_m49: String
-  reporter_countries: String
-  partner_country_code: String
-  partner_country_code_m49: String
-  partner_countries: String
   year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
@@ -601,12 +625,10 @@ fertilizers_detailed_trade_matrix
 food_aid_shipments_wfp
 ----------------------
   id: Integer (PK)
+  recipient_country_code_id: Integer [FK->recipient_country_codes]
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  recipient_country_code: String
-  recipient_country_code_m49: String
-  recipient_country: String
   year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
@@ -691,15 +713,11 @@ forestry_pulp_paper_survey
 forestry_trade_flows
 --------------------
   id: Integer (PK)
+  reporter_country_code_id: Integer [FK->reporter_country_codes]
+  partner_country_code_id: Integer [FK->partner_country_codes]
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  reporter_country_code: String
-  reporter_country_code_m49: String
-  reporter_countries: String
-  partner_country_code: String
-  partner_country_code_m49: String
-  partner_countries: String
   year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)
@@ -1128,15 +1146,11 @@ trade_crops_livestock_indicators
 trade_detailed_trade_matrix
 ---------------------------
   id: Integer (PK)
+  reporter_country_code_id: Integer [FK->reporter_country_codes]
+  partner_country_code_id: Integer [FK->partner_country_codes]
   item_code_id: Integer [FK->item_codes]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  reporter_country_code: String
-  reporter_country_code_m49: String
-  reporter_countries: String
-  partner_country_code: String
-  partner_country_code_m49: String
-  partner_countries: String
   year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)

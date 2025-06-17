@@ -109,6 +109,34 @@ def get_valid_sex_codes(db: Session) -> Set[str]:
     return _get_valid_codes_generic(db, Sexs, "sex_code", "sex_codes")
 
 
+def get_valid_release_codes(db: Session) -> Set[str]:
+    """Get valid sex codes with caching"""
+    from _fao_.src.db.pipelines.releases.releases_model import Releases
+
+    return _get_valid_codes_generic(db, Releases, "release_code", "release_codes")
+
+
+def get_valid_reporter_country_codes(db: Session) -> Set[str]:
+    """Get valid sex codes with caching"""
+    from _fao_.src.db.pipelines.reporter_country_codes.reporter_country_codes_model import ReporterCountryCodes
+
+    return _get_valid_codes_generic(db, ReporterCountryCodes, "reporter_country_code", "reporter_country_codes")
+
+
+def get_valid_partner_country_codes(db: Session) -> Set[str]:
+    """Get valid sex codes with caching"""
+    from _fao_.src.db.pipelines.partner_country_codes.partner_country_codes_model import PartnerCountryCodes
+
+    return _get_valid_codes_generic(db, PartnerCountryCodes, "partner_country_code", "partner_country_codes")
+
+
+def get_valid_recipient_country_codes(db: Session) -> Set[str]:
+    """Get valid sex codes with caching"""
+    from _fao_.src.db.pipelines.recipient_country_codes.recipient_country_codes_model import RecipientCountryCodes
+
+    return _get_valid_codes_generic(db, RecipientCountryCodes, "recipient_country_code", "recipient_country_codes")
+
+
 def get_valid_currency_codes(db: Session) -> Set[str]:
     """Get valid currency codes with caching"""
     from _fao_.src.db.pipelines.currencies.currencies_model import Currencies
@@ -197,6 +225,30 @@ def is_valid_purpose_code(code: str, db: Session) -> bool:
 def is_valid_sex_code(code: str, db: Session) -> bool:
     """Check if sex code is valid"""
     valid_codes = get_valid_sex_codes(db)
+    return code in valid_codes
+
+
+def is_valid_release_code(code: str, db: Session) -> bool:
+    """Check if release code is valid"""
+    valid_codes = get_valid_release_codes(db)
+    return code in valid_codes
+
+
+def is_valid_reporter_country_code(code: str, db: Session) -> bool:
+    """Check if reporter_country code is valid"""
+    valid_codes = get_valid_reporter_country_codes(db)
+    return code in valid_codes
+
+
+def is_valid_partner_country_code(code: str, db: Session) -> bool:
+    """Check if partner_country code is valid"""
+    valid_codes = get_valid_partner_country_codes(db)
+    return code in valid_codes
+
+
+def is_valid_recipient_country_code(code: str, db: Session) -> bool:
+    """Check if recipient_country code is valid"""
+    valid_codes = get_valid_recipient_country_codes(db)
     return code in valid_codes
 
 

@@ -1,6 +1,11 @@
+import os
+from typing import List
+
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from pydantic import computed_field
-from typing import List
+
+load_dotenv(override=True)
 
 
 class Settings(BaseSettings):
@@ -25,6 +30,23 @@ class Settings(BaseSettings):
         # You could use this for date-based versioning like GitHub
         return "2024-01-15"  # Or pull from git tag date
 
+    # Database Configuration
+    db_user: str = os.getenv("DB_USER", "postgres")
+    db_password: str = os.getenv("DB_PASSWORD", "password")
+    db_host: str = os.getenv("DB_HOST", "localhost")
+    db_port: str = os.getenv("DB_PORT", "5432")
+    db_name: str = os.getenv("DB_NAME", "fao")
+
+    # Cache Configuration
+    cache_enabled: bool = os.getenv("CACHE_ENABLED", "true").lower() in ("true", "1", "yes")
+    redis_host: str = os.getenv("REDIS_HOST") or "localhost"
+    redis_port: int = int(os.getenv("REDIS_PORT") or 6379)
+    redis_password: str = os.getenv("REDIS_PASSWORD") or "password"
+    default_cache_ttl: int = 3600
+    cache_prefix: str = "fao"
+    cache_key_separator: str = ":"
+    max_scan_count: int = 100
+
     # CORS
     cors_origins: List[str] = ["http://localhost:3000", "https://app.mickeymalotte.com"]
 
@@ -34,8 +56,8 @@ class Settings(BaseSettings):
     default_offset: int = 0
 
     # Documentation URLs
-    docs_url: str = "/docs"
-    redoc_url: str = "/redoc"
+    docs_url: str | None = None
+    redoc_url: str | None = None
 
     class Config:
         env_file = ".env"
@@ -43,6 +65,7 @@ class Settings(BaseSettings):
         # Allow environment variables like API_PORT to override api_port
         env_prefix = ""  # No prefix by default
         extra = "ignore"
+        fao_zip_path = os.getenv("FAO_ZIP_PATH")
 
 
 settings = Settings()

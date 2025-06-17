@@ -258,7 +258,7 @@ class BaseDatasetETL(BaseETL):
                     self.update_pipeline_progress(session, absolute_position, original_total)
 
                     logger.info(
-                        f"  Chunk {chunk_idx + 1}: Inserted {result.rowcount} rows "
+                        f"  Chunk {chunk_idx + 1}: Inserted {result.rowcount} rows into {self.table_name} "
                         + f"(Progress: {absolute_position:,}/{original_total:,} - "
                         + f"{(absolute_position/original_total*100):.1f}%)"
                     )

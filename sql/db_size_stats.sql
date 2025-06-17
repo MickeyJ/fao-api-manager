@@ -12,15 +12,21 @@ UNION ALL
 SELECT 
     'WAL/Transaction Logs' as category,
     pg_size_pretty(sum(size)) as total_size
-FROM pg_ls_waldir()
+FROM pg_ls_waldir();
 
-UNION ALL
+
 
 -- Database total
-SELECT 
-    'Entire Database' as category,
-    pg_size_pretty(pg_database_size(current_database())) as total_size;
+SELECT pg_database_size(current_database()) AS size_bytes,
+       pg_size_pretty(pg_database_size(current_database())) AS size_human_readable;
 
+
+SELECT datname AS database_name,
+       pg_database_size(datname) AS size_bytes,
+       pg_size_pretty(pg_database_size(datname)) AS size_human_readable
+FROM pg_database
+WHERE datistemplate = false
+ORDER BY pg_database_size(datname) DESC;
 
 -- Top 10 space users (tables + matviews + indexes)
 SELECT 

@@ -62,7 +62,7 @@ def generate_all():
 
 def process_and_generate():
     """Process aquastat, references and generate codebase"""
-    process_aquastat()
+    # process_aquastat()
     process_csv()
     generate_all()
 

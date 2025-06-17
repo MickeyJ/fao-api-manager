@@ -2,950 +2,466 @@
 
 ## Executive Summary
 
-This document outlines a phased approach to transform the current FAO data API from a functional prototype into a production-ready, professional service suitable for official FAO adoption. The plan spans approximately 10-15 weeks and addresses critical architectural, security, performance, and documentation requirements.
+This roadmap outlines the path to official release for the FAO API project, focusing on code optimization, professional features, and **FAO collaboration**. The system has solid foundations with professional error handling, configuration management, and deployment infrastructure already implemented.
+
+**Key Focus**: Code optimization, essential professional features, and establishing an official relationship with FAO to ensure long-term viability and adoption.
+
+---
 
 ## Current State Assessment
 
-### Strengths
-- ✅ Functional ETL pipeline processing 84 FAO datasets
-- ✅ Working API endpoints with basic CRUD operations
-- ✅ Automated code generation from FAO data sources
-- ✅ PostgreSQL database with proper foreign key relationships
-- ✅ Deployed on AWS App Runner with CI/CD pipeline
+### ✅ What's Already Working Well
+- **Clean Architecture**: Generator produces professional API code without generator dependencies
+- **Professional Error Handling**: Custom exceptions, global handlers, proper HTTP responses
+- **Configuration Management**: Settings system with environment variable support
+- **Middleware & CORS**: Custom headers, version management, cross-origin support
+- **Database Design**: 84 datasets with proper foreign key relationships
+- **Deployment Pipeline**: AWS App Runner + ECR with automated CI/CD
+- **Data Processing**: Sophisticated ETL with foreign key mapping and validation
+- **Static Core Files**: Separation between generated and static code via `_fao_/` directory
 
-### Critical Issues
-- ❌ Generator code mixed with production API code
-- ❌ No authentication or authorization
-- ❌ No rate limiting or abuse prevention
-- ❌ Hardcoded configuration values
-- ❌ Poor error handling and logging
-- ❌ Massive code repetition (84 nearly identical modules)
-- ❌ No monitoring or observability
-- ❌ Limited query capabilities
-- ❌ No professional documentation
+### 🔧 Real Issues Requiring Attention
+- **Router Code Duplication**: 84+ nearly identical router files (main architectural issue)
+- **Template Complexity**: Messy Jinja2 templates with conditional imports
+- **Missing Authentication**: No API key management or user authorization
+- **No Rate Limiting**: Vulnerable to abuse without request throttling
+- **Limited Monitoring**: No observability for production usage
+- **Basic Query Capabilities**: Missing advanced filtering and aggregation
 
----
-
-## Phase 1: Critical Architecture Fixes (Weeks 1-2)
-
-### Objective
-Separate concerns and establish a professional codebase structure.
-
-### 1.1 Repository Separation
-
-**Split into two repositories:**
-
-```
-fao-data-generator/
-├── generator/
-├── templates/
-├── tests/
-└── README.md
-
-fao-data-api/
-├── src/
-│   ├── api/
-│   ├── core/
-│   ├── models/
-│   └── services/
-├── tests/
-├── docs/
-└── README.md
-```
-
-**Implementation Steps:**
-1. Create new `fao-api` repository
-2. Move only runtime code (no generator)
-3. Create proper .gitignore
-4. Remove all hardcoded paths
-5. Archive generator outputs properly
-
-### ✅ 1.2 Configuration Management
-
-**Replace hardcoded values with structured configuration:**
-
-```python
-# src/core/config.py
-from pydantic import BaseSettings, PostgresDsn
-
-class Settings(BaseSettings):
-    # Database
-    database_url: PostgresDsn
-    db_pool_size: int = 20
-    db_pool_max_overflow: int = 40
-    
-    # API Configuration
-    api_version: str = "1.0.0"
-    api_title: str = "FAO Data API"
-    debug_mode: bool = False
-    
-    # Security
-    api_key_header: str = "X-API-Key"
-    cors_origins: list[str] = ["*"]
-    
-    # Performance
-    default_limit: int = 100
-    max_limit: int = 1000
-    cache_ttl: int = 3600
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-settings = Settings()
-```
-
-### ✅ 1.3 Eliminate Code Repetition
-
-**Create base classes for common patterns:**
-
-```python
-# src/core/base_dataset.py
-from abc import ABC, abstractmethod
-import pandas as pd
-from sqlalchemy.orm import Session
-
-class BaseDataset(ABC):
-    """Base class for all FAO datasets"""
-    
-    def __init__(self, model_class, table_name: str):
-        self.model = model_class
-        self.table_name = table_name
-    
-    def load(self, file_path: str) -> pd.DataFrame:
-        """Common loading logic"""
-        return pd.read_csv(file_path, dtype=str, encoding='utf-8')
-    
-    @abstractmethod
-    def clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Dataset-specific cleaning logic"""
-        pass
-    
-    def insert(self, df: pd.DataFrame, session: Session) -> int:
-        """Common insertion logic with chunking"""
-        # Shared chunking and insertion code
-        pass
-
-# src/datasets/prices.py
-class PricesDataset(BaseDataset):
-    def __init__(self):
-        super().__init__(PricesModel, "prices")
-    
-    def clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Only dataset-specific cleaning logic
-        df['value'] = pd.to_numeric(df['value'], errors='coerce')
-        return df
-```
-
-### 1.4 Basic Error Handling
-
-**Implement consistent error responses:**
-
-```python
-# src/core/exceptions.py
-from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
-
-class FAOAPIError(Exception):
-    """Base exception for all API errors"""
-    def __init__(self, message: str, status_code: int = 400):
-        self.message = message
-        self.status_code = status_code
-
-class DataNotFoundError(FAOAPIError):
-    def __init__(self, dataset: str, filters: dict):
-        super().__init__(
-            f"No data found in {dataset} matching filters: {filters}",
-            status_code=404
-        )
-
-class InvalidParameterError(FAOAPIError):
-    def __init__(self, param: str, value: str, reason: str):
-        super().__init__(
-            f"Invalid parameter {param}='{value}': {reason}",
-            status_code=400
-        )
-
-# Global exception handler
-async def fao_exception_handler(request: Request, exc: FAOAPIError):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": exc.message,
-            "type": exc.__class__.__name__,
-            "path": str(request.url),
-            "timestamp": datetime.utcnow().isoformat()
-        }
-    )
-```
-
-### Deliverables - Phase 1
-- [✅] Two separate, clean repositories
-- [✅] Zero hardcoded configuration values
-- [✅] Base classes reducing code by ~70%
-- [✅] API error configuration
-- [ ] Implement consistent error handling across all endpoints
-- [ ] Professional project structure
+### 📋 Missing Professional Features
+- API versioning strategy
+- Comprehensive documentation
+- Client SDK generation
+- Performance optimization
+- Load testing
+- Backup/disaster recovery
 
 ---
 
-## Phase 2: Core Professional Features (Weeks 3-5)
+## Phase 1: Code Optimization & FAO Engagement (Weeks 1-4)
 
-### Objective
-Add essential features expected in any professional API.
+### 1.1 FAO Collaboration Initiative 🤝
 
-### 2.1 Authentication System
+**Objective**: Establish official relationship with FAO data department
 
-**Implement API key authentication:**
+**Actions**:
+1. **Research FAO Contacts**
+   - Identify FAO Statistics Division leadership
+   - Find open data initiative contacts
+   - Research existing FAO API/data access initiatives
+
+2. **Prepare Professional Outreach**
+   - Create project summary presentation
+   - Document API capabilities and benefits
+   - Prepare technical demonstration
+   - Draft collaboration proposal
+
+3. **Initial Contact Strategy**
+   - Email introduction with project overview
+   - Request for feedback call/meeting
+   - Offer technical demonstration
+   - Propose pilot collaboration
+
+4. **Follow-up Plan**
+   - Gather FAO requirements and priorities
+   - Assess official adoption pathway
+   - Identify potential integration opportunities
+   - Document feedback and next steps
+
+**Success Metrics**:
+- Initial response from FAO within 2 weeks
+- Scheduled meeting/demonstration
+- Written feedback on project value
+- Clear collaboration pathway identified
+
+### 1.2 Router Consolidation 🔧
+
+**Problem**: 84+ nearly identical router files generated
+**Impact**: Code maintenance, deployment size, development complexity
+
+**Solution**: Create dynamic routing system
 
 ```python
-# src/core/auth.py
-from fastapi import Security, HTTPException
-from fastapi.security import APIKeyHeader
-
-api_key_header = APIKeyHeader(name="X-API-Key")
-
-async def verify_api_key(api_key: str = Security(api_key_header)):
-    """Verify API key against database"""
-    key_data = await db.fetch_one(
-        "SELECT * FROM api_keys WHERE key = :key AND active = true",
-        {"key": api_key}
-    )
-    
-    if not key_data:
-        raise HTTPException(
-            status_code=403,
-            detail="Invalid or inactive API key"
-        )
-    
-    # Log usage
-    await db.execute(
-        "INSERT INTO api_usage (key_id, endpoint, timestamp) VALUES (:key_id, :endpoint, :timestamp)",
-        {"key_id": key_data["id"], "endpoint": request.url.path, "timestamp": datetime.utcnow()}
-    )
-    
-    return key_data
-
-# Apply to routes
-@router.get("/prices", dependencies=[Depends(verify_api_key)])
-async def get_prices():
-    pass
-```
-
-**API Key Management Endpoints:**
-```python
-@router.post("/api-keys")
-async def create_api_key(
-    email: str,
-    organization: str,
-    purpose: str
+# Instead of 84 router files, create generic handlers
+@app.get("/v1/{dataset_name}")
+async def get_dataset_data(
+    dataset_name: str,
+    filters: DatasetFilters = Depends(),
+    db: Session = Depends(get_db)
 ):
-    """Self-service API key generation"""
-    # Generate key, send email verification
-    # Return temporary key pending verification
+    # Dynamic routing based on dataset_name
+    dataset_handler = get_dataset_handler(dataset_name)
+    return await dataset_handler.get_data(filters, db)
 ```
 
-### 2.2 Rate Limiting
+**Implementation**:
+1. Create `BaseDatasetHandler` class
+2. Implement dynamic dataset discovery
+3. Generate router registration mapping
+4. Reduce 84 files to ~5 generic handlers
 
-**Implement tiered rate limiting:**
+**Expected Outcome**: 95% reduction in generated router code
 
+---
+
+## Phase 2: Essential Professional Features (Weeks 5-8)
+
+### 2.1 Authentication & Authorization 🔐
+
+**Current State**: Open API with no access control
+**Target**: Professional API key management
+
+**Implementation**:
 ```python
-# src/core/rate_limit.py
-from slowapi import Limiter
+# Add to core settings
+class Settings:
+    require_api_key: bool = True
+    api_keys_table: str = "api_keys"
+    rate_limit_per_hour: int = 1000
+
+# Middleware for API key validation
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    if settings.require_api_key:
+        api_key = request.headers.get("X-API-Key")
+        if not await validate_api_key(api_key):
+            return JSONResponse({"error": "Invalid API key"}, 401)
+    return await call_next(request)
+```
+
+**Features**:
+- API key generation and management
+- User registration system
+- Usage tracking per key
+- Key rotation capabilities
+
+### 2.2 Rate Limiting & Monitoring 📊
+
+**Rate Limiting**:
+```python
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 
-limiter = Limiter(
-    key_func=get_api_key_from_request,
-    default_limits=["100 per hour", "1000 per day"]
-)
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Different tiers
-RATE_LIMIT_TIERS = {
-    "free": "100 per hour",
-    "basic": "1000 per hour",
-    "premium": "10000 per hour",
-    "enterprise": "100000 per hour"
-}
-
-@router.get("/prices")
-@limiter.limit(get_rate_limit_for_user)
+@app.get("/v1/prices")
+@limiter.limit("100/hour")
 async def get_prices():
-    pass
+    # Existing logic
 ```
 
-### 2.3 Structured Logging
+**Monitoring & Observability**:
 
-**Implement comprehensive logging:**
+*Application Metrics*:
+- Request count per endpoint
+- Response time percentiles (p50, p95, p99)
+- Error rates by status code (4xx, 5xx)
+- Database query performance
+- Memory and CPU usage
+- Concurrent user tracking
 
+*Business Metrics*:
+- Most popular datasets/endpoints
+- Geographic distribution of users
+- Query complexity analysis
+- Data freshness tracking
+- Peak usage times/patterns
+
+*Infrastructure Monitoring*:
+- Database connection pool status
+- AWS App Runner health metrics
+- Database storage usage
+- Network latency to database
+- Container restart frequency
+
+*Alerting*:
+- Error rate > 5% over 5 minutes
+- Response time > 2 seconds sustained
+- Database connection failures
+- Memory usage > 85%
+- Failed health checks
+
+*Logging Strategy*:
 ```python
-# src/core/logging.py
-import structlog
-from pythonjsonlogger import jsonlogger
-
-# Configure structured logging
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
-
-logger = structlog.get_logger()
-
-# Usage in endpoints
-@router.get("/prices")
-async def get_prices(params: dict):
-    logger.info("api_request", 
-        endpoint="/prices",
-        params=params,
-        api_key=request.state.api_key_id
-    )
+# Structured logging for all requests
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "method": "GET",
+  "endpoint": "/v1/prices",
+  "query_params": {"area_code": "USA", "limit": 100},
+  "response_time_ms": 145,
+  "status_code": 200,
+  "user_api_key_hash": "abc123...",
+  "query_complexity_score": 2.3,
+  "records_returned": 87
+}
 ```
 
-### 2.4 Professional Documentation
+*Dashboard Requirements*:
+- Real-time API usage overview
+- Error trend analysis
+- Popular datasets visualization
+- Geographic usage map
+- Performance degradation alerts
+- Database query optimization recommendations
 
-**Create comprehensive documentation:**
+### 2.3 Advanced Query Capabilities 🔍
 
-```python
-# src/core/documentation.py
-from fastapi import FastAPI
+**Current State**: Basic filtering by foreign keys
+**Target**: Rich query interface
 
-app = FastAPI(
-    title="FAO Data API",
-    description="""
-    ## Overview
-    
-    The FAO Data API provides programmatic access to the Food and Agriculture 
-    Organization's comprehensive agricultural datasets.
-    
-    ## Authentication
-    
-    All requests require an API key passed in the `X-API-Key` header:
-    ```
-    curl -H "X-API-Key: your_key_here" https://api.fao.org/v1/prices
-    ```
-    
-    ## Rate Limits
-    
-    - Free tier: 100 requests/hour
-    - Basic tier: 1,000 requests/hour
-    - Premium tier: 10,000 requests/hour
-    
-    ## Data Sources
-    
-    This API provides access to 84 FAO datasets including:
-    - Price data
-    - Production statistics
-    - Trade flows
-    - Food security indicators
-    """,
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
-```
-
-**Create detailed endpoint documentation:**
-
-```python
-@router.get("/prices",
-    summary="Get commodity price data",
-    description="""
-    Returns price data for agricultural commodities.
-    
-    ## Filters
-    - `area_code`: ISO country code (e.g., 'USA', 'FRA')
-    - `item_code`: FAO item code (e.g., '0111' for wheat)
-    - `year`: Single year or range (e.g., '2020' or '2015-2020')
-    - `month`: Month number (1-12)
-    
-    ## Pagination
-    - `limit`: Number of records (max 1000)
-    - `offset`: Skip records for pagination
-    
-    ## Example
-    Get wheat prices in France for 2020:
-    ```
-    /v1/prices?area_code=FRA&item_code=0111&year=2020
-    ```
-    """,
-    response_model=PriceResponse,
-    responses={
-        200: {"description": "Success"},
-        400: {"description": "Invalid parameters"},
-        401: {"description": "Missing API key"},
-        429: {"description": "Rate limit exceeded"}
-    }
-)
-```
-
-### Deliverables - Phase 2
-- [ ] API key authentication system
-- [ ] Rate limiting with tiers
-- [ ] Structured JSON logging
-- [ ] Professional API documentation
-- [ ] Self-service key management
-- [ ] Usage tracking
+**New Features**:
+- Date range filtering (`?start_date=2020-01-01&end_date=2023-12-31`)
+- Numeric comparisons (`?value_gte=100&value_lt=500`)
+- Aggregation endpoints (`/v1/prices/aggregate?group_by=area_code&function=avg`)
+- Full-text search on description fields
+- CSV/JSON export options
 
 ---
 
-## Phase 3: Data Quality & Performance (Weeks 6-9)
+## Phase 3: Production Readiness (Weeks 9-12)
 
-### Objective
-Ensure data quality transparency and optimize performance for production loads.
+### 3.1 Documentation & Developer Experience 📖
 
-### 3.1 Data Quality Endpoints
+**API Documentation**:
+- Interactive OpenAPI docs with examples
+- Dataset-specific documentation
+- Client integration guides
+- Rate limiting and authentication docs
 
-**Add metadata and quality metrics:**
 
+
+### 3.2 Performance & Reliability 🚀
+
+**Database Optimization**:
+
+*Query performance analysis and index optimization*
+
+**Large Table Indexing Strategy**:
+For tables with >1M rows (like `trade_detailed_trade_matrix` with 50M rows), implement intelligent indexing:
+
+1. **Single column indexes for frequently filtered columns**:
 ```python
-@router.get("/datasets/{dataset_name}/metadata")
-async def get_dataset_metadata(dataset_name: str):
-    """Returns comprehensive dataset information"""
-    return {
-        "name": dataset_name,
-        "description": "Consumer price indices for food and agriculture",
-        "source": "FAO Statistics Division",
-        "update_frequency": "monthly",
-        "last_updated": "2024-01-15T00:00:00Z",
-        "temporal_coverage": {
-            "start": 1991,
-            "end": 2024
-        },
-        "geographic_coverage": {
-            "countries": 195,
-            "regions": ["Africa", "Americas", "Asia", "Europe", "Oceania"]
-        },
-        "quality_metrics": {
-            "completeness": 0.87,
-            "timeliness": "current",
-            "accuracy": "official"
-        },
-        "known_issues": [
-            {
-                "issue": "Missing data for some Pacific island nations before 2000",
-                "severity": "minor",
-                "affected_countries": ["Tuvalu", "Nauru"]
-            }
-        ],
-        "contact": "statistics@fao.org"
+# In model generation
+reporter_country_code = Column(String, nullable=False, index=True)  
+partner_country_code = Column(String, nullable=False, index=True)
+```
+
+2. **Composite indexes for common query patterns**:
+```python
+__table_args__ = (
+    # For queries filtering by reporter + year
+    Index('idx_reporter_year', 'reporter_country_code', 'year'),
+    # For queries filtering by partner + year  
+    Index('idx_partner_year', 'partner_country_code', 'year'),
+    # For bilateral trade queries
+    Index('idx_reporter_partner_year', 'reporter_country_code', 'partner_country_code', 'year'),
+)
+```
+
+**Implementation in Generator**:
+
+*Add table size detection*:
+```python
+# In FAOStructureModules column analysis
+if row_count > 1_000_000:  # Tables over 1M rows
+    # Mark high-cardinality foreign key columns for indexing
+    if column_name in ['reporter_country_code', 'partner_country_code', 'area_code']:
+        column.index = True
+```
+
+*Enhanced model template*:
+```jinja
+{% if not module.is_reference_module and module.row_count > 1000000 %}
+# Composite indexes for large tables
+__table_args__ = (
+    {% if 'reporter_country_code' in module.model.sql_all_columns %}
+    Index("idx_{{ safe_index_name(module.model.table_name, 'reporter_year') }}", 
+        'reporter_country_code', 'year'),
+    Index("idx_{{ safe_index_name(module.model.table_name, 'partner_year') }}", 
+        'partner_country_code', 'year'),
+    {% endif %}
+    # Auto-generate based on foreign key patterns
+)
+{% endif %}
+```
+
+*Automated index configuration*:
+```python
+# Auto-detected indexing strategies
+LARGE_TABLE_INDEX_PATTERNS = {
+    'trade_*': {
+        'single_indexes': ['reporter_country_code', 'partner_country_code'],
+        'composite_indexes': [
+            ['reporter_country_code', 'year'],
+            ['partner_country_code', 'year'],
+            ['reporter_country_code', 'partner_country_code', 'year']
+        ]
+    },
+    'production_*': {
+        'composite_indexes': [['area_code_id', 'item_code_id', 'year']]
     }
-
-@router.get("/datasets/{dataset_name}/coverage")
-async def get_data_coverage(dataset_name: str):
-    """Returns detailed coverage analysis"""
-    # Returns heat map data showing coverage by country/year
+}
 ```
 
-### 3.2 Advanced Query Capabilities
+*Other optimizations*:
+- Connection pooling tuning
+- Query result caching for reference data
+- Partitioning strategy for time-series data
+- Query plan analysis and optimization
 
-**Implement flexible filtering:**
+**Infrastructure**:
+- Load balancing configuration
+- Auto-scaling policies
+- Health check improvements
+- Backup strategy implementation
 
-```python
-# src/api/query_builder.py
-from sqlalchemy import and_, or_, between
+### 3.3 Quality Assurance 🧪
 
-class QueryBuilder:
-    """Build complex queries from API parameters"""
-    
-    def parse_filter(self, filter_str: str):
-        """Parse filter expressions like 'year>=2020,value>100'"""
-        conditions = []
-        for condition in filter_str.split(','):
-            field, op, value = self.parse_condition(condition)
-            conditions.append(self.build_condition(field, op, value))
-        return and_(*conditions)
-    
-    def parse_condition(self, condition: str):
-        """Parse 'field>=value' into components"""
-        # Implementation here
-        pass
+**Testing Strategy**:
+- Integration test suite
+- Load testing with realistic traffic
+- API contract testing
+- Data quality validation tests
 
-# Usage in endpoints
-@router.get("/prices")
-async def get_prices(
-    filter: str = Query(None, description="Filter expression: year>=2020,value>100"),
-    fields: str = Query(None, description="Comma-separated fields to return"),
-    sort: str = Query(None, description="Sort expression: year,-value")
-):
-    query = QueryBuilder()
-    filters = query.parse_filter(filter) if filter else None
-    # Apply filters to query
-```
-
-### 3.3 Performance Optimization
-
-**Implement caching and query optimization:**
-
-```python
-# src/core/cache.py
-from redis import Redis
-from functools import wraps
-import hashlib
-import json
-
-redis_client = Redis.from_url(settings.redis_url)
-
-def cache_result(ttl: int = 3600):
-    """Cache endpoint results"""
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Generate cache key from function name and args
-            cache_key = f"{func.__name__}:{hashlib.md5(str(kwargs).encode()).hexdigest()}"
-            
-            # Check cache
-            cached = redis_client.get(cache_key)
-            if cached:
-                return json.loads(cached)
-            
-            # Execute function
-            result = await func(*args, **kwargs)
-            
-            # Cache result
-            redis_client.setex(cache_key, ttl, json.dumps(result))
-            return result
-        return wrapper
-    return decorator
-
-# Apply to endpoints
-@router.get("/prices/aggregated")
-@cache_result(ttl=3600)  # Cache for 1 hour
-async def get_price_aggregates():
-    # Expensive aggregation query
-    pass
-```
-
-**Database query optimization:**
-
-```python
-# Create materialized views for common queries
-CREATE MATERIALIZED VIEW mv_price_monthly_avg AS
-SELECT 
-    area_code,
-    item_code,
-    year,
-    month,
-    AVG(value) as avg_price,
-    COUNT(*) as data_points
-FROM prices
-GROUP BY area_code, item_code, year, month;
-
-CREATE INDEX idx_mv_price_monthly ON mv_price_monthly_avg(area_code, item_code, year);
-
--- Refresh periodically
-REFRESH MATERIALIZED VIEW CONCURRENTLY mv_price_monthly_avg;
-```
-
-### 3.4 Bulk Export Capabilities
-
-**Add bulk data export endpoints:**
-
-```python
-@router.post("/exports")
-async def create_export_job(
-    dataset: str,
-    filters: dict,
-    format: str = "csv",  # csv, json, parquet
-    compression: str = "gzip"
-):
-    """Create asynchronous export job for large datasets"""
-    job_id = str(uuid4())
-    
-    # Queue export job
-    await queue.send({
-        "job_id": job_id,
-        "dataset": dataset,
-        "filters": filters,
-        "format": format,
-        "compression": compression
-    })
-    
-    return {
-        "job_id": job_id,
-        "status": "queued",
-        "estimated_time": "5-10 minutes",
-        "check_status_url": f"/exports/{job_id}"
-    }
-
-@router.get("/exports/{job_id}")
-async def get_export_status(job_id: str):
-    """Check export job status"""
-    job = await db.fetch_one("SELECT * FROM export_jobs WHERE id = :id", {"id": job_id})
-    
-    if job["status"] == "completed":
-        return {
-            "status": "completed",
-            "download_url": f"/exports/{job_id}/download",
-            "expires_at": job["expires_at"],
-            "size_bytes": job["file_size"]
-        }
-```
-
-### 3.5 Download FAO Datasets Dynamically
-
-**Needs more thought, but this endpoint might work:**
- - https://bulks-faostat.fao.org/production/datasets_E.json
-
-### Deliverables - Phase 3
-- [ ] Data quality metadata endpoints
-- [ ] Advanced query capabilities
-- [ ] Redis caching layer
-- [ ] Query performance optimization
-- [ ] Bulk export functionality
-- [ ] Data coverage visualization
+**Deployment**:
+- Blue-green deployment strategy
+- Rollback procedures
+- Database migration automation
+- Environment-specific configurations
 
 ---
 
-## Phase 4: Production Ready (Weeks 10-15)
+## Phase 4: Official Release Preparation (Weeks 13-16)
 
-### Objective
-Implement enterprise-grade monitoring, security, and operational excellence.
+### 4.1 FAO Integration & Feedback Incorporation
 
-### 4.1 Comprehensive Monitoring
+**Based on FAO Feedback**:
+- Implement requested features/modifications
+- Align with FAO data governance policies
+- Integrate with existing FAO systems if required
+- Address security/compliance requirements
 
-**Implement full observability stack:**
+**Legal & Compliance**:
+- Data usage licensing clarity
+- Terms of service documentation
+- Privacy policy if user registration
+- Attribution requirements
 
-```python
-# src/core/monitoring.py
-from prometheus_client import Counter, Histogram, Gauge
-import time
+### 4.2 Marketing & Communication 📢
 
-# Metrics
-request_count = Counter('api_requests_total', 'Total API requests', ['endpoint', 'method', 'status'])
-request_duration = Histogram('api_request_duration_seconds', 'Request duration', ['endpoint'])
-active_connections = Gauge('api_active_connections', 'Active connections')
-cache_hits = Counter('cache_hits_total', 'Cache hits', ['endpoint'])
-db_pool_size = Gauge('db_pool_size', 'Database connection pool size')
+**Launch Strategy**:
+- FAO announcement coordination
+- Developer community outreach
+- Technical blog posts/documentation
+- Conference presentations at data/agriculture events
 
-# Middleware to track metrics
-@app.middleware("http")
-async def track_metrics(request: Request, call_next):
-    start_time = time.time()
-    active_connections.inc()
-    
-    try:
-        response = await call_next(request)
-        request_count.labels(
-            endpoint=request.url.path,
-            method=request.method,
-            status=response.status_code
-        ).inc()
-        return response
-    finally:
-        duration = time.time() - start_time
-        request_duration.labels(endpoint=request.url.path).observe(duration)
-        active_connections.dec()
+**Success Metrics**:
+- API adoption rate
+- Developer registration count
+- Query volume growth
+- Community feedback scores
 
-# Health check endpoint
-@router.get("/health")
-async def health_check():
-    """Comprehensive health check"""
-    checks = {
-        "database": await check_database(),
-        "cache": await check_cache(),
-        "disk_space": check_disk_space(),
-        "memory": check_memory()
-    }
-    
-    status = "healthy" if all(c["status"] == "ok" for c in checks.values()) else "unhealthy"
-    
-    return {
-        "status": status,
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": settings.api_version,
-        "checks": checks
-    }
-```
+---
 
-### 4.2 Security Hardening
+## FAO Collaboration Strategy Details
 
-**Implement security best practices:**
+### Why FAO Partnership is Critical
 
-```python
-# src/core/security.py
-from fastapi import Security
-from fastapi.security import HTTPBearer
-from jose import JWTError, jwt
-import secrets
+1. **Legitimacy**: Official endorsement increases adoption
+2. **Data Quality**: Direct access to authoritative sources
+3. **Sustainability**: Long-term project viability
+4. **Resources**: Potential funding/infrastructure support
+5. **Distribution**: Access to FAO's global network
 
-# SQL injection prevention (already handled by SQLAlchemy)
-# Add additional parameter validation
-from pydantic import validator
+### Outreach Approach
 
-class QueryParams(BaseModel):
-    area_code: str = None
-    year: int = None
-    
-    @validator('area_code')
-    def validate_area_code(cls, v):
-        if v and not re.match(r'^[A-Z]{3}$', v):
-            raise ValueError('Invalid area code format')
-        return v
-    
-    @validator('year')
-    def validate_year(cls, v):
-        if v and (v < 1961 or v > 2030):
-            raise ValueError('Year must be between 1961 and 2030')
-        return v
+**Phase 1: Research & Preparation**
+- Identify key contacts in FAO Statistics Division
+- Research FAO's current API/data access initiatives
+- Understand FAO's technology priorities and constraints
+- Prepare compelling value proposition
 
-# Request signing for webhooks
-def generate_webhook_signature(payload: dict, secret: str) -> str:
-    """Generate HMAC signature for webhook payloads"""
-    message = json.dumps(payload, sort_keys=True)
-    signature = hmac.new(
-        secret.encode(),
-        message.encode(),
-        hashlib.sha256
-    ).hexdigest()
-    return signature
+**Phase 2: Initial Contact**
+- Professional email with project overview
+- Highlight benefits: improved data accessibility, developer adoption
+- Request brief meeting for demonstration
+- Emphasize non-commercial, public benefit nature
 
-# IP allowlisting for admin endpoints
-ADMIN_IP_WHITELIST = ["10.0.0.0/8", "172.16.0.0/12"]
+**Phase 3: Demonstration & Discussion**
+- Live API demonstration
+- Show current usage/adoption metrics
+- Discuss integration possibilities
+- Address FAO's questions and concerns
 
-def verify_admin_ip(request: Request):
-    client_ip = request.client.host
-    if not any(ip_address(client_ip) in ip_network(subnet) for subnet in ADMIN_IP_WHITELIST):
-        raise HTTPException(status_code=403, detail="Access denied")
-```
+**Phase 4: Collaboration Framework**
+- Define partnership structure
+- Establish data update/sync procedures
+- Agree on branding and attribution
+- Plan joint announcement strategy
 
-### 4.3 Comprehensive Testing
+### Risk Mitigation
 
-**Implement full test coverage:**
+**If FAO is not interested**:
+- Continue as independent project with proper attribution
+- Maintain data sync through public sources
+- Focus on developer community building
+- Document clear data sourcing/licensing
 
-```python
-# tests/test_api.py
-import pytest
-from httpx import AsyncClient
+**If FAO wants control**:
+- Negotiate appropriate collaboration terms
+- Maintain project's open-source nature
+- Ensure continued public access
+- Document governance structure
 
-@pytest.mark.asyncio
-async def test_price_endpoint_pagination():
-    """Test pagination works correctly"""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        # Get first page
-        response1 = await client.get("/v1/prices?limit=10&offset=0")
-        assert response1.status_code == 200
-        data1 = response1.json()
-        assert len(data1["data"]) == 10
-        
-        # Get second page
-        response2 = await client.get("/v1/prices?limit=10&offset=10")
-        assert response2.status_code == 200
-        data2 = response2.json()
-        
-        # Ensure no overlap
-        ids1 = {item["id"] for item in data1["data"]}
-        ids2 = {item["id"] for item in data2["data"]}
-        assert ids1.isdisjoint(ids2)
+---
 
-@pytest.mark.asyncio
-async def test_rate_limiting():
-    """Test rate limits are enforced"""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        # Make requests up to limit
-        for _ in range(100):
-            response = await client.get("/v1/prices", headers={"X-API-Key": "test_key"})
-            assert response.status_code == 200
-        
-        # Next request should be rate limited
-        response = await client.get("/v1/prices", headers={"X-API-Key": "test_key"})
-        assert response.status_code == 429
+## Success Metrics & Timeline
 
-# Load testing with locust
-from locust import HttpUser, task, between
+### Phase 1 (Weeks 1-4)
+- [ ] FAO contact established
+- [ ] Router code reduced by 90%
+- [ ] Template complexity reduced
 
-class FAOAPIUser(HttpUser):
-    wait_time = between(1, 3)
-    
-    @task(3)
-    def get_prices(self):
-        self.client.get("/v1/prices?limit=100", headers={"X-API-Key": "load_test_key"})
-    
-    @task(1)
-    def get_production(self):
-        self.client.get("/v1/production?year=2020", headers={"X-API-Key": "load_test_key"})
-```
+### Phase 2 (Weeks 5-8)
+- [ ] API key authentication implemented
+- [ ] Rate limiting active
+- [ ] Advanced querying available
+- [ ] Basic monitoring in place
 
-### 4.4 Documentation and Support
-
-**Create comprehensive documentation:**
-
-```markdown
-# docs/
-├── getting-started.md
-├── authentication.md
-├── api-reference/
-│   ├── prices.md
-│   ├── production.md
-│   └── ...
-├── examples/
-│   ├── python-example.py
-│   ├── r-example.R
-│   └── javascript-example.js
-├── data-dictionary.md
-├── faq.md
-└── changelog.md
-```
-
-**API client libraries:**
-
-```python
-# fao-api-python package
-class FAOAPIClient:
-    """Official Python client for FAO Data API"""
-    
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        self.base_url = "https://api.fao.org/v1"
-    
-    def get_prices(self, **filters):
-        """Get price data with filters"""
-        response = requests.get(
-            f"{self.base_url}/prices",
-            params=filters,
-            headers={"X-API-Key": self.api_key}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-### 4.5 Operational Procedures
-
-**Create runbooks and procedures:**
-
-```markdown
-# runbooks/incident-response.md
-
-## API Performance Degradation
-
-### Detection
-- Response time p99 > 2 seconds
-- Error rate > 1%
-- Alert in PagerDuty
-
-### Response Steps
-1. Check current load: `kubectl top pods`
-2. Check database connections: `SELECT count(*) FROM pg_stat_activity`
-3. Check cache hit rate in Grafana
-4. Scale if needed: `kubectl scale deployment api --replicas=10`
-
-### Escalation
-- 15 min: DevOps on-call
-- 30 min: Engineering lead
-- 60 min: CTO
-```
-
-### Deliverables - Phase 4
-- [ ] Prometheus + Grafana monitoring
-- [ ] Security audit passed
-- [ ] 90%+ test coverage
+### Phase 3 (Weeks 9-12)
+- [ ] Complete documentation published
+- [ ] Client SDK available
 - [ ] Load testing completed
-- [ ] Client libraries published
-- [ ] Operational runbooks
-- [ ] SLA defined (99.9% uptime)
+- [ ] Performance optimized
 
----
+### Phase 4 (Weeks 13-16)
+- [ ] FAO feedback incorporated
+- [ ] Official release announced
+- [ ] Developer adoption metrics tracked
+- [ ] Community feedback collected
 
-## Success Metrics
+## Budget Considerations
 
-### Technical Metrics
-- API response time p99 < 500ms
-- Error rate < 0.1%
-- Test coverage > 90%
-- Zero critical security vulnerabilities
+**Development Time**: ~16 weeks of focused development
+**Infrastructure**: Current AWS costs likely sufficient
+**FAO Engagement**: Potential travel/meeting costs
+**Legal Review**: If official partnership requires legal documentation
 
-### Business Metrics
-- 1000+ registered developers
-- 1M+ API calls per day
-- 99.9% uptime SLA
-- < 2 hour response time for critical issues
 
-### Quality Metrics
-- Documentation completeness score > 95%
-- Developer satisfaction score > 4.5/5
-- Time to first successful API call < 10 minutes
-- Support ticket resolution time < 24 hours
 
----
-
-## Budget Estimation
-
-### Development Costs (10-15 weeks)
-- 1 Senior Developer (full-time): $40,000-60,000
-- 1 DevOps Engineer (part-time): $15,000-20,000
-- Security Audit: $5,000-10,000
-- **Total Development**: $60,000-90,000
-
-### Infrastructure Costs (Monthly)
-- AWS App Runner: $500-1,000
-- RDS PostgreSQL: $300-500
-- ElastiCache Redis: $200-300
-- CloudWatch/Monitoring: $100-200
-- **Total Monthly**: $1,100-2,000
-
-### Ongoing Costs (Annual)
-- Maintenance & Updates: $30,000-40,000
-- Infrastructure: $15,000-25,000
-- Support: $20,000-30,000
-- **Total Annual**: $65,000-95,000
-
----
-
-## Risk Mitigation
-
-### Technical Risks
-- **Data Quality Issues**: Implement data validation pipeline
-- **Performance Bottlenecks**: Design for horizontal scaling
-- **Security Vulnerabilities**: Regular security audits
-
-### Business Risks
-- **FAO Approval Delays**: Maintain open communication
-- **Competing Solutions**: Focus on unique value propositions
-- **Funding Gaps**: Explore grant opportunities
-
-### Mitigation Strategies
-1. Regular FAO stakeholder updates
-2. Phased rollout with pilot users
-3. Open source non-sensitive components
-4. Build community around the API
-
----
-
-## Next Steps
-
-### Immediate Actions (This Week)
-1. Set up separate repositories
-2. Create project board for tracking
-3. Begin Phase 1 refactoring
-4. Schedule FAO stakeholder meeting
-
-### Phase 1 Kickoff Checklist
-- [ ] Create fao-data-api repository
-- [ ] Set up CI/CD for new repo
-- [ ] Create base dataset classes
-- [ ] Remove hardcoded values
-- [ ] Implement error handling
-
-### Communication Plan
-- Weekly progress updates
-- Bi-weekly FAO stakeholder demos
-- Monthly community updates
-- Quarterly roadmap reviews
-
----
 
 ## Conclusion
 
-This roadmap transforms the FAO API from a functional prototype into a professional, production-ready service. By following these phases, you'll create an API that meets international standards for reliability, security, and usability. The total timeline of 10-15 weeks is aggressive but achievable with focused effort.
+The FAO API project has strong technical foundations and is positioned for successful official release. The main focus areas are:
 
-Remember: Each phase builds on the previous one. Don't skip steps, as the foundation is critical for long-term success.
+1. **Router optimization** (technical debt reduction)
+2. **Professional features** (auth, monitoring, advanced queries)
+3. **FAO collaboration** (legitimacy and sustainability)
+4. **Developer experience** (documentation, tooling)
+
+**The critical path to success runs through FAO engagement** - their feedback and potential partnership will determine the project's ultimate impact and sustainability. Technical improvements should proceed in parallel with outreach efforts.
+
+Success is measured not just by technical completeness, but by **real-world adoption and FAO's endorsement** of the project's value to the global agricultural data community.

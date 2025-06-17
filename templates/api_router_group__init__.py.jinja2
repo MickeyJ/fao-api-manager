@@ -7,14 +7,14 @@ from .{{router.name}} import router as {{router.name}}
 
 {{group_name}}_api = APIRouter(
   prefix=f"/{settings.api_version_prefix}", 
-  tags=["{{group_name}}"],
+  # tags=["{{group_name}}"],
 )
 
 {% for router in router_group %}
 {{group_name}}_api.include_router(
   {{router.name}}, 
   prefix=f"/{{group_name}}", 
-  tags=["{{group_name}}", "{{router.name}}"],
+  tags=["{{router.name}}"],
 )
 {% endfor %}
 

@@ -27,6 +27,10 @@ class ErrorCode(str, Enum):
     INVALID_SOURCE_CODE = "INVALID_SOURCE_CODE"
     INVALID_PURPOSE_CODE = "INVALID_PURPOSE_CODE"
     INVALID_SEX_CODE = "INVALID_SEX_CODE"
+    INVALID_RELEASE_CODE = "INVALID_RELEASE_CODE"
+    INVALID_REPORTER_COUNTRY_CODE = "INVALID_REPORTER_COUNTRY_CODE"
+    INVALID_PARTNER_COUNTRY_CODE = "INVALID_PARTNER_COUNTRY_CODE"
+    INVALID_RECIPIENT_COUNTRY_CODE = "INVALID_RECIPIENT_COUNTRY_CODE"
     INVALID_CURRENCY_CODE = "INVALID_CURRENCY_CODE"
     INVALID_SURVEY_CODE = "INVALID_SURVEY_CODE"
     INVALID_POPULATION_AGE_GROUP_CODE = "INVALID_POPULATION_AGE_GROUP_CODE"
@@ -86,6 +90,11 @@ class ErrorCode(str, Enum):
     DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
     EXTERNAL_SERVICE_UNAVAILABLE = "EXTERNAL_SERVICE_UNAVAILABLE"
     MAINTENANCE_MODE = "MAINTENANCE_MODE"
+    # Cache errors
+    CACHE_ERROR = "CACHE_ERROR"
+    CACHE_CONNECTION_FAILED = "CACHE_CONNECTION_FAILED"
+    CACHE_OPERATION_FAILED = "CACHE_OPERATION_FAILED"
+    CACHE_SERIALIZATION_ERROR = "CACHE_SERIALIZATION_ERROR"
 
 
 # Human-readable error messages with placeholders
@@ -101,6 +110,10 @@ ERROR_MESSAGES: Dict[ErrorCode, str] = {
     ErrorCode.INVALID_SOURCE_CODE: "Invalid source code '{value}'. Use /other/sources endpoint to see valid codes.",
     ErrorCode.INVALID_PURPOSE_CODE: "Invalid purpose code '{value}'. Use /other/purposes endpoint to see valid codes.",
     ErrorCode.INVALID_SEX_CODE: "Invalid sex code '{value}'. Use /other/sexs endpoint to see valid codes.",
+    ErrorCode.INVALID_RELEASE_CODE: "Invalid release code '{value}'. Use /other/releases endpoint to see valid codes.",
+    ErrorCode.INVALID_REPORTER_COUNTRY_CODE: "Invalid reporter country code '{value}'. Use /other/reporter_country_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_PARTNER_COUNTRY_CODE: "Invalid partner country code '{value}'. Use /other/partner_country_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_RECIPIENT_COUNTRY_CODE: "Invalid recipient country code '{value}'. Use /other/recipient_country_codes endpoint to see valid codes.",
     ErrorCode.INVALID_CURRENCY_CODE: "Invalid currency code '{value}'. Use /other/currencies endpoint to see valid codes.",
     ErrorCode.INVALID_SURVEY_CODE: "Invalid survey code '{value}'. Use /other/surveys endpoint to see valid codes.",
     ErrorCode.INVALID_POPULATION_AGE_GROUP_CODE: "Invalid population age group code '{value}'. Use /population/population_age_groups endpoint to see valid codes.",
@@ -153,6 +166,11 @@ ERROR_MESSAGES: Dict[ErrorCode, str] = {
     ErrorCode.DATABASE_UNAVAILABLE: "Database service is temporarily unavailable",
     ErrorCode.EXTERNAL_SERVICE_UNAVAILABLE: "External service '{service}' is temporarily unavailable",
     ErrorCode.MAINTENANCE_MODE: "API is under maintenance. Expected completion: {end_time}",
+    # Cache errors
+    ErrorCode.CACHE_ERROR: "Cache service error occurred",
+    ErrorCode.CACHE_CONNECTION_FAILED: "Failed to connect to cache service: {service}",
+    ErrorCode.CACHE_OPERATION_FAILED: "Cache {operation} operation failed",
+    ErrorCode.CACHE_SERIALIZATION_ERROR: "Failed to {action} cache data",
 }
 
 

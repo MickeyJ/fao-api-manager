@@ -28,7 +28,7 @@ else
     PYTHON = python
 endif
 
-.PHONY: all venv env-status initialize requirements install generate pre-test process-aquastat process-csv \
+.PHONY: ml-test all db-stats-local venv env-status initialize requirements install generate pre-test process-aquastat process-csv \
 	init-datasets update-datasets check-updates dataset-status use-remote-db use-local-db use-local-db-admin \
 	check-views-local check-views-remote check-views db-stats-remote db-stats create-db-local-admin drop-db-local-admin \
 	clear-all-tables-local enable-rls-db-remote show-all-tables NO-DIRECT-USE-create-db NO-DIRECT-USE-drop-db \
@@ -52,16 +52,21 @@ env-status:
 # =-=-=--=-=-=-=-=-=-=
 # Package Installation
 # =-=-=--=-=-=-=-=-=-=
-initialize:
+install-init:
 	$(ACTIVATE) $(PYTHON) -m pip install pip-tools
 	$(ACTIVATE) $(PYTHON) -m piptools compile requirements.in
 	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
-requirements:
+install:
+	grep "^${pkg}" requirements.in || echo "${pkg}" >> requirements.in
 	$(ACTIVATE) $(PYTHON) -m piptools compile requirements.in
 	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
-install:
+install-update:
+	$(ACTIVATE) $(PYTHON) -m piptools compile requirements.in
+	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
+
+install-requirements:
 	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
 # =-=-=--=-=-=-=-=-=
@@ -106,10 +111,24 @@ dataset-status:
 	@echo "Showing FAO dataset status..."
 	$(ACTIVATE) $(PYTHON) -m generator --dataset_status
 
+# =-=-=--=-=-=-=-=-
+#    		ML
+# =-=-=--=-=-=-=-=-
+ml-train:
+	$(MAKE) use-local-db
+	$(ACTIVATE) $(PYTHON) -m _ml_.train_model
+	$(MAKE) use-local-db
+
+ml-analyze:
+	$(MAKE) use-local-db
+	$(ACTIVATE) $(PYTHON) -m _ml_.analyze
+	$(MAKE) use-local-db
 
 # =-=-=--=-=-=-=-=-
 # Database commands
 # =-=-=--=-=-=-=-=-
+
+
 use-remote-db:
 	cp remote.env .env
 	@echo "Switched to remote database"
@@ -134,9 +153,21 @@ check-views-remote:
 	$(MAKE) check-views
 	make use-local-db
 
+test-queries-remote:
+	$(MAKE) use-remote-db
+	$(MAKE) test-queries
+	$(MAKE) use-local-db
+
 check-views:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/check_views.sql
-	
+
+test-queries:
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/test_queries.sql
+
+db-stats-local:
+	make use-local-db-admin
+	@echo "Database size info..."
+	$(MAKE) db-stats
 
 db-stats-remote:
 	make use-remote-db
@@ -144,7 +175,7 @@ db-stats-remote:
 	$(MAKE) db-stats
 
 db-stats:
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/db_size_stats.sql
+	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/db_size_stats.sql
 	make use-local-db
 # =-=-=--=-=-=-=-=-=-=-=--=-=-=-=-=-
 # 			Database Modifications

@@ -17,7 +17,7 @@ class {{ module.model.model_name }}(Base):
     __tablename__ = "{{ module.model.table_name }}"
     {# readability spacer #}
     {% if module.is_reference_module %}
-    # Lookup table - use domain primary key
+    # Reference table - use domain primary key
     id = Column(Integer, primary_key=True)
     {# readability spacer #}
         {% for column in module.model.column_analysis %}
