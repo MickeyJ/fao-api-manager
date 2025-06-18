@@ -1,5 +1,5 @@
 from loguru import logger
-import sys
+import sys, os
 from pathlib import Path
 
 # Remove default handler
@@ -12,26 +12,28 @@ logger.add(
     level="INFO",
     colorize=True,
 )
+# Only add file handlers if not in production/container environment
+# App Runner sets AWS_EXECUTION_ENV or you can use a custom env var
+if not os.getenv("AWS_EXECUTION_ENV") and not os.getenv("IS_PRODUCTION"):
+    # Add file handler with rotation
+    log_path = Path("logs")
+    log_path.mkdir(exist_ok=True)
 
-# Add file handler with rotation
-log_path = Path("logs")
-log_path.mkdir(exist_ok=True)
+    logger.add(
+        log_path / "app_{time:YYYY-MM-DD}.log",
+        rotation="1 day",  # New file each day
+        retention="1 month",  # Keep logs for 30 days
+        level="DEBUG",  # File gets more detailed logs
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+        backtrace=True,  # Include traceback in errors
+        diagnose=True,  # Include variable values in traceback
+        compression="zip",  # Compress old logs
+    )
 
-logger.add(
-    log_path / "app_{time:YYYY-MM-DD}.log",
-    rotation="1 day",  # New file each day
-    retention="1 month",  # Keep logs for 30 days
-    level="DEBUG",  # File gets more detailed logs
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
-    backtrace=True,  # Include traceback in errors
-    diagnose=True,  # Include variable values in traceback
-    compression="zip",  # Compress old logs
-)
-
-# Add special handler for errors
-logger.add(
-    log_path / "errors.log", level="ERROR", rotation="1 week", retention="3 months", backtrace=True, diagnose=True
-)
+    # Add special handler for errors
+    logger.add(
+        log_path / "errors.log", level="ERROR", rotation="1 week", retention="3 months", backtrace=True, diagnose=True
+    )
 
 
 # Create child loggers for different modules

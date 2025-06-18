@@ -405,11 +405,12 @@ def get_available_items(db: Session = Depends(get_db)):
         select(
             ItemCodes.item_code,
             ItemCodes.item,
-            func.count({{ router.model.model_name }}.id).label('record_count')
+            ItemCodes.item_code_cpc,
+            ItemCodes.item_code_fbs,
+            ItemCodes.item_code_sdg,
         )
-        .join({{ router.model.model_name }}, ItemCodes.id == {{ router.model.model_name }}.item_code_id)
-        .group_by(ItemCodes.item_code, ItemCodes.item)
-        .order_by(func.count({{ router.model.model_name }}.id).desc())
+        .where(ItemCodes.source_dataset == '{{ router.name }}')
+        .order_by(ItemCodes.item_code)
     )
     
     results = db.execute(query).all()
@@ -421,7 +422,9 @@ def get_available_items(db: Session = Depends(get_db)):
             {
                 "item_code": r.item_code,
                 "item": r.item,
-                "record_count": r.record_count
+                "item_code_cpc": r.item_code_cpc,
+                "item_code_fbs": r.item_code_fbs,
+                "item_code_sdg": r.item_code_sdg,
             }
             for r in results
         ]
@@ -437,11 +440,10 @@ def get_available_areas(db: Session = Depends(get_db)):
         select(
             AreaCodes.area_code,
             AreaCodes.area,
-            func.count({{ router.model.model_name }}.id).label('record_count')
+            AreaCodes.area_code_m49,
         )
-        .join({{ router.model.model_name }}, AreaCodes.id == {{ router.model.model_name }}.area_code_id)
-        .group_by(AreaCodes.area_code, AreaCodes.area)
-        .order_by(func.count({{ router.model.model_name }}.id).desc())
+        .where(AreaCodes.source_dataset == '{{ router.name }}')
+        .order_by(AreaCodes.area_code)
     )
     
     results = db.execute(query).all()
@@ -453,7 +455,7 @@ def get_available_areas(db: Session = Depends(get_db)):
             {
                 "area_code": r.area_code,
                 "area": r.area,
-                "record_count": r.record_count
+                "area_code_m49": r.area_code_m49,
             }
             for r in results
         ]
@@ -467,13 +469,11 @@ def get_available_elements(db: Session = Depends(get_db)):
     """Get all elements (measures/indicators) in this dataset"""
     query = (
         select(
-            Elements.element_code,
-            Elements.element,
-            func.count({{ router.model.model_name }}.id).label('record_count')
+            Elements.element_code,  
+            Elements.element
         )
-        .join({{ router.model.model_name }}, Elements.id == {{ router.model.model_name }}.element_code_id)
-        .group_by(Elements.element_code, Elements.element)
-        .order_by(func.count({{ router.model.model_name }}.id).desc())
+        .where(Elements.source_dataset == '{{ router.name }}')
+        .order_by(Elements.element_code)
     )
     
     results = db.execute(query).all()
@@ -485,7 +485,6 @@ def get_available_elements(db: Session = Depends(get_db)):
             {
                 "element_code": r.element_code,
                 "element": r.element,
-                "record_count": r.record_count
             }
             for r in results
         ]
@@ -524,8 +523,374 @@ def get_data_quality_summary(db: Session = Depends(get_db)):
         ]
     }
         {% endif %}
+
+        {% if fk.table_name == 'reporter_country_codes' %}
+@router.get("/reporter_countries")
+@cache_result(prefix="{{ router.name }}:reporter_countries", ttl=604800)
+def get_available_reporter_countries(db: Session = Depends(get_db)):
+    """Get all reporter countries in this dataset"""
+    query = (
+        select(
+            ReporterCountryCodes.reporter_country_code,
+            ReporterCountryCodes.reporter_countries
+        )
+        .where(ReporterCountryCodes.source_dataset == '{{ router.name }}')
+        .order_by(ReporterCountryCodes.reporter_country_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_reporter_countries": len(results),
+        "reporter_countries": [
+            {
+                "reporter_country_code": r.reporter_country_code,
+                "reporter_countries": r.reporter_countries
+            }
+            for r in results
+        ]
+    }
+        {% endif %}
+        {% if fk.table_name == 'partner_country_codes' %}
+@router.get("/partner_countries")
+@cache_result(prefix="{{ router.name }}:partner_countries", ttl=604800)
+def get_available_partner_countries(db: Session = Depends(get_db)):
+    """Get all partner countries in this dataset"""
+    query = (
+        select(
+            PartnerCountryCodes.partner_country_code,
+            PartnerCountryCodes.partner_countries
+        )
+        .where(PartnerCountryCodes.source_dataset == '{{ router.name }}')
+        .order_by(PartnerCountryCodes.partner_country_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_partner_countries": len(results),
+        "partner_countries": [
+            {
+                "partner_country_code": r.partner_country_code,
+                "partner_countries": r.partner_countries
+            }
+            for r in results
+        ]
+    }
+        {% endif %}
+        {% if fk.table_name == 'recipient_country_codes' %}
+@router.get("/recipient_countries")
+@cache_result(prefix="{{ router.name }}:recipient_countries", ttl=604800)
+def get_available_recipient_countries(db: Session = Depends(get_db)):
+    """Get all recipient countries in this dataset"""
+    query = (
+        select(
+            RecipientCountryCodes.recipient_country_code,
+            RecipientCountryCodes.recipient_country
+        )
+        .where(RecipientCountryCodes.source_dataset == '{{ router.name }}')
+        .order_by(RecipientCountryCodes.recipient_country_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_recipient_countries": len(results),
+        "recipient_countries": [
+            {
+                "recipient_country_code": r.recipient_country_code,
+                "recipient_country": r.recipient_country
+            }
+            for r in results
+        ]
+    }
+        {% endif %}
+        {% if fk.table_name == 'donors' %}
+@router.get("/donors")
+@cache_result(prefix="{{ router.name }}:donors", ttl=604800)
+def get_available_donors(db: Session = Depends(get_db)):
+    """Get all donors in this dataset"""
+    query = (
+        select(
+            Donors.donor_code,
+            Donors.donor
+        )
+        .where(Donors.source_dataset == '{{ router.name }}')
+        .order_by(Donors.donor_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_donors": len(results),
+        "donors": [
+            {
+                "donor_code": r.donor_code,
+                "donor": r.donor
+            }
+            for r in results
+        ]
+    }
+        {% endif %}
+        {% if fk.table_name == 'sources' %}
+@router.get("/sources")
+@cache_result(prefix="{{ router.name }}:sources", ttl=604800)
+def get_available_sources(db: Session = Depends(get_db)):
+    """Get all sources in this dataset"""
+    query = (
+        select(
+            Sources.source_code,
+            Sources.source
+        )
+        .where(Sources.source_dataset == '{{ router.name }}')
+        .order_by(Sources.source_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_sources": len(results),
+        "sources": [
+            {
+                "source_code": r.source_code,
+                "source": r.source
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'releases' %}
+@router.get("/releases")
+@cache_result(prefix="{{ router.name }}:releases", ttl=604800)
+def get_available_releases(db: Session = Depends(get_db)):
+    """Get all releases in this dataset"""
+    query = (
+        select(
+            Releases.release_code,
+            Releases.release
+        )
+        .where(Releases.source_dataset == '{{ router.name }}')
+        .order_by(Releases.release_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_releases": len(results),
+        "releases": [
+            {
+                "release_code": r.release_code,
+                "release": r.release
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'sexs' %}
+@router.get("/sexs")
+@cache_result(prefix="{{ router.name }}:sexs", ttl=604800)
+def get_available_sexs(db: Session = Depends(get_db)):
+    """Get all sex categories in this dataset"""
+    query = (
+        select(
+            Sexs.sex_code,
+            Sexs.sex
+        )
+        .where(Sexs.source_dataset == '{{ router.name }}')
+        .order_by(Sexs.sex_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_sexs": len(results),
+        "sexs": [
+            {
+                "sex_code": r.sex_code,
+                "sex": r.sex
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'surveys' %}
+@router.get("/surveys")
+@cache_result(prefix="{{ router.name }}:surveys", ttl=604800)
+def get_available_surveys(db: Session = Depends(get_db)):
+    """Get all surveys in this dataset"""
+    query = (
+        select(
+            Surveys.survey_code,
+            Surveys.survey
+        )
+        .where(Surveys.source_dataset == '{{ router.name }}')
+        .order_by(Surveys.survey_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_surveys": len(results),
+        "surveys": [
+            {
+                "survey_code": r.survey_code,
+                "survey": r.survey
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'purposes' %}
+@router.get("/purposes")
+@cache_result(prefix="{{ router.name }}:purposes", ttl=604800)
+def get_available_purposes(db: Session = Depends(get_db)):
+    """Get all purposes in this dataset"""
+    query = (
+        select(
+            Purposes.purpose_code,
+            Purposes.purpose
+        )
+        .where(Purposes.source_dataset == '{{ router.name }}')
+        .order_by(Purposes.purpose_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_purposes": len(results),
+        "purposes": [
+            {
+                "purpose_code": r.purpose_code,
+                "purpose": r.purpose
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'geographic_levels' %}
+@router.get("/geographic_levels")
+@cache_result(prefix="{{ router.name }}:geographic_levels", ttl=604800)
+def get_available_geographic_levels(db: Session = Depends(get_db)):
+    """Get all geographic levels in this dataset"""
+    query = (
+        select(
+            GeographicLevels.geographic_level_code,
+            GeographicLevels.geographic_level
+        )
+        .where(GeographicLevels.source_dataset == '{{ router.name }}')
+        .order_by(GeographicLevels.geographic_level_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_geographic_levels": len(results),
+        "geographic_levels": [
+            {
+                "geographic_level_code": r.geographic_level_code,
+                "geographic_level": r.geographic_level
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'indicators' %}
+@router.get("/indicators")
+@cache_result(prefix="{{ router.name }}:indicators", ttl=604800)
+def get_available_indicators(db: Session = Depends(get_db)):
+    """Get all indicators in this dataset"""
+    query = (
+        select(
+            Indicators.indicator_code,
+            Indicators.indicator
+        )
+        .where(Indicators.source_dataset == '{{ router.name }}')
+        .order_by(Indicators.indicator_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_indicators": len(results),
+        "indicators": [
+            {
+                "indicator_code": r.indicator_code,
+                "indicator": r.indicator
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'population_age_groups' %}
+@router.get("/population_age_groups")
+@cache_result(prefix="{{ router.name }}:population_age_groups", ttl=604800)
+def get_available_population_age_groups(db: Session = Depends(get_db)):
+    """Get all population age groups in this dataset"""
+    query = (
+        select(
+            PopulationAgeGroups.population_age_group_code,
+            PopulationAgeGroups.population_age_group
+        )
+        .where(PopulationAgeGroups.source_dataset == '{{ router.name }}')
+        .order_by(PopulationAgeGroups.population_age_group_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_population_age_groups": len(results),
+        "population_age_groups": [
+            {
+                "population_age_group_code": r.population_age_group_code,
+                "population_age_group": r.population_age_group
+            }
+            for r in results
+        ]
+    }
+{% endif %}
+{% if fk.table_name == 'food_groups' %}
+@router.get("/food_groups")
+@cache_result(prefix="{{ router.name }}:food_groups", ttl=604800)
+def get_available_food_groups(db: Session = Depends(get_db)):
+    """Get all food groups in this dataset"""
+    query = (
+        select(
+            FoodGroups.food_group_code,
+            FoodGroups.food_group
+        )
+        .where(FoodGroups.source_dataset == '{{ router.name }}')
+        .order_by(FoodGroups.food_group_code)
+    )
+    
+    results = db.execute(query).all()
+    
+    return {
+        "dataset": "{{ router.name }}",
+        "total_food_groups": len(results),
+        "food_groups": [
+            {
+                "food_group_code": r.food_group_code,
+                "food_group": r.food_group
+            }
+            for r in results
+        ]
+    }
+{% endif %}
     {% endfor %}
 
+{% if router.model.column_analysis | selectattr('sql_column_name', 'equalto', 'year') | list %}
 @router.get("/years")
 @cache_result(prefix="{{ router.name }}:years", ttl=604800)
 def get_temporal_coverage(db: Session = Depends(get_db)):
@@ -554,6 +919,7 @@ def get_temporal_coverage(db: Session = Depends(get_db)):
         "total_records": sum(r["record_count"] for r in years_data),
         "years": years_data
     }
+{% endif %}
 
 @router.get("/summary")
 @cache_result(prefix="{{ router.name }}:summary", ttl=604800)
@@ -571,7 +937,6 @@ def get_dataset_summary(db: Session = Depends(get_db)):
         ]
     }
     
-    # Add counts for each FK relationship
     {% for fk in router.model.foreign_keys %}
         {% if fk.table_name == 'area_codes' %}
     summary["unique_areas"] = db.query(func.count(func.distinct({{ router.model.model_name }}.area_code_id))).scalar()
@@ -579,6 +944,36 @@ def get_dataset_summary(db: Session = Depends(get_db)):
     summary["unique_items"] = db.query(func.count(func.distinct({{ router.model.model_name }}.item_code_id))).scalar()
         {% elif fk.table_name == 'elements' %}
     summary["unique_elements"] = db.query(func.count(func.distinct({{ router.model.model_name }}.element_code_id))).scalar()
+        {% elif fk.table_name == 'flags' %}
+    summary["unique_flags"] = db.query(func.count(func.distinct({{ router.model.model_name }}.flag_id))).scalar()
+        {% elif fk.table_name == 'reporter_country_codes' %}
+    summary["unique_reporter_countries"] = db.query(func.count(func.distinct({{ router.model.model_name }}.reporter_country_code_id))).scalar()
+        {% elif fk.table_name == 'partner_country_codes' %}
+    summary["unique_partner_countries"] = db.query(func.count(func.distinct({{ router.model.model_name }}.partner_country_code_id))).scalar()
+        {% elif fk.table_name == 'recipient_country_codes' %}
+    summary["unique_recipient_countries"] = db.query(func.count(func.distinct({{ router.model.model_name }}.recipient_country_code_id))).scalar()
+        {% elif fk.table_name == 'donors' %}
+    summary["unique_donors"] = db.query(func.count(func.distinct({{ router.model.model_name }}.donor_code_id))).scalar()
+        {% elif fk.table_name == 'currencies' %}
+    summary["unique_currencies"] = db.query(func.count(func.distinct({{ router.model.model_name }}.iso_currency_code_id))).scalar()
+        {% elif fk.table_name == 'sources' %}
+    summary["unique_sources"] = db.query(func.count(func.distinct({{ router.model.model_name }}.source_code_id))).scalar()
+        {% elif fk.table_name == 'releases' %}
+    summary["unique_releases"] = db.query(func.count(func.distinct({{ router.model.model_name }}.release_code_id))).scalar()
+        {% elif fk.table_name == 'sexs' %}
+    summary["unique_sexs"] = db.query(func.count(func.distinct({{ router.model.model_name }}.sex_code_id))).scalar()
+        {% elif fk.table_name == 'surveys' %}
+    summary["unique_surveys"] = db.query(func.count(func.distinct({{ router.model.model_name }}.survey_code_id))).scalar()
+        {% elif fk.table_name == 'purposes' %}
+    summary["unique_purposes"] = db.query(func.count(func.distinct({{ router.model.model_name }}.purpose_code_id))).scalar()
+        {% elif fk.table_name == 'geographic_levels' %}
+    summary["unique_geographic_levels"] = db.query(func.count(func.distinct({{ router.model.model_name }}.geographic_level_code_id))).scalar()
+        {% elif fk.table_name == 'indicators' %}
+    summary["unique_indicators"] = db.query(func.count(func.distinct({{ router.model.model_name }}.indicator_code_id))).scalar()
+        {% elif fk.table_name == 'population_age_groups' %}
+    summary["unique_population_age_groups"] = db.query(func.count(func.distinct({{ router.model.model_name }}.population_age_group_code_id))).scalar()
+        {% elif fk.table_name == 'food_groups' %}
+    summary["unique_food_groups"] = db.query(func.count(func.distinct({{ router.model.model_name }}.food_group_code_id))).scalar()
         {% endif %}
     {% endfor %}
     
