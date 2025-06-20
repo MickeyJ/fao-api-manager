@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 from generator.file_system import FileSystem
 from generator.logger import logger
 from generator import singularize, snake_to_pascal_case
+from .relationship_identifier import relationship_identifier
 
 
 @dataclass
@@ -61,7 +62,6 @@ class GraphGenerator:
                 self._analyze_for_relationships(module)
 
         # Write all migrations
-        self._write_migrations()
         self.file_system.copy_static_files()
 
         logger.success(f"Generated {len(self.migrations)} migration files")
@@ -147,26 +147,58 @@ class GraphGenerator:
         table_name = module["name"]
         foreign_keys = module["model"].get("foreign_keys", [])
 
-        # Get relationship pattern
-        pattern_info = self._determine_relationship_pattern(table_name, foreign_keys)
+        pattern_info = relationship_identifier.determine_relationship_pattern(table_name, foreign_keys)
 
         if not pattern_info:
             logger.warning(f"  ⚠️ Could not determine pattern for {table_name}")
             return
 
-        # For dynamic patterns, analyze elements to determine relationship types
-        if pattern_info.get("relationships") == "dynamic":
-            # Simulate element data (in production, this would query the database)
-            element_data = self._simulate_table_elements(table_name)
+        # Handle dynamic patterns
+        if pattern_info.get("relationships") in ["dynamic", "dynamic_indicators", "dynamic_references"]:
+            # Determine which reference types this table uses
+            reference_types = relationship_identifier.determine_reference_types_for_table(table_name, foreign_keys)
 
-            # Group elements by relationship type
-            relationship_groups = self._group_elements_by_relationship(table_name, element_data, pattern_info)
+            if not reference_types:
+                logger.warning(f"  ⚠️ No reference types found for {table_name}, skipping relationships")
+                return
+
+            # Collect relationship groups from all reference types
+            all_relationship_groups = {}
+
+            for ref_type in reference_types:
+                # Get the reference data (elements, indicators, food_values, etc.)
+                ref_items = relationship_identifier.get_reference_data_for_table(table_name, ref_type)
+
+                if ref_items:
+                    # Group by relationship type using the appropriate inference method
+                    groups = relationship_identifier.group_by_relationship_type(
+                        table_name, ref_items, pattern_info, ref_type
+                    )
+
+                    # Merge groups (handling potential conflicts)
+                    for rel_type, rel_info in groups.items():
+                        if rel_type in all_relationship_groups:
+                            # Merge reference items if same relationship type from different sources
+                            existing = all_relationship_groups[rel_type]
+
+                            # Merge the codes and items lists
+                            for key, value in rel_info.items():
+                                if isinstance(value, list) and key in existing:
+                                    existing[key].extend(value)
+                                elif key == "properties":
+                                    # Merge properties
+                                    existing[key].update(value)
+                        else:
+                            all_relationship_groups[rel_type] = rel_info
+                else:
+                    logger.info(f"  No {ref_type} found for {table_name}")
 
             # Generate a migration for each relationship type found
-            for rel_type, rel_info in relationship_groups.items():
+            for rel_type, rel_info in all_relationship_groups.items():
                 self._generate_single_relationship_migration(module, rel_info, pattern_info)
+
+        # Handle fixed patterns (bilateral trade, etc.)
         else:
-            # Fixed relationship pattern (like bilateral trade)
             for rel_info in pattern_info["relationships"]:
                 self._generate_single_relationship_migration(module, rel_info, pattern_info)
 
@@ -221,415 +253,3 @@ class GraphGenerator:
         logger.info(
             f"  Generated relationship pipeline: {pipeline_name}/ ({rel_info['type']} with {len(rel_info.get('element_codes', []))} elements)"
         )
-
-    def _determine_relationship_pattern(self, table_name: str, foreign_keys: List[Dict]) -> Optional[Dict]:
-        """Determine relationship patterns for a dataset"""
-        fk_tables = [fk["table_name"] for fk in foreign_keys]
-
-        # Bilateral trade pattern
-        if "reporter_country_codes" in fk_tables and "partner_country_codes" in fk_tables:
-            return {
-                "pattern": "bilateral",
-                "relationships": [
-                    {
-                        "type": "TRADES",
-                        "source_fk": next(
-                            fk["hash_fk_sql_column_name"]
-                            for fk in foreign_keys
-                            if fk["table_name"] == "reporter_country_codes"
-                        ),
-                        "target_fk": next(
-                            fk["hash_fk_sql_column_name"]
-                            for fk in foreign_keys
-                            if fk["table_name"] == "partner_country_codes"
-                        ),
-                        "source_node": "ReporterCountryCode",
-                        "target_node": "PartnerCountryCode",
-                    }
-                ],
-            }
-
-        # Country-Item pattern (most common)
-        elif "area_codes" in fk_tables and "item_codes" in fk_tables:
-            return {
-                "pattern": "country_item",
-                "relationships": "dynamic",  # Will be determined by element analysis
-                "source_fk": next(
-                    fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "area_codes"
-                ),
-                "target_fk": next(
-                    fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "item_codes"
-                ),
-                "source_node": "AreaCode",
-                "target_node": "ItemCode",
-            }
-
-        # Country-Purpose pattern (for investment data)
-        elif "area_codes" in fk_tables and "purposes" in fk_tables:
-            return {
-                "pattern": "country_purpose",
-                "relationships": [
-                    {
-                        "type": "MEASURES",
-                        "source_fk": next(
-                            fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "area_codes"
-                        ),
-                        "target_fk": next(
-                            fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "purposes"
-                        ),
-                        "source_node": "AreaCode",
-                        "target_node": "Purpose",
-                    }
-                ],
-            }
-
-        # Country-Donor pattern
-        elif "area_codes" in fk_tables and "donors" in fk_tables:
-            return {
-                "pattern": "country_donor",
-                "relationships": [
-                    {
-                        "type": "RECEIVES_FROM",
-                        "source_fk": next(
-                            fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "area_codes"
-                        ),
-                        "target_fk": next(
-                            fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "donors"
-                        ),
-                        "source_node": "AreaCode",
-                        "target_node": "Donor",
-                    }
-                ],
-            }
-
-        # Recipient-Donor pattern
-        elif "recipient_country_codes" in fk_tables and "donors" in fk_tables:
-            return {
-                "pattern": "recipient_donor",
-                "relationships": [
-                    {
-                        "type": "RECEIVES_FROM",
-                        "source_fk": next(
-                            fk["hash_fk_sql_column_name"]
-                            for fk in foreign_keys
-                            if fk["table_name"] == "recipient_country_codes"
-                        ),
-                        "target_fk": next(
-                            fk["hash_fk_sql_column_name"] for fk in foreign_keys if fk["table_name"] == "donors"
-                        ),
-                        "source_node": "RecipientCountryCode",
-                        "target_node": "Donor",
-                    }
-                ],
-            }
-
-        return None
-
-    def _simulate_table_elements(self, table_name: str) -> List[Dict]:
-        """
-        Simulate element data for a table
-        In production, this would query the database
-        """
-        # Common element patterns by table type
-        element_patterns = {
-            "trade": [
-                {"element_code": "5610", "element": "Import quantity"},
-                {"element_code": "5622", "element": "Import value"},
-                {"element_code": "5910", "element": "Export quantity"},
-                {"element_code": "5922", "element": "Export value"},
-            ],
-            "production": [
-                {"element_code": "5510", "element": "Production"},
-                {"element_code": "5419", "element": "Yield"},
-                {"element_code": "5312", "element": "Area harvested"},
-            ],
-            "emissions": [
-                {"element_code": "7231", "element": "Emissions (CO2)"},
-                {"element_code": "7230", "element": "Emissions (N2O)"},
-                {"element_code": "7229", "element": "Emissions (CH4)"},
-            ],
-            "inputs": [
-                {"element_code": "5157", "element": "Agricultural Use"},
-                {"element_code": "5159", "element": "Use per area of cropland"},
-            ],
-            "prices": [
-                {"element_code": "5530", "element": "Producer Price (LCU/tonne)"},
-                {"element_code": "5532", "element": "Producer Price (USD/tonne)"},
-            ],
-            "food_balance": [
-                {"element_code": "5511", "element": "Production"},
-                {"element_code": "5611", "element": "Import quantity"},
-                {"element_code": "5911", "element": "Export quantity"},
-                {"element_code": "5142", "element": "Food"},
-                {"element_code": "5521", "element": "Feed"},
-            ],
-        }
-
-        # Match table name to pattern
-        table_lower = table_name.lower()
-        for pattern_key, elements in element_patterns.items():
-            if pattern_key in table_lower:
-                return elements
-
-        # Default elements
-        return [{"element_code": "5110", "element": "Value"}]
-
-    def _group_elements_by_relationship(
-        self, table_name: str, elements: List[Dict], pattern_info: Dict
-    ) -> Dict[str, Dict]:
-        """
-        Group elements by their inferred relationship type
-        """
-        relationship_groups = {}
-
-        for element in elements:
-            rel_info = self._infer_relationship_from_element(element["element"], element["element_code"], table_name)
-
-            if rel_info:
-                rel_type = rel_info["type"]
-
-                # Initialize the relationship group if it doesn't exist
-                if rel_type not in relationship_groups:
-                    relationship_groups[rel_type] = {
-                        "type": rel_type,
-                        "source_fk": pattern_info["source_fk"],
-                        "target_fk": pattern_info["target_fk"],
-                        "source_node": pattern_info["source_node"],
-                        "target_node": pattern_info["target_node"],
-                        "element_codes": [],
-                        "elements": [],
-                        "properties": {},
-                    }
-
-                relationship_groups[rel_type]["element_codes"].append(element["element_code"])
-                relationship_groups[rel_type]["elements"].append(element)
-                relationship_groups[rel_type]["properties"] = rel_info.get("properties", {})
-
-        return relationship_groups
-
-    def _infer_relationship_from_element(self, element_name: str, element_code: str, table_name: str) -> Optional[Dict]:
-        """
-        Infer relationship type using table context first, then element details
-        """
-        element_lower = element_name.lower()
-        table_lower = table_name.lower()
-
-        # TRADE context tables
-        if "trade" in table_lower:
-            if "import" in element_lower or "export" in element_lower:
-                flow = "import" if "import" in element_lower else "export"
-            else:
-                flow = "unspecified"
-
-            return {
-                "type": "TRADES",
-                "properties": {
-                    "flow": flow,
-                    "measure": self._extract_measure(element_lower),
-                    "element_code": element_code,
-                    "element": element_name,
-                },
-            }
-
-        # PRODUCTION context tables
-        elif "production" in table_lower:
-            return {
-                "type": "PRODUCES",
-                "properties": {
-                    "measure": self._extract_measure(element_lower),
-                    "element_code": element_code,
-                    "element": element_name,
-                },
-            }
-
-        # EMISSIONS context tables
-        elif "emissions" in table_lower:
-            source = "livestock" if "livestock" in table_lower else "crops" if "crops" in table_lower else "other"
-            return {
-                "type": "EMITS",
-                "properties": {
-                    "source": source,
-                    "gas_type": self._extract_gas_type(element_lower),
-                    "element_code": element_code,
-                    "element": element_name,
-                },
-            }
-
-        # WATER/AQUASTAT context tables
-        elif "aquastat" in table_lower:
-            if "withdrawal" in element_lower:
-                return {
-                    "type": "USES",
-                    "properties": {
-                        "resource": "water",
-                        "purpose": self._extract_water_purpose(element_lower),
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-            else:
-                return {
-                    "type": "MEASURES",
-                    "properties": {
-                        "category": "water_infrastructure",
-                        "subcategory": self._extract_water_subcategory(element_lower),
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-
-        # INPUTS context tables
-        elif "inputs" in table_lower or "fertilizer" in table_lower:
-            if "import" in element_lower or "export" in element_lower:
-                return {
-                    "type": "TRADES",
-                    "properties": {
-                        "flow": "import" if "import" in element_lower else "export",
-                        "commodity_type": "agricultural_inputs",
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-            else:
-                return {
-                    "type": "USES",
-                    "properties": {
-                        "resource": "fertilizer" if "fertilizer" in table_lower else "inputs",
-                        "measure": self._extract_measure(element_lower),
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-
-        # PRICE context tables
-        elif "price" in table_lower:
-            return {
-                "type": "MEASURES",
-                "properties": {
-                    "category": "price",
-                    "price_type": "producer" if "producer" in element_lower else "consumer",
-                    "element_code": element_code,
-                    "element": element_name,
-                },
-            }
-
-        # INVESTMENT context tables
-        elif "investment" in table_lower or "credit" in table_lower:
-            return {
-                "type": "MEASURES",
-                "properties": {
-                    "category": "financial",
-                    "flow_type": self._extract_investment_type(table_lower, element_lower),
-                    "element_code": element_code,
-                    "element": element_name,
-                },
-            }
-
-        # FOOD BALANCE/SUPPLY tables
-        elif "food_balance" in table_lower or "sua" in table_lower:
-            if "import" in element_lower or "export" in element_lower:
-                return {
-                    "type": "TRADES",
-                    "properties": {
-                        "flow": "import" if "import" in element_lower else "export",
-                        "measure": "quantity",
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-            elif "production" in element_lower:
-                return {
-                    "type": "PRODUCES",
-                    "properties": {"measure": "quantity", "element_code": element_code, "element": element_name},
-                }
-            elif "feed" in element_lower or "food" in element_lower or "supply" in element_lower:
-                return {
-                    "type": "USES",
-                    "properties": {
-                        "resource": "food_supply",
-                        "purpose": "feed" if "feed" in element_lower else "food",
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-            else:
-                return {
-                    "type": "MEASURES",
-                    "properties": {
-                        "category": "food_balance",
-                        "measure": self._extract_measure(element_lower),
-                        "element_code": element_code,
-                        "element": element_name,
-                    },
-                }
-
-        # Default fallback
-        return None
-
-    def _extract_measure(self, element_lower: str) -> str:
-        """Extract what's being measured from element name"""
-        if "value" in element_lower:
-            return "value"
-        elif "quantity" in element_lower:
-            return "quantity"
-        elif "area" in element_lower:
-            return "area"
-        elif "yield" in element_lower:
-            return "yield"
-        elif any(nutrient in element_lower for nutrient in ["protein", "fat", "vitamin", "calcium"]):
-            return "nutrients"
-        else:
-            return "other"
-
-    def _extract_gas_type(self, element_lower: str) -> str:
-        """Extract greenhouse gas type from element name"""
-        if "co2" in element_lower:
-            return "CO2"
-        elif "n2o" in element_lower:
-            return "N2O"
-        elif "ch4" in element_lower:
-            return "CH4"
-        else:
-            return "unspecified"
-
-    def _extract_water_purpose(self, element_lower: str) -> str:
-        """Extract water use purpose from element name"""
-        if "agriculture" in element_lower or "irrigation" in element_lower:
-            return "agriculture"
-        elif "industrial" in element_lower:
-            return "industrial"
-        elif "municipal" in element_lower:
-            return "municipal"
-        else:
-            return "general"
-
-    def _extract_water_subcategory(self, element_lower: str) -> str:
-        """Extract water infrastructure subcategory"""
-        if "equipped" in element_lower:
-            return "equipped_area"
-        elif "irrigated" in element_lower:
-            return "irrigated_area"
-        elif "groundwater" in element_lower:
-            return "groundwater"
-        elif "surface" in element_lower:
-            return "surface_water"
-        else:
-            return "general"
-
-    def _extract_investment_type(self, table_lower: str, element_lower: str) -> str:
-        """Extract investment/financial flow type"""
-        if "credit" in table_lower:
-            return "credit"
-        elif "foreign" in table_lower:
-            return "foreign_direct_investment"
-        elif "government" in table_lower:
-            return "government_expenditure"
-        elif "assistance" in table_lower:
-            return "development_assistance"
-        else:
-            return "general_investment"
-
-    def _write_migrations(self):
-        """Write all migration files to disk"""
-        # This method is no longer needed since we write files directly
-        pass

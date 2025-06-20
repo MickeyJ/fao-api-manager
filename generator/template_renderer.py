@@ -129,3 +129,27 @@ class TemplateRenderer:
         return template.render(
             project_name=self.project_name,
         )
+
+    def render_core_error_codes_template(self, reference_modules: dict) -> str:
+        """Render core/error_codes.py template"""
+        template = self.jinja_env.get_template("error_codes.py.jinja2")
+        return template.render(
+            project_name=self.project_name,
+            reference_modules=reference_modules,
+        )
+
+    def render_core_exceptions_template(self, reference_modules: dict) -> str:
+        """Render core/exceptions.py template"""
+        template = self.jinja_env.get_template("exceptions.py.jinja2")
+        return template.render(
+            project_name=self.project_name,
+            reference_modules=reference_modules,
+        )
+
+    def render_core_validation_template(self, reference_modules: dict) -> str:
+        """Render core/validation.py template"""
+        template = self.jinja_env.get_template("validation.py.jinja2")
+        return template.render(
+            project_name=self.project_name,
+            reference_modules=reference_modules,
+        )

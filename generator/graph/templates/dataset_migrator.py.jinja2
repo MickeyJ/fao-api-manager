@@ -19,6 +19,9 @@ class {{ migration_class_name }}(GraphMigrationBase):
         self.element_codes = {{ relationship.element_codes }}
         self.elements = {{ relationship.elements | map(attribute='element') | list }}
         {% endif %}
+        {% if relationship.properties %}
+        self.relationship_properties = {{ relationship.properties | tojson }}
+        {% endif %}
     
     def get_migration_query(self) -> str:
         return load_sql("{{ pipeline_name }}.cypher.sql", Path(__file__).parent)
@@ -34,6 +37,9 @@ class {{ migration_class_name }}(GraphMigrationBase):
         {% if relationship.elements %}
         logger.info(f"Starting {{ table_name }} {{ relationship.type }} relationship migration...")
         logger.info(f"  Elements: {{ relationship.elements | map(attribute='element') | join(', ') }}")
+        {% if relationship.properties %}
+        logger.info(f"  Properties: {{ relationship.properties }}")
+        {% endif %}
         {% else %}
         logger.info(f"Starting {{ table_name }} {{ relationship.type }} relationship migration...")
         {% endif %}
@@ -42,13 +48,6 @@ class {{ migration_class_name }}(GraphMigrationBase):
             # Execute the main migration
             with get_session() as session:
                 query = self.get_migration_query()
-                
-                # Add source_table property for tracking
-                query = query.replace(
-                    "CREATE (source)-[r:{{ relationship.type }} {",
-                    "CREATE (source)-[r:{{ relationship.type }} {source_dataset: '{{ table_name }}', "
-                )
-                
                 result = session.execute(text(query)).fetchall()
                 self.created = len(result)
                 logger.info(f"Created {self.created} {{ relationship.type }} relationships from {{ table_name }}")

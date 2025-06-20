@@ -1,23 +1,28 @@
 -- Verification queries for {{ relationship.type }} relationships
-{% set column_names = module.model.column_analysis | map(attribute='sql_column_name') | list %}
-SELECT count(*) FROM cypher('{{ project_name }}', $
+SELECT count(*) FROM cypher('{{ project_name }}', $$
     MATCH ()-[r:{{ relationship.type }}]->()
     WHERE r.source_dataset = '{{ table_name }}'
     RETURN count(r)
-$) as (count agtype);
+$$) as (count agtype);
 
--- Sample relationships
-SELECT * FROM cypher('{{ project_name }}', $
+-- Sample relationships with properties
+SELECT * FROM cypher('{{ project_name }}', $$
     MATCH (s)-[r:{{ relationship.type }}]->(t)
     WHERE r.source_dataset = '{{ table_name }}'
     RETURN s.name as source, 
            type(r) as relationship, 
-           t.name as target
-           {% if 'year' in column_names %}, r.year as year{% endif %}
-           {% if 'value' in column_names %}, r.value as value{% endif %}
-           {% if 'unit' in column_names %}, r.unit as unit{% endif %}
+           t.name as target,
+           {% if relationship.properties %}
+           {% for prop_key in relationship.properties.keys() %}
+           r.{{ prop_key }} as {{ prop_key }},
+           {% endfor %}
+           {% endif %}
+           r.year as year,
+           r.value as value,
+           r.unit as unit
     LIMIT 10
-$) as (source agtype, relationship agtype, target agtype
-    {% if 'year' in column_names %}, year agtype{% endif %}
-    {% if 'value' in column_names %}, value agtype{% endif %}
-    {% if 'unit' in column_names %}, unit agtype{% endif %});
+$$) as (source agtype, relationship agtype, target agtype
+{% if relationship.properties %}
+{% for prop_key in relationship.properties.keys() %}, {{ prop_key }} agtype{% endfor %}
+{% endif %}
+, year agtype, value agtype, unit agtype);

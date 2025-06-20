@@ -1,6 +1,6 @@
 # FAO Database Schema
 
-# Generated from 87 tables
+# Generated from 90 tables
 
 # Format: column_name: type (nullable?) [FK->table] [idx]
 
@@ -48,6 +48,15 @@ elements
   created_at: DateTime
   updated_at: DateTime
 
+factors
+-------
+  id: Integer (PK)
+  factor_code: String [uniq]
+  factor: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
 flags
 -----
   id: Integer (PK)
@@ -66,6 +75,15 @@ food_groups
   created_at: DateTime
   updated_at: DateTime
 
+food_values
+-----------
+  id: Integer (PK)
+  food_value_code: String [uniq]
+  food_value: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
 geographic_levels
 -----------------
   id: Integer (PK)
@@ -80,6 +98,15 @@ indicators
   id: Integer (PK)
   indicator_code: String [uniq]
   indicator: String
+  source_dataset: String
+  created_at: DateTime
+  updated_at: DateTime
+
+industries
+----------
+  id: Integer (PK)
+  industry_code: String [uniq]
+  industry: String
   source_dataset: String
   created_at: DateTime
   updated_at: DateTime
@@ -1190,14 +1217,11 @@ value_shares_industry_primary_factors
 -------------------------------------
   id: Integer (PK)
   area_code_id: Integer [FK->area_codes]
+  food_value_code_id: Integer [FK->food_values]
+  industry_code_id: Integer [FK->industries]
+  factor_code_id: Integer [FK->factors]
   element_code_id: Integer [FK->elements]
   flag_id: Integer [FK->flags]
-  food_value_code: String
-  food_value: String
-  industry_code: String
-  industry: String
-  factor_code: String
-  factor: String
   year_code: String(8)
   year: SmallInteger [idx]
   unit: String(50)

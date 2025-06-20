@@ -15,6 +15,7 @@ from . import safe_index_name
 class ProjectPath:
     project: Path
     src: Path = Path("src")
+    core: Path = Path("src/core")
     db: Path = Path("src/db")
     db_models: Path = Path("src/db/models")
     db_pipelines: Path = Path("src/db/pipelines")
@@ -33,6 +34,7 @@ class Generator:
         self.template_renderer = TemplateRenderer(self.project_name)
 
         # Will hold all modules from all pipelines
+        self.enhanced_results = {}
         self.all_modules = []
         self.pipelines = {}
 
@@ -66,6 +68,7 @@ class Generator:
         # Add foreign keys
         fk_mapper = FAOForeignKeyMapper(structure_modules.results, REFERENCE_MAPPINGS, json_cache_path, cache_bust)
         enhanced_results = fk_mapper.enhance_datasets_with_foreign_keys()
+        self.enhanced_results = enhanced_results
 
         # Save and use results
         structure_modules.save()
@@ -84,6 +87,7 @@ class Generator:
     def _generate_files(self):
         """Generate all pipeline and model files"""
         self._generate_project_files()
+        self._generate_core_files()
         self._group_modules_by_pipeline()
 
         for pipeline_name, modules in self.pipelines.items():
@@ -273,6 +277,26 @@ class Generator:
     def _generate_project_files(self):
         self._generate_empty_init_files()
         self._generate_project_main()
+
+    def _generate_core_files(self):
+
+        # Core error_codes.py
+        error_codes_content = self.template_renderer.render_core_error_codes_template(
+            reference_modules=self.enhanced_results["references"],
+        )
+        self.file_system.write_file_cache(self.paths.core / "error_codes.py", error_codes_content)
+
+        # Core exceptions.py
+        exceptions_content = self.template_renderer.render_core_exceptions_template(
+            reference_modules=self.enhanced_results["references"],
+        )
+        self.file_system.write_file_cache(self.paths.core / "exceptions.py", exceptions_content)
+
+        # Core validation.py
+        validation_content = self.template_renderer.render_core_validation_template(
+            reference_modules=self.enhanced_results["references"],
+        )
+        self.file_system.write_file_cache(self.paths.core / "validation.py", validation_content)
 
     def _generate_project_main(self):
         """Generate database.py for db"""

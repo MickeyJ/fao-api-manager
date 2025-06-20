@@ -135,7 +135,7 @@ class FileSystem:
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(content, encoding="utf-8")
             self._write_cache(file_path, content)
-            print(f"✅ Generated: {file_path}")
+            # print(f"✅ Generated: {file_path}")
 
         elif cached_content != content:
             # Content has changed from cache

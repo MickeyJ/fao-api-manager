@@ -1,0 +1,78 @@
+from typing import Set, Optional, Dict, Any, Type, TYPE_CHECKING
+from sqlalchemy.orm import Session
+from sqlalchemy import select, distinct
+from datetime import datetime, timedelta
+from functools import lru_cache
+
+# Type checking imports (doesn't run at runtime)
+if TYPE_CHECKING:
+{% for ref_key, ref_data in reference_modules.items() %}
+    from {{ project_name }}.src.db.pipelines.{{ ref_data.name }}.{{ ref_data.name }}_model import {{ ref_data.model.model_name }}
+{% endfor %}
+
+
+class ValidationCache:
+    """Simple in-memory cache for validation data"""
+
+    def __init__(self, ttl_seconds: int = 3600):
+        self.ttl = timedelta(seconds=ttl_seconds)
+        self._cache: Dict[str, tuple[Any, datetime]] = {}
+
+    def get(self, key: str) -> Optional[Any]:
+        """Get value if not expired"""
+        if key in self._cache:
+            value, timestamp = self._cache[key]
+            if datetime.utcnow() - timestamp < self.ttl:
+                return value
+            else:
+                del self._cache[key]
+        return None
+
+    def set(self, key: str, value: Any) -> None:
+        """Set value with timestamp"""
+        self._cache[key] = (value, datetime.utcnow())
+
+
+# Global cache instance
+_cache = ValidationCache(ttl_seconds=3600)
+
+
+def _get_valid_codes_generic(db: Session, model_class: Type[Any], code_column_name: str, cache_key: str) -> Set[str]:
+    """Generic function to get valid codes with caching"""
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # Use getattr to access the column dynamically
+    column = getattr(model_class, code_column_name)
+    codes = db.query(column).distinct().all()
+    valid_codes = {code[0] for code in codes}
+
+    _cache.set(cache_key, valid_codes)
+    return valid_codes
+
+
+{% for ref_key, ref_data in reference_modules.items() %}
+{% set function_name = ref_data.model.pk_sql_column_name %}
+
+def get_valid_{{ function_name }}(db: Session) -> Set[str]:
+    """Get valid {{ ref_data.model.pk_column.lower() }}s with caching"""
+    from {{ project_name }}.src.db.pipelines.{{ ref_data.name }}.{{ ref_data.name }}_model import {{ ref_data.model.model_name }}
+
+    return _get_valid_codes_generic(db, {{ ref_data.model.model_name }}, "{{ ref_data.model.pk_sql_column_name }}", "{{ function_name }}")
+{% endfor %}
+
+
+{% for ref_key, ref_data in reference_modules.items() %}
+{% set function_name = ref_data.model.pk_sql_column_name %}
+
+def is_valid_{{ function_name }}(code: str, db: Session) -> bool:
+    """Check if {{ ref_data.model.pk_column.lower() }} is valid"""
+    valid_codes = get_valid_{{ function_name }}(db)
+    return code in valid_codes
+{% endfor %}
+
+
+def is_valid_year_range(year_start: int, year_end: int):
+    """Shared validation function"""
+    return year_start < year_end
