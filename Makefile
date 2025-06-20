@@ -72,13 +72,6 @@ install-requirements:
 # =-=-=--=-=-=-=-=-=
 # Generator commands
 # =-=-=--=-=-=-=-=-=
-generate:
-	@echo "Generating code..."
-	$(ACTIVATE) $(PYTHON) -m generator --all
-
-process-and-generate:
-	@echo "Generating code..."
-	$(ACTIVATE) $(PYTHON) -m generator --process_and_generate
 
 pre-test:
 	@echo "Generating code..."
@@ -92,6 +85,17 @@ process-csv:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --process_csv
 
+generate:
+	@echo "Generating code..."
+	$(ACTIVATE) $(PYTHON) -m generator --all
+
+generate-graph:
+	@echo "Generating code..."
+	$(ACTIVATE) $(PYTHON) -m generator --graph
+
+process-and-generate:
+	@echo "Generating code..."
+	$(ACTIVATE) $(PYTHON) -m generator --process_and_generate
 # =-=-=--=-=-=-=-=-=
 # FAO Dataset Management
 # =-=-=--=-=-=-=-=-=

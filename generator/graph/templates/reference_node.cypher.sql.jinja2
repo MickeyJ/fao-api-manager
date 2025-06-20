@@ -1,0 +1,12 @@
+-- // Create {{ node_name }} nodes from {{ module.name }}
+SELECT * FROM cypher('{{ project_name }}', $$
+    CREATE (n:{{ node_name }} {
+        id: row.id
+        {%- for col in module.model.column_analysis if col.sql_column_name != 'id' and not col.sql_column_name.endswith('_id') %},
+        {{ col.sql_column_name }}: row.{{ col.sql_column_name }}
+     {%- endfor %}
+})   
+$$) AS (result agtype)
+FROM {{ module.name }} row
+{%- if module.name == 'area_codes' %}
+{%- endif %};

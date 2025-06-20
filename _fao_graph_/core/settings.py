@@ -11,9 +11,9 @@ load_dotenv(override=True)
 class Settings(BaseSettings):
     # API Configuration
     api_version: str = "1.0.0"
-    api_title: str = "FAO API"
-    api_description: str = "SQL API for FAO data"
-    api_port: int = 8000
+    api_title: str = "FAO Graph API"
+    api_description: str = "Graph API for FAO data"
+    api_port: int = 8001
     api_host: str = "localhost"
 
     @computed_field
@@ -31,11 +31,11 @@ class Settings(BaseSettings):
         return "2024-01-15"  # Or pull from git tag date
 
     # Database Configuration
-    db_user: str = os.getenv("DB_USER", "postgres")
-    db_password: str = os.getenv("DB_PASSWORD", "password")
-    db_host: str = os.getenv("DB_HOST", "localhost")
-    db_port: str = os.getenv("DB_PORT", "5432")
-    db_name: str = os.getenv("DB_NAME", "fao")
+    graph_db_user: str = os.getenv("GRAPH_DB_USER", "postgres")
+    graph_db_password: str = os.getenv("GRAPH_DB_PASSWORD", "password")
+    graph_db_host: str = os.getenv("GRAPH_DB_HOST", "localhost")
+    graph_db_port: str = os.getenv("GRAPH_DB_PORT", "5433")
+    graph_db_name: str = os.getenv("GRAPH_DB_NAME", "fao_graph")
 
     # Cache Configuration
     cache_enabled: bool = os.getenv("CACHE_ENABLED", "true").lower() in ("true", "1", "yes")
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     redis_port: int = int(os.getenv("REDIS_PORT") or 6379)
     redis_password: str = os.getenv("REDIS_PASSWORD") or "password"
     default_cache_ttl: int = 3600
-    cache_prefix: str = "fao"
+    cache_prefix: str = "fao_graph"
     cache_key_separator: str = ":"
     max_scan_count: int = 100
 
@@ -65,7 +65,6 @@ class Settings(BaseSettings):
         # Allow environment variables like API_PORT to override api_port
         env_prefix = ""  # No prefix by default
         extra = "ignore"
-        fao_zip_path = os.getenv("FAO_ZIP_PATH")
 
 
 settings = Settings()

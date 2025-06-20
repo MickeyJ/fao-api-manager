@@ -5,9 +5,10 @@ from .logger import logger
 
 
 class FileSystem:
-    def __init__(self, output_dir: str | Path):
+    def __init__(self, output_dir: str | Path, static_files_dir_name: str | Path = "_fao_"):
         self.project_root = Path(__file__).parent.parent
-        self.static_files_dir = self.project_root / "_fao_"
+        self.static_files_dir_name = static_files_dir_name
+        self.static_files_dir = self.project_root / static_files_dir_name
         self.output_dir = Path(output_dir)
         self.cache_dir = Path("./cache/.generator_cache") / self.output_dir.name
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -38,7 +39,7 @@ class FileSystem:
 
                 # Read source content
                 source_content = source_file.read_text(encoding="utf-8")
-                source_content = source_content.replace("_fao_", "fao")
+                source_content = source_content.replace(self.static_files_dir.name, self.output_dir.name)
 
                 # Check if destination exists
                 if dest_file.exists():

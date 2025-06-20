@@ -1,0 +1,19 @@
+{# templates/graph_pipeline_main.py.jinja2 #}
+"""Run {{ pipeline_name }} migration"""
+from .{{ pipeline_name }} import {{ class_name }}
+from {{ project_name }}.logger import logger
+
+
+def run_migration():
+    """Execute {{ pipeline_name }} migration"""
+    try:
+        migrator = {{ class_name }}()
+        migrator.migrate()
+        migrator.verify_migration()
+    except Exception as e:
+        logger.error(f"Migration failed: {e}")
+        raise
+
+
+if __name__ == "__main__":
+    run_migration()

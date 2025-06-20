@@ -5,12 +5,21 @@ from generator.fao_reference_data_extractor import FAOReferenceDataExtractor
 from generator.fao_dataset_downloader import FAODatasetDownloader
 from generator.aquastat_pre_processor import AQUASTATPreprocessor
 from .logger import logger
-from . import FAO_ZIP_PATH, API_OUTPUT_PATH
+from . import FAO_ZIP_PATH, API_OUTPUT_PATH, GRAPH_OUTPUT_PATH
 
 assert FAO_ZIP_PATH is not None, "FAO_ZIP_PATH must be set"
 assert API_OUTPUT_PATH is not None, "FAO_API_OUTPUT_PATH must be set"
+assert GRAPH_OUTPUT_PATH is not None, "GRAPH_OUTPUT_PATH must be set"
 
 json_cache_path = Path("./cache/fao_module_cache.json")
+
+
+def generate_graph():
+    """Generate graph database migration files"""
+    from generator.graph.graph_generator import GraphGenerator
+
+    graph_generator = GraphGenerator(GRAPH_OUTPUT_PATH, json_cache_path)
+    graph_generator.generate()
 
 
 def test_pre_generation():
@@ -168,6 +177,7 @@ def main():
     parser.add_argument("--update_datasets", action="store_true", help="Download/update FAO datasets")
     parser.add_argument("--check_updates", action="store_true", help="Check for dataset updates")
     parser.add_argument("--dataset_status", action="store_true", help="Show detailed dataset status")
+    parser.add_argument("--graph", action="store_true", help="Show detailed dataset status")
     parser.add_argument(
         "--init_datasets", action="store_true", help="Initialize database with existing downloaded datasets"
     )
@@ -191,6 +201,8 @@ def main():
         dataset_status()
     elif args.init_datasets:
         init_dataset_db()
+    elif args.graph:
+        generate_graph()
     elif args.process_and_generate:
         process_and_generate()
 
