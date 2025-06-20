@@ -1,0 +1,22 @@
+-- Indexes for {{ relationship.type }} relationships from {{ table_name }}
+{% set column_names = module.model.column_analysis | map(attribute='sql_column_name') | list %}
+
+{% if 'year' in column_names %}
+CREATE INDEX IF NOT EXISTS idx_{{ table_name }}_{{ relationship.type|lower }}_year
+ON {{ project_name }}."{{ relationship.type }}" USING btree ((properties->>'year'));
+{% endif %}
+
+{% if 'element_code_id' in column_names %}
+CREATE INDEX IF NOT EXISTS idx_{{ table_name }}_{{ relationship.type|lower }}_element
+ON {{ project_name }}."{{ relationship.type }}" USING btree ((properties->>'element_code_id'));
+{% endif %}
+
+{% if 'value' in column_names %}
+CREATE INDEX IF NOT EXISTS idx_{{ table_name }}_{{ relationship.type|lower }}_value
+ON {{ project_name }}."{{ relationship.type }}" USING btree ((properties->>'value'));
+{% endif %}
+
+{% if 'year_code' in column_names %}
+CREATE INDEX IF NOT EXISTS idx_{{ table_name }}_{{ relationship.type|lower }}_year_code
+ON {{ project_name }}."{{ relationship.type }}" USING btree ((properties->>'year_code'));
+{% endif %}

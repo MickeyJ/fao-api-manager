@@ -1,0 +1,19 @@
+-- Create {{ relationship.type }} relationships from {{ table_name }}
+{% set column_names = module.model.column_analysis | map(attribute='sql_column_name') | list %}
+SELECT * FROM cypher('{{ project_name }}', $
+    MATCH (source:{{ relationship.source_node }} {id: row.{{ relationship.source_fk }}})
+    MATCH (target:{{ relationship.target_node }} {id: row.{{ relationship.target_fk }}})
+    CREATE (source)-[r:{{ relationship.type }} {
+        {% for col in module.model.column_analysis %}
+        {% if col.sql_column_name != 'year_code' and col.csv_column_name not in module.model.exclude_columns and col.sql_column_name not in [relationship.source_fk, relationship.target_fk, 'id'] %} 
+        {{ col.sql_column_name }}: row.{{ col.sql_column_name }}{% if not loop.last %},{% endif %}
+        {% endif %}
+        {% endfor %}
+}]->(target)
+$) AS (result agtype)
+FROM {{ table_name }} row
+WHERE row.{{ relationship.source_fk }} IS NOT NULL
+  AND row.{{ relationship.target_fk }} IS NOT NULL
+{% if 'value' in column_names %}
+  AND row.value > 0
+{% endif %};

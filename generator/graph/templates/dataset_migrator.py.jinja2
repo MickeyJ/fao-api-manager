@@ -1,0 +1,72 @@
+# Template: relationship_migrator.py.jinja2
+# Generated relationship migrator for {{ table_name }} {{ relationship.type }} relationships
+from pathlib import Path
+from sqlalchemy import text
+from {{ project_name }}.db.graph_migration_base import GraphMigrationBase
+from {{ project_name }}.db.database import get_session
+from {{ project_name }}.core.exceptions import MigrationError
+from {{ project_name }}.utils import load_sql
+from {{ project_name }}.logger import logger
+
+
+class {{ migration_class_name }}(GraphMigrationBase):
+    """Migrator for {{ table_name }} {{ relationship.type }} relationships"""
+    
+    def __init__(self):
+        super().__init__("{{ table_name }}", "relationship")
+        self.relationship_type = "{{ relationship.type }}"
+        {% if relationship.element_codes %}
+        self.element_codes = {{ relationship.element_codes }}
+        self.elements = {{ relationship.elements | map(attribute='element') | list }}
+        {% endif %}
+    
+    def get_migration_query(self) -> str:
+        return load_sql("{{ pipeline_name }}.cypher.sql", Path(__file__).parent)
+    
+    def get_index_queries(self) -> str:
+        return load_sql("{{ pipeline_name }}_indexes.sql", Path(__file__).parent)
+    
+    def get_verification_query(self) -> str:
+        return load_sql("{{ pipeline_name }}_verify.cypher.sql", Path(__file__).parent)
+    
+    def migrate(self, start_offset: int = 0, mode: str = "create") -> None:
+        """Execute the migration for {{ table_name }} {{ relationship.type }} relationships"""
+        {% if relationship.elements %}
+        logger.info(f"Starting {{ table_name }} {{ relationship.type }} relationship migration...")
+        logger.info(f"  Elements: {{ relationship.elements | map(attribute='element') | join(', ') }}")
+        {% else %}
+        logger.info(f"Starting {{ table_name }} {{ relationship.type }} relationship migration...")
+        {% endif %}
+        
+        try:
+            # Execute the main migration
+            with get_session() as session:
+                query = self.get_migration_query()
+                
+                # Add source_table property for tracking
+                query = query.replace(
+                    "CREATE (source)-[r:{{ relationship.type }} {",
+                    "CREATE (source)-[r:{{ relationship.type }} {source_dataset: '{{ table_name }}', "
+                )
+                
+                result = session.execute(text(query)).fetchall()
+                self.created = len(result)
+                logger.info(f"Created {self.created} {{ relationship.type }} relationships from {{ table_name }}")
+            
+            # Create indexes
+            self.create_indexes()
+                    
+        except KeyboardInterrupt:
+            logger.warning(f"\n{{ table_name }} relationship migration interrupted")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to migrate {{ table_name }} relationships: {e}")
+            raise MigrationError(f"{{ table_name }} relationship migration failed: {e}") from e
+    
+    def create(self, records):
+        # Not used when overriding migrate()
+        pass
+    
+    def update(self, records):
+        # Not used when overriding migrate()
+        pass

@@ -6,8 +6,8 @@ ON fao.{{ node_name }} USING btree ((properties->>'{{ module.model.pk_sql_column
 CREATE INDEX IF NOT EXISTS idx_{{ module.name }}_source_dataset  
 ON fao.{{ node_name }} USING btree ((properties->>'source_dataset'));
 
-{%- for col in module.model.column_analysis if col.indexed and col.sql_column_name not in ['id', module.model.pk_sql_column_name, 'source_dataset'] %}
+{% for col in module.model.column_analysis if col.indexed and col.sql_column_name not in ['id', module.model.pk_sql_column_name, 'source_dataset'] %}
 
 CREATE INDEX IF NOT EXISTS idx_{{ module.name }}_{{ col.sql_column_name }}
 ON fao.{{ node_name }} USING btree ((properties->>'{{ col.sql_column_name }}'));
-{%- endfor %}
+{% endfor %}
