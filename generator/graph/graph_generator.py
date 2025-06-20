@@ -7,9 +7,10 @@ from dataclasses import dataclass
 from jinja2 import Environment, FileSystemLoader
 
 from generator.file_system import FileSystem
-from generator.logger import logger
+from ..logger import logger
 from generator import singularize, snake_to_pascal_case
-from .relationship_identifier import relationship_identifier
+
+from .relationship_type_scorer import relationship_type_scorer, TypeScore
 
 
 @dataclass
@@ -38,6 +39,7 @@ class GraphGenerator:
         self.paths = ProjectPaths(self.output_dir)
         self.file_system = FileSystem(self.paths.project, "_fao_graph_")
         self.cache_path = cache_path
+        self.cache_data = {}
         self.migrations = []
 
         self.template_dir = Path("generator/graph/templates")
@@ -57,7 +59,8 @@ class GraphGenerator:
         # Process each module
         for module in modules:
             if module.get("is_reference_module"):
-                self._generate_node_migration(module)
+                if module["name"] not in ["flags"]:
+                    self._generate_node_migration(module)
             else:
                 self._analyze_for_relationships(module)
 
@@ -70,6 +73,8 @@ class GraphGenerator:
         """Load modules from the cache"""
         with open(self.cache_path, "r") as f:
             data = json.load(f)
+
+        self.cache_data = data
 
         # Combine references and datasets
         all_modules = []
@@ -136,71 +141,11 @@ class GraphGenerator:
         table_name = module["name"]
         foreign_keys = module["model"].get("foreign_keys", [])
 
-        logger.info(f"Analyzing {table_name} for relationships... {len(foreign_keys)} foreign keys found")
+        logger.debug(f"Analyzing {table_name} for relationships... {len(foreign_keys)} foreign keys found")
 
         # Only create relationships if we have 2+ foreign keys
         if len(foreign_keys) >= 2:
             self._generate_relationship_migration(module)
-
-    def _generate_relationship_migration(self, module: Dict):
-        """Generate relationship creation for dataset modules"""
-        table_name = module["name"]
-        foreign_keys = module["model"].get("foreign_keys", [])
-
-        pattern_info = relationship_identifier.determine_relationship_pattern(table_name, foreign_keys)
-
-        if not pattern_info:
-            logger.warning(f"  ⚠️ Could not determine pattern for {table_name}")
-            return
-
-        # Handle dynamic patterns
-        if pattern_info.get("relationships") in ["dynamic", "dynamic_indicators", "dynamic_references"]:
-            # Determine which reference types this table uses
-            reference_types = relationship_identifier.determine_reference_types_for_table(table_name, foreign_keys)
-
-            if not reference_types:
-                logger.warning(f"  ⚠️ No reference types found for {table_name}, skipping relationships")
-                return
-
-            # Collect relationship groups from all reference types
-            all_relationship_groups = {}
-
-            for ref_type in reference_types:
-                # Get the reference data (elements, indicators, food_values, etc.)
-                ref_items = relationship_identifier.get_reference_data_for_table(table_name, ref_type)
-
-                if ref_items:
-                    # Group by relationship type using the appropriate inference method
-                    groups = relationship_identifier.group_by_relationship_type(
-                        table_name, ref_items, pattern_info, ref_type
-                    )
-
-                    # Merge groups (handling potential conflicts)
-                    for rel_type, rel_info in groups.items():
-                        if rel_type in all_relationship_groups:
-                            # Merge reference items if same relationship type from different sources
-                            existing = all_relationship_groups[rel_type]
-
-                            # Merge the codes and items lists
-                            for key, value in rel_info.items():
-                                if isinstance(value, list) and key in existing:
-                                    existing[key].extend(value)
-                                elif key == "properties":
-                                    # Merge properties
-                                    existing[key].update(value)
-                        else:
-                            all_relationship_groups[rel_type] = rel_info
-                else:
-                    logger.info(f"  No {ref_type} found for {table_name}")
-
-            # Generate a migration for each relationship type found
-            for rel_type, rel_info in all_relationship_groups.items():
-                self._generate_single_relationship_migration(module, rel_info, pattern_info)
-
-        # Handle fixed patterns (bilateral trade, etc.)
-        else:
-            for rel_info in pattern_info["relationships"]:
-                self._generate_single_relationship_migration(module, rel_info, pattern_info)
 
     def _generate_single_relationship_migration(self, module: Dict, rel_info: Dict, pattern_info: Dict):
         """Generate migration files for a specific relationship type"""
@@ -250,6 +195,164 @@ class GraphGenerator:
         init_content = f'"""Migration pipeline for {table_name} {rel_info["type"]} relationships"""'
         self.file_system.write_file_cache(pipeline_dir / "__init__.py", init_content)
 
-        logger.info(
+        logger.debug(
             f"  Generated relationship pipeline: {pipeline_name}/ ({rel_info['type']} with {len(rel_info.get('element_codes', []))} elements)"
         )
+
+    def _generate_relationship_migration(self, module: Dict):
+        """Generate relationship creation for dataset modules using scoring system"""
+        table_name = module["name"]
+        foreign_keys = module["model"].get("foreign_keys", [])
+
+        # Use the new scoring system to analyze relationships
+        relationship_scores = relationship_type_scorer.analyze_dataset(table_name, foreign_keys)
+
+        if not relationship_scores:
+            logger.warning(f"  ⚠️ No relationships found for {table_name}")
+            return
+
+        # Consolidate relationships by type across different reference types
+        consolidated_relationships = {}
+
+        # Process each reference type's relationships
+        for ref_type, scored_relationships in relationship_scores.items():
+            logger.debug(f"  Processing {ref_type} relationships for {table_name}")
+
+            for rel_score in scored_relationships:
+                # Only generate migrations for high/medium confidence relationships
+                if rel_score.confidence not in ["high", "medium"]:
+                    logger.info(
+                        f"    📉 Skipping {rel_score.type} for {table_name} table (confidence: {rel_score.confidence})"
+                    )
+                    continue
+
+                # Consolidate by relationship type
+                if rel_score.type not in consolidated_relationships:
+                    consolidated_relationships[rel_score.type] = []
+
+                consolidated_relationships[rel_score.type].append({"score": rel_score, "ref_type": ref_type})
+
+        # Now generate one migration per relationship TYPE
+        for rel_type, rel_data in consolidated_relationships.items():
+            logger.debug(f"    Generating {rel_type} relationship (from {len(rel_data)} reference types)")
+
+            # Merge the data from all reference types
+            merged_rel_info = self._merge_relationship_data(rel_data, module, foreign_keys)
+            if merged_rel_info is None:
+                return None  # Can't create relationship
+
+            # Generate the migration files
+            self._generate_single_relationship_migration(module, merged_rel_info, merged_rel_info["pattern_info"])
+
+    def _merge_relationship_data(self, rel_data: List[Dict], module: Dict, foreign_keys: List[Dict]) -> Dict | None:
+        """Merge relationship data from multiple reference types into one"""
+
+        # Start with the highest scoring one
+        best_score_data = max(rel_data, key=lambda x: x["score"].score)
+        base_rel_info = self._convert_score_to_migration_info(best_score_data["score"], module, foreign_keys)
+
+        if base_rel_info is None:
+            return None  # Can't create relationship
+
+        # Merge in data from other reference types
+        for data in rel_data:
+            if data == best_score_data:
+                continue
+
+            ref_type = data["ref_type"]
+            score = data["score"]
+
+            # Add this reference type's data
+            if ref_type in score.properties:
+                base_rel_info[ref_type] = score.properties[ref_type]
+
+            codes_key = f"{ref_type[:-1]}_codes"
+            if codes_key in score.properties:
+                base_rel_info[codes_key] = score.properties[codes_key]
+
+        return base_rel_info
+
+    def _convert_score_to_migration_info(
+        self, rel_score: TypeScore, module: Dict, foreign_keys: List[Dict]
+    ) -> Dict | None:
+        """Convert RelationshipScore to migration info format"""
+
+        # Determine source and target nodes based on foreign keys
+        # This logic depends on your foreign key structure
+        node_info = self._determine_nodes(rel_score, module, foreign_keys)
+
+        if node_info is None:
+            return None  # Skip this relationship
+        source_fk, target_fk, source_node, target_node = node_info
+
+        # Build the relationship info structure
+        rel_info = {
+            "type": rel_score.type,
+            "source_fk": source_fk,
+            "target_fk": target_fk,
+            "source_node": source_node,
+            "target_node": target_node,
+            "properties": rel_score.properties,
+            "pattern_info": {
+                "source_fk": source_fk,
+                "target_fk": target_fk,
+                "source_node": source_node,
+                "target_node": target_node,
+            },
+        }
+
+        # Add reference-specific fields dynamically
+        ref_type = rel_score.reference_type
+        if ref_type in rel_score.properties:
+            # e.g., if ref_type is "elements", add "elements" list
+            rel_info[ref_type] = rel_score.properties[ref_type]
+
+        # Add codes list (e.g., "element_codes", "indicator_codes")
+        codes_key = f"{ref_type[:-1]}_codes"
+        if codes_key in rel_score.properties:
+            rel_info[codes_key] = rel_score.properties[codes_key]
+
+        return rel_info
+
+    def _determine_nodes(
+        self, rel_score: TypeScore, module: Dict, foreign_keys: List[Dict]
+    ) -> Tuple[str, str, str, str] | None:
+        """Determine source and target nodes for the relationship"""
+
+        # Filter out metadata tables that shouldn't be part of relationships
+        metadata_tables = {"flags", "elements", "indicators"}
+        meaningful_fks = [fk for fk in foreign_keys if fk["table_name"] not in metadata_tables]
+
+        if len(meaningful_fks) < 2:
+            logger.warning(f"  ⚠️ SKIPPING {module['name']}: Only {len(meaningful_fks)} FK(s)")
+            return None
+
+        # Special case: bilateral patterns (reporter/partner, donor/recipient)
+        for i, fk1 in enumerate(meaningful_fks):
+            for fk2 in meaningful_fks[i + 1 :]:
+                # Check if these form a bilateral pair
+                if self._is_bilateral_pair(fk1["table_name"], fk2["table_name"]):
+                    return (
+                        fk1["hash_fk_sql_column_name"],
+                        fk2["hash_fk_sql_column_name"],
+                        fk1["model_name"],
+                        fk2["model_name"],
+                    )
+
+        # Default: Just use the first two meaningful FKs
+        # The relationship type and properties already tell us what this means semantically
+        return (
+            meaningful_fks[0]["hash_fk_sql_column_name"],
+            meaningful_fks[1]["hash_fk_sql_column_name"],
+            meaningful_fks[0]["model_name"],
+            meaningful_fks[1]["model_name"],
+        )
+
+    def _is_bilateral_pair(self, table1: str, table2: str) -> bool:
+        """Check if two tables form a bilateral relationship"""
+        bilateral_pairs = [("reporter", "partner"), ("donor", "recipient")]
+
+        for word1, word2 in bilateral_pairs:
+            if (word1 in table1 and word2 in table2) or (word2 in table1 and word1 in table2):
+                return True
+        return False

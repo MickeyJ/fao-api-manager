@@ -1,21 +1,20 @@
 -- Create {{ relationship.type }} relationships from {{ table_name }}
-{% set column_names = module.model.column_analysis | map(attribute='sql_column_name') | list %}
 SELECT * FROM cypher('{{ project_name }}', $$
     MATCH (source:{{ relationship.source_node }} {id: row.{{ relationship.source_fk }}})
     MATCH (target:{{ relationship.target_node }} {id: row.{{ relationship.target_fk }}})
     CREATE (source)-[r:{{ relationship.type }} {
-        {% if relationship.properties %}
-        -- Relationship semantic properties
-        {% for prop_key, prop_value in relationship.properties.items() %}
-        {{ prop_key }}: '{{ prop_value }}',
-        {% endfor %}
-        {% endif %}
-        -- Data properties from row
-        {% for col in module.model.column_analysis %}
-        {% if col.sql_column_name != 'year_code' and col.csv_column_name not in module.model.exclude_columns and col.sql_column_name not in [relationship.source_fk, relationship.target_fk, 'id'] %} 
-        {{ col.sql_column_name }}: row.{{ col.sql_column_name }},
+        -- Dynamic properties from row
+        {% for ref_type in ['element', 'indicator', 'food_value', 'industry', 'factor'] %}
+        {% if ref_type + '_codes' in relationship %}
+        {{ ref_type }}_code_id: row.{{ ref_type }}_code_id,
         {% endif %}
         {% endfor %}
+        year: row.year,
+        value: row.value,
+        unit: row.unit,
+        {% if 'note' in module.model.column_names %}
+        note: row.note,
+        {% endif %}
         -- Metadata
         source_dataset: '{{ table_name }}'
     }]->(target)
@@ -24,10 +23,10 @@ $$) AS (result agtype)
 FROM {{ table_name }} row
 WHERE row.{{ relationship.source_fk }} IS NOT NULL
   AND row.{{ relationship.target_fk }} IS NOT NULL
-  {% if 'value' in column_names %}
   AND row.value > 0
+  {% for ref_type in ['element', 'indicator', 'food_value', 'industry', 'factor'] %}
+  {% if ref_type + '_codes' in relationship %}
+  AND row.{{ ref_type }}_code IN ({{ relationship[ref_type + '_codes'] | map('string') | join(', ') }})
   {% endif %}
-  {% if 'element_code_id' in column_names and relationship.element_codes %}
-  AND row.element_code_id IN ({{ relationship.element_codes | join(', ') }})
-  {% endif %}
+  {% endfor %}
 ;

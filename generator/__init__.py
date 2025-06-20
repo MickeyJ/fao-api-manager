@@ -21,7 +21,7 @@ def singularize(name: str) -> str:
     if name.endswith("ies"):
         return name[:-3] + "y"  # currencies -> currency
     elif name.endswith("ses"):
-        return name[:-2]  # purposes -> purpose
+        return name[:-1]  # purposes -> purpose
     elif name.endswith("s"):
         return name[:-1]  # area_codes -> area_code
     return name

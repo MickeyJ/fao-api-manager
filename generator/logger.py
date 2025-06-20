@@ -2,13 +2,20 @@ from loguru import logger
 import sys
 from pathlib import Path
 
+
 # Remove default handler
 logger.remove()
+
+# # Add a custom level
+# logger.level("TODO", no=25, color="<red>", icon="🎈")
+
+# # Type hint trick for VSCode
+# logger.todo = lambda message: logger.log("TODO", message)
 
 # Add console handler with custom format
 logger.add(
     sys.stderr,
-    format="<level>{level: <8}</level>[<cyan>{file.name}:{function}:{line}</cyan>]\n<level>{message}</level>\n",
+    format="<level>{level: <8}</level>[<white>{file.name}:{function}:{line}</white>]\n<level>{message}</level>\n",
     level="INFO",
     colorize=True,
 )

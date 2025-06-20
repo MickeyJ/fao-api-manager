@@ -15,10 +15,14 @@ class {{ migration_class_name }}(GraphMigrationBase):
     def __init__(self):
         super().__init__("{{ table_name }}", "relationship")
         self.relationship_type = "{{ relationship.type }}"
-        {% if relationship.element_codes %}
-        self.element_codes = {{ relationship.element_codes }}
-        self.elements = {{ relationship.elements | map(attribute='element') | list }}
+        
+        {# Store reference codes for filtering #}
+        {% for ref_type in ['element', 'indicator', 'food_value', 'industry', 'factor'] %}
+        {% if ref_type + '_codes' in relationship %}
+        self.{{ ref_type }}_codes = {{ relationship[ref_type + '_codes'] }}
         {% endif %}
+        {% endfor %}
+        
         {% if relationship.properties %}
         self.relationship_properties = {{ relationship.properties | tojson }}
         {% endif %}
@@ -34,14 +38,17 @@ class {{ migration_class_name }}(GraphMigrationBase):
     
     def migrate(self, start_offset: int = 0, mode: str = "create") -> None:
         """Execute the migration for {{ table_name }} {{ relationship.type }} relationships"""
-        {% if relationship.elements %}
         logger.info(f"Starting {{ table_name }} {{ relationship.type }} relationship migration...")
-        logger.info(f"  Elements: {{ relationship.elements | map(attribute='element') | join(', ') }}")
-        {% if relationship.properties %}
-        logger.info(f"  Properties: {{ relationship.properties }}")
+        
+        {# Log which codes we're filtering on #}
+        {% for ref_type in ['element', 'indicator', 'food_value', 'industry', 'factor'] %}
+        {% if ref_type + '_codes' in relationship %}
+        logger.info(f"  Filtering on {{ ref_type }} codes: {{ relationship[ref_type + '_codes'][:5] | join(', ') }}{% if relationship[ref_type + '_codes'] | length > 5 %}... ({{ relationship[ref_type + '_codes'] | length }} total){% endif %}")
         {% endif %}
-        {% else %}
-        logger.info(f"Starting {{ table_name }} {{ relationship.type }} relationship migration...")
+        {% endfor %}
+        
+        {% if relationship.properties %}
+        logger.info(f"  Relationship type properties: {{ relationship.properties }}")
         {% endif %}
         
         try:

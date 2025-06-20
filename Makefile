@@ -244,3 +244,8 @@ all-table-row-count-local:
 all-table-row-count:
 	@echo "Enable RSL"
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/show_all_table_row_count.sql
+
+
+clear-graph-pipeline:
+	rm -rf cache/.generator_cache/fao_graph
+	rm -rf ../fao-graph-db/fao_graph/db/pipelines
