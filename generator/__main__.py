@@ -16,9 +16,14 @@ json_cache_path = Path("./cache/fao_module_cache.json")
 
 def generate_graph():
     """Generate graph database migration files"""
-    from generator.graph.graph_generator import GraphGenerator
+    # from generator.graph.graph_generator import GraphGenerator
+    from generator.graph.graph_db_gen import GraphDBGen
 
-    graph_generator = GraphGenerator(GRAPH_OUTPUT_PATH, json_cache_path)
+    graph_generator = GraphDBGen(
+        output_dir=Path(GRAPH_OUTPUT_PATH),
+        cache_path=json_cache_path,
+        config_path=Path("generator/graph/graph_db_config.yaml"),
+    )
     graph_generator.generate()
 
 

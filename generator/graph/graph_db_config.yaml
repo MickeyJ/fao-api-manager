@@ -1,0 +1,192 @@
+# Graph Database Configuration for FAO Data
+version: "1.0"
+
+nodes:
+  - table: area_codes
+    label: AreaCode
+    properties:
+      - area_code
+      - area
+      - area_code_m49
+    indexes:
+      - area_code
+      
+  - table: reporter_country_codes
+    label: ReporterCountryCode
+    properties:
+      - reporter_country_code
+      - reporter_countries
+      - reporter_country_code_m49
+    indexes:
+      - reporter_country_code
+      
+  - table: partner_country_codes
+    label: PartnerCountryCode
+    properties:
+      - partner_country_code
+      - partner_countries
+      - partner_country_code_m49
+    indexes:
+      - partner_country_code
+      
+  - table: item_codes
+    label: ItemCode
+    properties:
+      - item_code
+      - item
+      - item_code_cpc
+      - item_code_fbs
+    indexes:
+      - item_code
+
+  # Elements as lookup reference, not nodes
+  # - table: elements
+  #   label: Element
+  #   reason: "Elements are measurement types, better as relationship properties"
+
+relationships:
+  trade_detailed_trade_matrix:
+    - type: TRADES
+      source:
+        table: reporter_country_codes
+        foreign_key: reporter_country_code_id
+        node_label: ReporterCountryCode
+      target:
+        table: partner_country_codes
+        foreign_key: partner_country_code_id
+        node_label: PartnerCountryCode
+      filters:
+        - field: element_code
+          values: [5610, 5910, 5622, 5922]  # Import/Export Quantity/Value
+          description: "Trade flows"
+      properties_from_row:
+        - year
+        - value
+        - unit
+        - element_code_id
+        
+  food_balance_sheets:
+    - type: PRODUCES
+      source:
+        table: area_codes
+        foreign_key: area_code_id
+        node_label: AreaCode
+      target:
+        table: item_codes
+        foreign_key: item_code_id
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: [5511, 5301]  # Production, Domestic supply
+          description: "Production quantities"
+      properties_from_row:
+        - year
+        - value
+        - unit
+        - element_code_id
+        
+    - type: TRADES
+      source:
+        table: area_codes
+        foreign_key: area_code_id
+        node_label: AreaCode
+      target:
+        table: item_codes
+        foreign_key: item_code_id
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: [5611, 5911]  # Import/Export Quantity
+          description: "Trade quantities"
+      properties_from_row:
+        - year
+        - value
+        - unit
+        - element_code_id
+        
+    - type: CONSUMES
+      source:
+        table: area_codes
+        foreign_key: area_code_id
+        node_label: AreaCode
+      target:
+        table: item_codes
+        foreign_key: item_code_id
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: [5142, 645, 664, 674]  # Food, Food supply
+          description: "Food consumption"
+      properties_from_row:
+        - year
+        - value
+        - unit
+        - element_code_id
+        
+  food_security_data:
+    - type: EXPERIENCES
+      source:
+        table: area_codes
+        foreign_key: area_code_id
+        node_label: AreaCode
+      target:
+        table: item_codes
+        foreign_key: item_code_id
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: [21010, 21011, 21012, 21013, 21014, 21015, 21016, 21017]
+          description: "Food insecurity experience scale"
+      properties_from_row:
+        - year
+        - value
+        - unit
+        - element_code_id
+        - note
+        
+    - type: MEASURES
+      source:
+        table: area_codes
+        foreign_key: area_code_id
+        node_label: AreaCode
+      target:
+        table: item_codes
+        foreign_key: item_code_id
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: [210011, 210012, 210013, 210041]
+          description: "Prevalence indicators"
+      properties_from_row:
+        - year
+        - value
+        - unit
+        - element_code_id
+        
+  prices:
+    - type: HAS_PRICE
+      source:
+        table: area_codes
+        foreign_key: area_code_id
+        node_label: AreaCode
+      target:
+        table: item_codes
+        foreign_key: item_code_id
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: [5530, 5531, 5532, 5539]  # Producer prices
+          description: "Producer price data"
+      properties_from_row:
+        - year
+        - months_code
+        - months
+        - value
+        - unit
+        - element_code_id
+
+# Global settings
+settings:
+  batch_size: 10000
+  create_indexes: true
+  verify_after_migration: true

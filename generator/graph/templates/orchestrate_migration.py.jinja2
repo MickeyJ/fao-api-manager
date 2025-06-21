@@ -1,0 +1,122 @@
+"""
+Orchestrate all graph migrations
+Generated from YAML configuration
+"""
+from pathlib import Path
+from sqlalchemy import text
+from {{ project_name }}.utils import load_sql
+from {{ project_name }}.logger import logger
+from {{ project_name }}.db.database import get_session
+
+# Import all node migrators
+{% for pipeline in node_pipelines %}
+from {{ project_name }}.db.pipelines.{{ pipeline.name }}.{{ pipeline.name }} import {{ pipeline.label }}Migrator
+{% endfor %}
+
+# Import all relationship migrators  
+{% for pipeline in relationship_pipelines %}
+from {{ project_name }}.db.pipelines.{{ pipeline.name }}.{{ pipeline.name }} import {{ pipeline.name | replace('_', ' ') | title | replace(' ', '') }}Migrator
+{% endfor %}
+
+
+def create_graph():
+    """Create the graph if it doesn't exist"""
+    with get_session() as session:
+        # Check if graph exists
+        result = session.execute(text("""
+            SELECT * FROM ag_catalog.ag_graph 
+            WHERE name = '{{ project_name }}'
+        """))
+        
+        if not result.first():
+            logger.info("Creating graph {{ project_name }}...")
+            session.execute(text("SELECT create_graph('{{ project_name }}')"))
+            session.commit()
+        else:
+            logger.info("Graph {{ project_name }} already exists")
+
+
+def migrate_nodes():
+    """Migrate all nodes"""
+    logger.info("=" * 50)
+    logger.info("          Starting node migrations...")
+    logger.info("=" * 50)
+    
+    node_migrators = [
+        {% for pipeline in node_pipelines %}
+        ("{{ pipeline.label }}", {{ pipeline.label }}Migrator()),
+        {% endfor %}
+    ]
+    
+    for label, migrator in node_migrators:
+        logger.info(f"\nMigrating {label} nodes...")
+        try:
+            migrator.migrate()
+        except Exception as e:
+            logger.error(f"Failed to migrate {label}: {e}")
+            raise
+
+
+def migrate_relationships():
+    """Migrate all relationships"""
+    logger.info("\n" + "=" * 50)
+    logger.info("          Starting relationship migrations...")
+    logger.info("=" * 50)
+    
+    relationship_migrators = [
+        {% for pipeline in relationship_pipelines %}
+        ("{{ pipeline.type }} from {{ pipeline.table }}", {{ pipeline.name | replace('_', ' ') | title | replace(' ', '') }}Migrator()),
+        {% endfor %}
+    ]
+    
+    for description, migrator in relationship_migrators:
+        logger.info(f"\nMigrating {description}...")
+        try:
+            migrator.migrate()
+        except Exception as e:
+            logger.error(f"Failed to migrate {description}: {e}")
+            raise
+
+
+def create_global_indexes():
+    """Create global indexes for the graph"""
+    logger.info("\n" + "=" * 50)
+    logger.info("          Creating global indexes...")
+    logger.info("=" * 50)
+    
+    try:
+        with get_session() as session:
+            # Load and execute the global indexes SQL
+            index_queries = load_sql("create_global_indexes.sql", Path(__file__).parent)
+            
+            # Execute the index creation
+            session.execute(text(index_queries))
+            session.commit()
+            
+        logger.success("Global indexes created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create global indexes: {e}")
+        raise
+
+
+def main():
+    """Run all migrations in order"""
+    logger.info("Starting FAO Graph Database Migration")
+    
+    # Create graph
+    create_graph()
+    
+    # Migrate nodes first
+    migrate_nodes()
+    
+    # Then migrate relationships
+    migrate_relationships()
+    
+    # Create global indexes
+    create_global_indexes()
+    
+    logger.success("\n✅ Graph migration complete!")
+
+
+if __name__ == "__main__":
+    main()

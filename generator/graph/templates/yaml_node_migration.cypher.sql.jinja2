@@ -1,0 +1,11 @@
+-- Create {{ node_label }} nodes from {{ table }}
+SELECT * FROM cypher('{{ project_name }}', $$
+    CREATE (n:{{ node_label }} {
+        id: row.id,
+        {% for prop in properties %}
+        {{ prop }}: row.{{ prop }}{{ ',' if not loop.last else '' }}
+        {% endfor %}
+    })
+    RETURN n
+$$) AS (result agtype)
+FROM {{ table }} row;

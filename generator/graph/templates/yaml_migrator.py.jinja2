@@ -1,0 +1,104 @@
+# yaml_migrator.py.jinja2
+# Generated migrator for {{ pipeline_type }} {{ pipeline_name }}
+from pathlib import Path
+from sqlalchemy import text
+from {{ project_name }}.db.graph_migration_base import GraphMigrationBase
+from {{ project_name }}.db.database import get_session
+from {{ project_name }}.utils import load_sql
+from {{ project_name }}.logger import logger
+
+
+class {{ migration_class_name }}(GraphMigrationBase):
+    """Migrator for {{ description }}"""
+    
+    def __init__(self):
+        super().__init__("{{ table_name }}", "{{ pipeline_type }}")
+        {% if pipeline_type == 'relationship' %}
+        self.relationship_type = "{{ relationship_type }}"
+        {% else %}
+        self.node_label = "{{ node_label }}"
+        {% endif %}
+    
+    def get_migration_query(self) -> str:
+        return load_sql("{{ pipeline_name }}.cypher.sql", Path(__file__).parent)
+    
+    def get_index_queries(self) -> str:
+        return load_sql("{{ pipeline_name }}_indexes.sql", Path(__file__).parent)
+    
+    def get_verification_query(self) -> str:
+        return load_sql("{{ pipeline_name }}_verify.cypher.sql", Path(__file__).parent)
+    
+    {% if pipeline_type == 'relationship' %}
+    def get_count_query(self) -> str:
+        """Count records matching our filters"""
+        return f"""
+            SELECT COUNT(*) as total
+            FROM {{ table_name }} t
+            WHERE t.{{ relationship.source_fk }} IS NOT NULL
+              AND t.{{ relationship.target_fk }} IS NOT NULL
+              {% if 'value' in relationship.properties_from_row %}
+              AND t.value IS NOT NULL
+              AND t.value > 0
+              {% endif %}
+              {% for filter in relationship.filters %}
+              {% if filter['field'] == 'element_code' %}
+              AND t.element_code IN ({{ filter['values'] | join(', ') }})
+              {% endif %}
+              {% endfor %}
+        """
+    
+    def create(self, records):
+        """Create relationships in AGE"""
+        with get_session() as session:
+            for record in records:
+                query = text("""
+                    SELECT * FROM cypher('{{ project_name }}', $$
+                        MATCH (source:{{ relationship.source_label }} {id: $source_id})
+                        MATCH (target:{{ relationship.target_label }} {id: $target_id})
+                        CREATE (source)-[r:{{ relationship_type }} $props]->(target)
+                        RETURN r
+                    $$, $params) AS (result agtype)
+                """)
+                
+                props = {
+                    {% for prop in relationship.properties_from_row %}
+                    "{{ prop }}": getattr(record, "{{ prop }}"),
+                    {% endfor %}
+                    "source_dataset": "{{ table_name }}"
+                }
+                
+                params = {
+                    "source_id": getattr(record, "{{ relationship.source_fk }}"),
+                    "target_id": getattr(record, "{{ relationship.target_fk }}"),
+                    "props": props
+                }
+                
+                session.execute(query, {"params": params})
+                self.created += 1
+    {% else %}
+    # NODE MIGRATION METHODS
+    def get_count_query(self) -> str:
+        """Count all records in reference table"""
+        return f"SELECT COUNT(*) as total FROM {{ table_name }}"
+
+    def create(self, records):
+        """Create nodes in AGE"""
+        with get_session() as session:
+            for record in records:
+                query = text("""
+                    SELECT * FROM cypher('{{ project_name }}', $$
+                        CREATE (n:{{ node_label }} $props)
+                        RETURN n
+                    $$, $params) AS (result agtype)
+                """)
+                
+                props = {
+                    "id": record.id,
+                    {% for prop in properties %}
+                    "{{ prop }}": getattr(record, "{{ prop }}"){{ ',' if not loop.last else '' }}
+                    {% endfor %}
+                }
+                
+                session.execute(query, {"params": {"props": props}})
+                self.created += 1
+    {% endif %}

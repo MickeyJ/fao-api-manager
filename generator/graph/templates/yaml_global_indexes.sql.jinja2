@@ -1,0 +1,35 @@
+-- Strategic indexes for {{ project_name }} graph database
+-- Generated from YAML configuration
+
+{% for rel_type in relationship_types %}
+-- Indexes for {{ rel_type }} relationships
+CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_source 
+ON {{ project_name }}.{{ rel_type|lower }} (start_id);
+
+CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_target 
+ON {{ project_name }}.{{ rel_type|lower }} (end_id);
+
+CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_year 
+ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'year'));
+
+CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_source_dataset 
+ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'source_dataset'));
+
+{% if rel_type == 'HAS_PRICE' %}
+-- Additional indexes for price queries
+CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_months 
+ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'months_code'));
+{% endif %}
+
+{% endfor %}
+
+-- Compound indexes for common query patterns
+{% for rel_type in relationship_types %}
+CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_year_source 
+ON {{ project_name }}.{{ rel_type|lower }} USING btree (
+    (properties->>'year'),
+    (properties->>'source_dataset'),
+    start_id,
+    end_id
+);
+{% endfor %}

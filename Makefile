@@ -58,7 +58,7 @@ install-init:
 	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 
 install:
-	grep "^${pkg}" requirements.in || echo "${pkg}" >> requirements.in
+	grep "^${pkg}" requirements.in || echo '' >> requirements.in && echo "${pkg}" >> requirements.in
 	$(ACTIVATE) $(PYTHON) -m piptools compile requirements.in
 	$(ACTIVATE) $(PYTHON) -m piptools sync requirements.txt
 

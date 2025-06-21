@@ -1,0 +1,15 @@
+"""
+Migration pipeline for {{ pipeline_name }}
+Generated from YAML configuration
+"""
+from {{ project_name }}.db.pipelines.{{ pipeline_name }}.{{ pipeline_name }} import {{ migration_class_name }}
+
+
+def main():
+    """Run the migration"""
+    migrator = {{ migration_class_name }}()
+    migrator.migrate()
+
+
+if __name__ == "__main__":
+    main()

@@ -48,6 +48,17 @@ def clean_text(text):
     return re.sub(r"[^a-zA-Z0-9\s]", "", str(text).strip())
 
 
+def make_migration_class_name(table_name: str, relationship_type: str) -> str:
+    """Generate proper class name for migrations"""
+    # Convert table_name to PascalCase
+    table_part = snake_to_pascal_case(table_name)
+
+    # Convert relationship type (e.g., HAS_PRICE -> HasPrice)
+    rel_part = "".join(word.capitalize() for word in relationship_type.split("_"))
+
+    return f"{table_part}{rel_part}Migrator"
+
+
 def to_snake_case(text: str) -> str:
     """Convert text to snake_case"""
     # Remove parentheses and their contents

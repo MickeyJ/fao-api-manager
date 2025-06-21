@@ -1,6 +1,0 @@
-{# templates/reference_node_verify.sql.jinja2 #}
--- Verification queries for {{ node_label }} nodes
-SELECT count(*) FROM cypher('{{ project_name }}', $$
-    MATCH (n:{{ node_label }})
-    RETURN count(n)
-$$) as (count agtype);

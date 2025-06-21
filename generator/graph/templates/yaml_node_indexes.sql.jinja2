@@ -1,0 +1,12 @@
+-- Indexes for {{ node_label }} nodes
+CREATE INDEX IF NOT EXISTS idx_{{ table }}_id
+ON {{ project_name }}.{{ node_label|lower }} (id);
+
+{% for index_field in indexes %}
+CREATE INDEX IF NOT EXISTS idx_{{ table }}_{{ index_field }}
+ON {{ project_name }}.{{ node_label|lower }} USING btree ((properties->>'{{ index_field }}'));
+{% endfor %}
+
+-- Compound index for node lookups
+CREATE INDEX IF NOT EXISTS idx_{{ table }}_properties
+ON {{ project_name }}.{{ node_label|lower }} USING GIN (properties);

@@ -1,0 +1,12 @@
+-- Verification queries for {{ node_label }} nodes
+SELECT count(*) FROM cypher('{{ project_name }}', $$
+    MATCH (n:{{ node_label }})
+    RETURN count(n)
+$$) as (count agtype);
+
+-- Sample nodes
+SELECT * FROM cypher('{{ project_name }}', $$
+    MATCH (n:{{ node_label }})
+    RETURN n.id, n.{{ properties[0] }}{{ ', n.' + properties[1] if properties|length > 1 else '' }}
+    LIMIT 10
+$$) as (id agtype{{ ', ' + properties[0] + ' agtype' if properties else '' }}{{ ', ' + properties[1] + ' agtype' if properties|length > 1 else '' }});

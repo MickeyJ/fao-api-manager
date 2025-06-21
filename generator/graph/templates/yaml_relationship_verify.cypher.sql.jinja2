@@ -1,0 +1,30 @@
+-- Verification queries for {{ relationship.type }} relationships from {{ table_name }}
+SELECT count(*) FROM cypher('{{ project_name }}', $$
+    MATCH ()-[r:{{ relationship.type }}]->()
+    WHERE r.source_dataset = '{{ table_name }}'
+    RETURN count(r)
+$$) as (count agtype);
+
+-- Sample relationships with properties
+SELECT * FROM cypher('{{ project_name }}', $$
+    MATCH (s)-[r:{{ relationship.type }}]->(t)
+    WHERE r.source_dataset = '{{ table_name }}'
+    RETURN 
+        s.{{ relationship.source_label | snake_case }}_code as source_code,
+        t.{{ relationship.target_label | snake_case }}_code as target_code,
+        r.year as year,
+        r.value as value,
+        r.unit as unit,
+        r.element_code_id as element_code_id
+        {% if 'flag' in relationship.properties_from_row %}, r.flag as flag{% endif %}
+    LIMIT 10
+$$) as (source_code agtype, target_code agtype, year agtype, value agtype, unit agtype, element_code_id agtype{% if 'flag' in relationship.properties_from_row %}, flag agtype{% endif %});
+
+-- Group by year
+SELECT * FROM cypher('{{ project_name }}', $$
+    MATCH ()-[r:{{ relationship.type }}]->()
+    WHERE r.source_dataset = '{{ table_name }}'
+    RETURN r.year as year, count(*) as count
+    ORDER BY year DESC
+    LIMIT 10
+$$) as (year agtype, count agtype);

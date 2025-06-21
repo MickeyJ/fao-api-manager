@@ -18,6 +18,7 @@ class TypeScore:
     score: float
     confidence: str  # 'high', 'medium', 'low'
     properties: Dict
+    item_codes: List[str]  # Codes of items contributing to this score
     source_evidence: List[str]  # What contributed to this score
     reference_type: str  # Which reference table this came from
     original_table: str  # Which reference table this came from
@@ -271,6 +272,7 @@ class RelationshipTypeScorer:
                     type=rel_type,
                     score=weighted_score,
                     confidence=confidence,
+                    item_codes=item_codes,
                     properties=self._extract_properties(rel_type, sorted_items, ref_type, item_codes, item_names),
                     source_evidence=item_names[:5],  # Top 5 examples
                     reference_type=ref_type,
@@ -401,15 +403,11 @@ class RelationshipTypeScorer:
 
         # Always include reference metadata
         properties[f"{singularize(ref_type)}_codes"] = item_codes  # e.g., "element_codes"
-        properties[f"{singularize(ref_type)}"] = item_names  # e.g., "elements"
 
         # Get the last item as representative (highest scoring in this group)
         if items:
             rep_item = items[0]
-            properties[f"{singularize(ref_type)}_code"] = rep_item["item"]["code"]
-            properties[f"{singularize(ref_type)}"] = rep_item["item"]["name"]
 
-        properties[f"{ref_type}"] = True  # e.g., "element_codes"
         # Add relationship-specific properties
         if rel_type == "TRADES":
             # Infer flow direction from item names
@@ -454,7 +452,9 @@ class RelationshipTypeScorer:
 
         return available_types
 
-    def _check_special_patterns(self, table_name: str, foreign_keys: List[Dict]) -> Optional[Dict]:
+    def _check_special_patterns(
+        self, item_codes: List[str], table_name: str, foreign_keys: List[Dict]
+    ) -> Optional[Dict]:
         """Check for special patterns that bypass normal scoring"""
         fk_tables = set(fk["table_name"] for fk in foreign_keys)
 
@@ -474,6 +474,7 @@ class RelationshipTypeScorer:
                         source_evidence=["Bilateral trade matrix pattern"],
                         reference_type="bilateral",
                         original_table="reporter_country_codes",
+                        item_codes=[],
                     )
                 ]
             }
@@ -494,6 +495,7 @@ class RelationshipTypeScorer:
                         source_evidence=["Donor-recipient pattern"],
                         reference_type="bilateral",
                         original_table="recipient_country_codes",
+                        item_codes=[],
                     )
                 ]
             }

@@ -1,4 +1,3 @@
-
 loguru
 jinja2
 migra
@@ -18,3 +17,5 @@ pandas==2.2.3
 requests>=2.30
 
 redis
+
+PyYAML

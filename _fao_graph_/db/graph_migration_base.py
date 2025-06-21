@@ -1,4 +1,3 @@
-from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Dict, List, Sequence, Any, Optional, Type, TypeVar
 from sqlalchemy import text
@@ -138,7 +137,7 @@ class GraphMigrationBase(ABC):
                 f"Progress: {offset:,}/{total_records:,} records ({pct_complete:.1f}%) | " f"Created: {self.created:,}"
             )
 
-    def verify_migration(self) -> None:
+    def verify(self) -> None:
         """Verify the migration completed successfully."""
 
         try:
