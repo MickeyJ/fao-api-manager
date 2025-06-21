@@ -169,6 +169,8 @@ class GraphGenerator:
         rel_content = rel_template.render(**context)
         self.file_system.write_file_cache(pipeline_dir / f"{pipeline_name}.cypher.sql", rel_content)
 
+        # print(json.dumps(rel_info, indent=2))  # Debugging output
+
         # 2. Generate indexes
         index_template = self.jinja_env.get_template("relationship_indexes.sql.jinja2")
         index_content = index_template.render(**context)
@@ -254,8 +256,12 @@ class GraphGenerator:
         if base_rel_info is None:
             return None  # Can't create relationship
 
+        print(json.dumps(base_rel_info, indent=2))  # Debugging output
+        # Add the best score data as the base
+
         # Merge in data from other reference types
         for data in rel_data:
+            base_rel_info["original_table"] = data["ref_type"]
             if data == best_score_data:
                 continue
 

@@ -4,17 +4,20 @@ SELECT * FROM cypher('{{ project_name }}', $$
     MATCH (target:{{ relationship.target_node }} {id: row.{{ relationship.target_fk }}})
     CREATE (source)-[r:{{ relationship.type }} {
         -- Dynamic properties from row
-        {% for ref_type in ['element', 'indicator', 'food_value', 'industry', 'factor'] %}
-        {% if ref_type + '_codes' in relationship %}
-        {{ ref_type }}_code_id: row.{{ ref_type }}_code_id,
-        {% endif %}
+        {% for prop in relationship.properties %}
+        -- {{ prop }}: row.{{ prop }},
         {% endfor %}
-        year: row.year,
-        value: row.value,
-        unit: row.unit,
-        {% if 'note' in module.model.column_names %}
-        note: row.note,
-        {% endif %}
+        {% for fk in module.model.foreign_keys %}
+        {% if fk.table_name in relationship.original_table %}
+        {{ fk.hash_fk_sql_column_name }}: row.{{ fk.hash_fk_sql_column_name }},
+        {%- endif %}
+        {%- endfor %}
+        {# SEPARATOR #}
+        {%- for col in module.model.column_analysis %}
+        {%- if col.sql_column_name != 'year_code' and col.csv_column_name not in module.model.exclude_columns and col.sql_column_name not in [relationship.source_fk, relationship.target_fk, 'id'] %} 
+        {{ col.sql_column_name }}: row.{{ col.sql_column_name }},
+        {%- endif %}
+        {% endfor %}
         -- Metadata
         source_dataset: '{{ table_name }}'
     }]->(target)
@@ -30,3 +33,6 @@ WHERE row.{{ relationship.source_fk }} IS NOT NULL
   {% endif %}
   {% endfor %}
 ;
+
+
+

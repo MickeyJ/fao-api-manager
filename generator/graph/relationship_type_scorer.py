@@ -7,7 +7,7 @@ from sqlalchemy import text
 from generator import singularize
 from generator.logger import logger
 from _fao_.src.db.database import get_db
-from .relationship_type_tables import RELATIONSHIP_REFERENCE_TABLES
+from .reference_tables import RELATIONSHIP_REFERENCE_TABLES
 
 
 @dataclass
@@ -20,6 +20,7 @@ class TypeScore:
     properties: Dict
     source_evidence: List[str]  # What contributed to this score
     reference_type: str  # Which reference table this came from
+    original_table: str  # Which reference table this came from
 
 
 class RelationshipTypeScorer:
@@ -273,6 +274,7 @@ class RelationshipTypeScorer:
                     properties=self._extract_properties(rel_type, sorted_items, ref_type, item_codes, item_names),
                     source_evidence=item_names[:5],  # Top 5 examples
                     reference_type=ref_type,
+                    original_table=table_name,
                 )
             )
 
@@ -395,6 +397,7 @@ class RelationshipTypeScorer:
     ) -> Dict:
         """Extract properties for the relationship dynamically"""
         properties = {}
+        metadata = {}
 
         # Always include reference metadata
         properties[f"{singularize(ref_type)}_codes"] = item_codes  # e.g., "element_codes"
@@ -406,6 +409,7 @@ class RelationshipTypeScorer:
             properties[f"{singularize(ref_type)}_code"] = rep_item["item"]["code"]
             properties[f"{singularize(ref_type)}"] = rep_item["item"]["name"]
 
+        properties[f"{ref_type}"] = True  # e.g., "element_codes"
         # Add relationship-specific properties
         if rel_type == "TRADES":
             # Infer flow direction from item names
@@ -469,6 +473,7 @@ class RelationshipTypeScorer:
                         },
                         source_evidence=["Bilateral trade matrix pattern"],
                         reference_type="bilateral",
+                        original_table="reporter_country_codes",
                     )
                 ]
             }
@@ -488,6 +493,7 @@ class RelationshipTypeScorer:
                         },
                         source_evidence=["Donor-recipient pattern"],
                         reference_type="bilateral",
+                        original_table="recipient_country_codes",
                     )
                 ]
             }
