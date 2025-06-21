@@ -1,7 +1,8 @@
+-- yaml_global_indexes.sql.jinja2
 -- Strategic indexes for {{ project_name }} graph database
 -- Generated from YAML configuration
 
-{% for rel_type in relationship_types %}
+{% for rel_type, info in relationship_types.items() %}
 -- Indexes for {{ rel_type }} relationships
 CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_source 
 ON {{ project_name }}.{{ rel_type|lower }} (start_id);
@@ -9,13 +10,15 @@ ON {{ project_name }}.{{ rel_type|lower }} (start_id);
 CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_target 
 ON {{ project_name }}.{{ rel_type|lower }} (end_id);
 
+{% if info.has_year %}
 CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_year 
 ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'year'));
+{% endif %}
 
 CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_source_dataset 
 ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'source_dataset'));
 
-{% if rel_type == 'HAS_PRICE' %}
+{% if rel_type == 'HAS_PRICE' and info.has_months %}
 -- Additional indexes for price queries
 CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_months 
 ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'months_code'));
@@ -24,7 +27,8 @@ ON {{ project_name }}.{{ rel_type|lower }} USING btree ((properties->>'months_co
 {% endfor %}
 
 -- Compound indexes for common query patterns
-{% for rel_type in relationship_types %}
+{% for rel_type, info in relationship_types.items() %}
+{% if info.has_year %}
 CREATE INDEX IF NOT EXISTS idx_{{ rel_type|lower }}_year_source 
 ON {{ project_name }}.{{ rel_type|lower }} USING btree (
     (properties->>'year'),
@@ -32,4 +36,5 @@ ON {{ project_name }}.{{ rel_type|lower }} USING btree (
     start_id,
     end_id
 );
+{% endif %}
 {% endfor %}

@@ -9,6 +9,9 @@ from generator.file_system import FileSystem
 from generator.logger import logger
 from generator import singularize, make_migration_class_name, to_snake_case
 
+from .project_paths import ProjectPaths
+from .template_config import template_config
+
 
 @dataclass
 class NodeConfig:
@@ -31,20 +34,10 @@ class RelationshipConfig:
     properties_from_row: List[str]
 
 
-@dataclass
-class ProjectPaths:
-    project: Path
-    core: Path = Path("core")
-    db: Path = Path("db")
-    db_pipelines: Path = Path("db/pipelines")
-    api: Path = Path("api")
-    api_routers: Path = Path("api/routers")
-
-
 class GraphDBGen:
     """YAML configuration driven graph generator"""
 
-    def __init__(self, output_dir: Path, cache_path: Path, config_path: Path):
+    def __init__(self, output_dir: Path, cache_path: Path, config_path: Path, static_files_dir: str | Path):
         self.project_name = "fao_graph"
         self.output_dir = Path(output_dir) / self.project_name
         self.paths = ProjectPaths(self.output_dir)
@@ -54,9 +47,10 @@ class GraphDBGen:
         # Load data
         self.cache_data = self._load_cache()
         self.config = self._load_config()
+        self.flags = self._load_flags()
 
         # Setup file system
-        self.file_system = FileSystem(self.output_dir, "_fao_graph_")
+        self.file_system = FileSystem(self.output_dir, static_files_dir)
 
         # Setup Jinja
         self.template_dir = Path("generator/graph/templates")
@@ -76,6 +70,9 @@ class GraphDBGen:
         """Load the YAML configuration"""
         with open(self.config_path, "r") as f:
             return yaml.safe_load(f)
+
+    def _load_flags(self) -> List[Dict]:
+        return self._query_reference_data("flags", "flags")
 
     def format_pipeline_name(self, table_name: str, rel_type: str) -> str:
         """Format pipeline names to snake_case"""
@@ -131,18 +128,18 @@ class GraphDBGen:
             "relationship_pipelines": relationship_pipelines,
         }
 
-        template = self.jinja_env.get_template("orchestrate_migration.py.jinja2")
+        template = self.jinja_env.get_template(template_config.orchestrate_migration_template)
         content = template.render(**context)
 
-        self.file_system.write_file_cache(self.output_dir / "db" / "orchestrate_migration.py", content)
+        self.file_system.write_file_cache(self.paths.db / template_config.orchestrate_migration_filename(), content)
 
     def _create_project_structure(self):
         """Create the project directory structure"""
         dirs = [
-            self.output_dir / self.paths.db,
-            self.output_dir / self.paths.db_pipelines,
-            self.output_dir / self.paths.api,
-            self.output_dir / self.paths.core,
+            self.paths.db,
+            self.paths.db_pipelines,
+            self.paths.api,
+            self.paths.core,
         ]
         for dir_path in dirs:
             self.file_system.create_dir(dir_path)
@@ -169,38 +166,43 @@ class GraphDBGen:
         """Generate migration files for a node"""
         table_name = config["table"]
         node_name = singularize(table_name)
-        pipeline_dir = self.output_dir / "db" / "pipelines" / node_name
+        pipeline_dir = self.output_dir / self.paths.db_pipelines / node_name
         self.file_system.create_dir(pipeline_dir)
 
-        # Prepare contexts for different templates
-        sql_context = {
+        # Just get the columns from cache - THAT'S IT
+        columns = module["model"]["column_analysis"]
+
+        # Get non-excluded columns
+        properties = []
+        for column in columns:
+            properties.append(column["sql_column_name"])
+
+        # Contexts
+        context = {
             "project_name": self.project_name,
             "table": table_name,
-            "node_label": config["label"],
-            "properties": config.get("properties", []),
-            "indexes": config.get("indexes", []),
-        }
-
-        python_context = {
-            "project_name": self.project_name,
-            "pipeline_name": node_name,
-            "pipeline_type": "node",
             "table_name": table_name,
             "node_label": config["label"],
+            "properties": properties,
+            "migration_query_filename": template_config.node_migration_filename(node_name),
+            "verify_query_filename": template_config.node_verify_filename(node_name),
+            "index_query_filename": template_config.node_indexes_filename(node_name),
+            "pipeline_name": node_name,
+            "migration_type": "node",
             "migration_class_name": f"{config['label']}Migrator",
             "description": f"{config['label']} nodes from {table_name}",
         }
 
-        # Generate all files
+        # Generate files
         files_to_generate = [
-            ("yaml_node_migration.cypher.sql.jinja2", f"{node_name}.cypher.sql", sql_context),
-            ("yaml_node_indexes.sql.jinja2", f"{node_name}_indexes.sql", sql_context),
-            ("yaml_node_verify.cypher.sql.jinja2", f"{node_name}_verify.cypher.sql", sql_context),
-            ("yaml_migrator.py.jinja2", f"{node_name}.py", python_context),
-            ("yaml_pipeline_main.py.jinja2", "__main__.py", python_context),
+            (template_config.node_migration_template, template_config.node_migration_filename(node_name)),
+            (template_config.node_verify_template, template_config.node_verify_filename(node_name)),
+            (template_config.node_indexes_template, template_config.node_indexes_filename(node_name)),
+            (template_config.migrator_template, template_config.migrator_filename(node_name)),
+            (template_config.pipeline_main_template, template_config.pipeline_main_filename()),
         ]
 
-        for template_name, output_name, context in files_to_generate:
+        for template_name, output_name in files_to_generate:
             template = self.jinja_env.get_template(template_name)
             content = template.render(**context)
             self.file_system.write_file_cache(pipeline_dir / output_name, content)
@@ -228,7 +230,7 @@ class GraphDBGen:
         """Generate migration files for a relationship"""
         rel_type = config["type"].lower()
         pipeline_name = self.format_pipeline_name(table_name, rel_type)
-        pipeline_dir = self.output_dir / self.paths.db_pipelines / pipeline_name
+        pipeline_dir = self.paths.db_pipelines / pipeline_name
         self.file_system.create_dir(pipeline_dir)
 
         # Extract filter info
@@ -239,14 +241,64 @@ class GraphDBGen:
                 filter_values = filter_rule["values"]
                 filter_description = filter_rule.get("description", "")
 
+        # Get column info from cache
+        column_analysis = module["model"]["column_analysis"]
+        foreign_keys = module["model"]["foreign_keys"]
+        exclude_columns = module["model"].get("exclude_columns", [])
+
+        # Find the actual FK column names for source and target
+        source_fk = None
+        target_fk = None
+
+        for fk in foreign_keys:
+            if fk["table_name"] == config["source"]["table"]:
+                source_fk = fk["hash_fk_sql_column_name"]
+            elif fk["table_name"] == config["target"]["table"]:
+                target_fk = fk["hash_fk_sql_column_name"]
+
+        include_columns = self._determine_properties_from_cache(module, config, source_fk, target_fk)
+
+        # print(f"{table_name} include_columns: {include_columns}")
+
+        # Build list of actual SQL columns (including FK columns)
+        sql_columns = []
+
+        # Add FK columns (these replaced the excluded columns)
+        for fk in foreign_keys:
+            sql_columns.append(fk["hash_fk_sql_column_name"])
+
+        # Add regular columns
+        for col in column_analysis:
+            if col["csv_column_name"] not in exclude_columns:
+                sql_columns.append(col["sql_column_name"])
+
+        # Determine which properties are actually available
+        available_properties = []
+
+        for prop in config.get("properties_from_row", []):
+            if prop in sql_columns:
+                available_properties.append(prop)
+            elif prop == "flag" and any(fk["table_name"] == "flags" for fk in foreign_keys):
+                # Special case for flag - we'll join to get the actual flag value
+                available_properties.append(prop)
+
+        # Check what time/value columns exist
+        has_year = "year" in include_columns.get("properties", [])
+        has_value = "value" in include_columns.get("properties", [])
+
+        # Build relationship info
         relationship_info = {
             "type": config["type"],
-            "source_fk": config["source"]["foreign_key"],
+            "source_fk": source_fk,
             "source_label": config["source"]["node_label"],
-            "target_fk": config["target"]["foreign_key"],
+            "target_fk": target_fk,
             "target_label": config["target"]["node_label"],
             "filters": config.get("filters", []),
-            "properties_from_row": config.get("properties_from_row", []),
+            "properties_from_row": include_columns.get("properties", []),
+            "has_year": has_year,
+            "has_value": has_value,
+            "rel_props": include_columns.get("properties", []),
+            "identifiers": include_columns.get("identifiers", []),
         }
 
         # Prepare contexts for different templates
@@ -259,22 +311,33 @@ class GraphDBGen:
         python_context = {
             "project_name": self.project_name,
             "pipeline_name": pipeline_name,
-            "pipeline_type": "relationship",
+            "migration_query_filename": template_config.relationship_migration_filename(pipeline_name),
+            "verify_query_filename": template_config.relationship_verify_filename(pipeline_name),
+            "migration_type": "relationship",
             "table_name": table_name,
             "relationship_type": config["type"],
             "relationship": relationship_info,
             "filter_values": filter_values,
             "filter_description": filter_description,
+            "rel_props": include_columns.get("properties", []),
+            "identifiers": include_columns.get("identifiers", []),
             "migration_class_name": make_migration_class_name(table_name, config["type"]),
             "description": f"{config['type']} relationships from {table_name}",
         }
 
-        # Generate all files
         files_to_generate = [
-            ("yaml_relationship_migration.cypher.sql.jinja2", f"{pipeline_name}.cypher.sql", sql_context),
-            ("yaml_relationship_verify.cypher.sql.jinja2", f"{pipeline_name}_verify.cypher.sql", sql_context),
-            ("yaml_migrator.py.jinja2", f"{pipeline_name}.py", python_context),
-            ("yaml_pipeline_main.py.jinja2", "__main__.py", python_context),
+            (
+                template_config.relationship_migration_template,
+                template_config.relationship_migration_filename(pipeline_name),
+                sql_context,
+            ),
+            (
+                template_config.relationship_verify_template,
+                template_config.relationship_verify_filename(pipeline_name),
+                sql_context,
+            ),
+            (template_config.migrator_template, template_config.migrator_filename(pipeline_name), python_context),
+            (template_config.pipeline_main_template, template_config.pipeline_main_filename(), python_context),
         ]
 
         for template_name, output_name, context in files_to_generate:
@@ -290,15 +353,110 @@ class GraphDBGen:
 
     def _generate_global_indexes(self):
         """Generate a single file with strategic indexes"""
-        # Collect all relationship types
-        rel_types = set()
-        for _, configs in self.config["relationships"].items():
-            for config in configs:
-                rel_types.add(config["type"])
+        # Collect all relationship types and their properties
+        rel_types = {}
 
-        context = {"project_name": self.project_name, "relationship_types": sorted(rel_types)}
+        for table_name, configs in self.config["relationships"].items():
+            # Get the module to check actual columns
+            if table_name in self.cache_data.get("datasets", {}):
+                module = self.cache_data["datasets"][table_name]
+                column_names = [col["sql_column_name"] for col in module["model"]["column_analysis"]]
 
-        template = self.jinja_env.get_template("yaml_global_indexes.sql.jinja2")
+                for config in configs:
+                    rel_type = config["type"]
+                    if rel_type not in rel_types:
+                        rel_types[rel_type] = {"has_year": False, "has_months": False, "tables": []}
+
+                    # Check what columns this relationship actually uses
+                    if "year" in column_names:
+                        rel_types[rel_type]["has_year"] = True
+                    if "months_code" in column_names:
+                        rel_types[rel_type]["has_months"] = True
+                    rel_types[rel_type]["tables"].append(table_name)
+
+        context = {"project_name": self.project_name, "relationship_types": rel_types}
+
+        template = self.jinja_env.get_template(template_config.global_indexes_template)
         content = template.render(**context)
 
-        self.file_system.write_file_cache(self.output_dir / self.paths.db / "create_indexes.sql", content)
+        self.file_system.write_file_cache(self.paths.db / template_config.global_indexes_filename(), content)
+
+    def _determine_properties_from_cache(
+        self, module: Dict, config: dict, source_fk: str | None, target_fk: str | None
+    ) -> dict:
+        """Determine actual properties based on what exists in the table"""
+        columns = {}
+        columns["identifiers"] = {}
+
+        property_groups = config.get("include_property_groups", [])
+
+        # Collect regular columns
+        for column in module["model"]["column_analysis"]:
+            if column["csv_column_name"] not in module["model"]["exclude_columns"]:
+                columns[column["sql_column_name"]] = column["sql_column_name"]
+
+        # Collect foreign key columns
+        for column in module["model"]["foreign_keys"]:
+            fk_column_name = column["hash_fk_sql_column_name"]
+            if fk_column_name not in [source_fk, target_fk]:
+                columns["identifiers"][fk_column_name] = column
+
+        properties = []
+
+        for group in property_groups:
+            if group == "time_columns":
+                # Check what time columns actually exist
+                for col in ["year", "months", "date", "period"]:
+                    if col in columns:
+                        properties.append(col)
+
+            elif group == "value_columns":
+                # Check what value columns exist
+                for col in ["value", "quantity", "amount", "price"]:
+                    if col in columns:
+                        properties.append(col)
+
+            elif group == "metadata":
+                # Standard metadata columns
+                for col in ["unit", "note"]:
+                    if col in columns:
+                        properties.append(col)
+
+        return {
+            "properties": properties,
+            "identifiers": columns["identifiers"],
+        }
+
+    def _query_reference_data(self, table_name: str, dataset_table_name: str) -> List[Dict]:
+        """Query reference data from database dynamically"""
+        from _fao_.src.db.database import get_db
+        from sqlalchemy import text
+
+        db_gen = get_db()
+        db = next(db_gen)
+
+        try:
+            # Build dynamic query based on configuration
+            query = text(
+                f"""
+                SELECT DISTINCT 
+                    *
+                FROM {table_name} r
+                WHERE r.source_dataset = '{dataset_table_name}'
+            """
+            )
+
+            result = db.execute(query, {"table_name": table_name})
+            items = [dict(row) for row in result.mappings().all()]
+
+            logger.debug(f"    Got {len(items)} {dataset_table_name} records from {table_name} table")
+            return items
+
+        except Exception as e:
+            logger.error(f"Failed to query {table_name}: {e}")
+            return []
+        finally:
+            try:
+                next(db_gen)
+            except StopIteration:
+                pass

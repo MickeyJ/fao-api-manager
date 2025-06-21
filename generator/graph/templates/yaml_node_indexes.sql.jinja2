@@ -1,12 +1,13 @@
+-- yaml_node_indexes.sql.jinja2
 -- Indexes for {{ node_label }} nodes
 CREATE INDEX IF NOT EXISTS idx_{{ table }}_id
-ON {{ project_name }}.{{ node_label|lower }} (id);
+ON {{ project_name }}.'{{ node_label }}' (id);
 
-{% for index_field in indexes %}
-CREATE INDEX IF NOT EXISTS idx_{{ table }}_{{ index_field }}
-ON {{ project_name }}.{{ node_label|lower }} USING btree ((properties->>'{{ index_field }}'));
-{% endfor %}
+{% if primary_property %}
+CREATE INDEX IF NOT EXISTS idx_{{ table }}_{{ primary_property }}
+ON {{ project_name }}.'{{ node_label }}' USING btree ((properties->>'{{ primary_property }}'));
+{% endif %}
 
 -- Compound index for node lookups
 CREATE INDEX IF NOT EXISTS idx_{{ table }}_properties
-ON {{ project_name }}.{{ node_label|lower }} USING GIN (properties);
+ON {{ project_name }}.'{{ node_label}}' USING GIN (properties);

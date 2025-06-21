@@ -1,3 +1,4 @@
+- yaml_relationship_verify.cypher.sql.jinja2
 -- Verification queries for {{ relationship.type }} relationships from {{ table_name }}
 SELECT count(*) FROM cypher('{{ project_name }}', $$
     MATCH ()-[r:{{ relationship.type }}]->()
@@ -10,17 +11,16 @@ SELECT * FROM cypher('{{ project_name }}', $$
     MATCH (s)-[r:{{ relationship.type }}]->(t)
     WHERE r.source_dataset = '{{ table_name }}'
     RETURN 
-        s.{{ relationship.source_label | snake_case }}_code as source_code,
-        t.{{ relationship.target_label | snake_case }}_code as target_code,
-        r.year as year,
-        r.value as value,
-        r.unit as unit,
-        r.element_code_id as element_code_id
-        {% if 'flag' in relationship.properties_from_row %}, r.flag as flag{% endif %}
+        s.{{ relationship.source_label | snake_case }} as source,
+        t.{{ relationship.target_label | snake_case }} as target,
+        {% for prop in relationship.properties_from_row %}
+        r.{{ prop }} as {{ prop }}{{ ',' if not loop.last else '' }}
+        {% endfor %}
     LIMIT 10
-$$) as (source_code agtype, target_code agtype, year agtype, value agtype, unit agtype, element_code_id agtype{% if 'flag' in relationship.properties_from_row %}, flag agtype{% endif %});
+$$) as (source agtype, target agtype{% for prop in relationship.properties_from_row %}, {{ prop }} agtype{% endfor %});
 
--- Group by year
+{% if relationship.has_year %}
+-- Group by year (only if table has year column)
 SELECT * FROM cypher('{{ project_name }}', $$
     MATCH ()-[r:{{ relationship.type }}]->()
     WHERE r.source_dataset = '{{ table_name }}'
@@ -28,3 +28,22 @@ SELECT * FROM cypher('{{ project_name }}', $$
     ORDER BY year DESC
     LIMIT 10
 $$) as (year agtype, count agtype);
+{% elif relationship.has_value %}
+-- Value distribution (if no year but has value)
+SELECT * FROM cypher('{{ project_name }}', $$
+    MATCH ()-[r:{{ relationship.type }}]->()
+    WHERE r.source_dataset = '{{ table_name }}'
+    RETURN 
+        min(r.value) as min_value,
+        max(r.value) as max_value,
+        avg(r.value) as avg_value,
+        count(*) as count
+$$) as (min_value agtype, max_value agtype, avg_value agtype, count agtype);
+{% else %}
+-- Just count by relationship (no year or value columns)
+SELECT * FROM cypher('{{ project_name }}', $$
+    MATCH ()-[r:{{ relationship.type }}]->()
+    WHERE r.source_dataset = '{{ table_name }}'
+    RETURN count(*) as total_relationships
+$$) as (total_relationships agtype);
+{% endif %}

@@ -98,6 +98,47 @@ def create_global_indexes():
         logger.error(f"Failed to create global indexes: {e}")
         raise
 
+def create_reference_links(self) -> None:
+        """Create links between reference nodes with same codes."""
+        logger.info("Creating reference links...")
+
+        try:
+            with get_session() as session:
+                # Load and execute the global indexes SQL
+                link_areas = """
+                    SELECT count(*) as count FROM cypher('fao_graph', $$
+                        MATCH (a1:AreaCode), (a2:AreaCode)
+                        WHERE a1.area_code = a2.area_code 
+                        AND a1.id < a2.id
+                        CREATE (a1)-[:SAME_AREA_CODE]->(a2)
+                    $$) AS (result agtype);
+                """
+                
+                result = session.execute(text(link_areas))
+                area_count = result.scalar()
+                logger.info(f"Created {area_count} SAME_AREA_CODE relationships")
+
+                # Link items
+                link_items = """
+                    SELECT count(*) as count FROM cypher('fao_graph', $$
+                        MATCH (i1:ItemCode), (i2:ItemCode)
+                        WHERE i1.item_code = i2.item_code 
+                        AND i1.id < i2.id
+                        CREATE (i1)-[:SAME_ITEM_CODE]->(i2)
+                    $$) AS (result agtype);
+                """
+                
+                result = session.execute(text(link_items))
+                item_count = result.scalar()
+                logger.info(f"Created {item_count} SAME_ITEM_CODE relationships")
+                
+                session.commit()
+                
+            logger.success("Linked references successfully")
+        except Exception as e:
+            logger.error(f"Failed to link references: {e}")
+            raise
+
 
 def main():
     """Run all migrations in order"""
@@ -114,6 +155,9 @@ def main():
     
     # Create global indexes
     create_global_indexes()
+
+    # Link duplicate reference nodes
+    create_reference_links()
     
     logger.success("\n✅ Graph migration complete!")
 

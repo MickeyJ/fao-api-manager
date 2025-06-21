@@ -1,0 +1,175 @@
+# Graph Database Configuration for FAO Data
+version: "1.0"
+
+nodes:
+  - table: area_codes
+    label: AreaCode
+      
+  - table: reporter_country_codes
+    label: ReporterCountryCode
+      
+  - table: partner_country_codes
+    label: PartnerCountryCode
+      
+  - table: item_codes
+    label: ItemCode
+
+relationships:
+  trade_detailed_trade_matrix:
+    - type: TRADES
+      source:
+        table: reporter_country_codes
+        node_label: ReporterCountryCode
+      target:
+        table: partner_country_codes
+        node_label: PartnerCountryCode
+      filters:
+        - field: element_code
+          values: ["'5610'", "'5910'", "'5622'", "'5922'"]  # Import/Export Quantity/Value
+          description: "Trade flows"
+        - field: flag
+          values: ["'A'", "'X'", "'E'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - time_columns
+        - value_columns
+        - identifiers
+        - metadata
+        
+  food_balance_sheets:
+    - type: PRODUCES
+      source:
+        table: area_codes
+        node_label: AreaCode
+      target:
+        table: item_codes
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: ["'5511'", "'5301'"]  # Production, Domestic supply
+          description: "Production quantities"
+        - field: flag
+          values: ["'A'", "'X'", "'E'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - time_columns
+        - value_columns
+        - identifiers
+        - metadata
+        
+    - type: TRADES
+      source:
+        table: area_codes
+        node_label: AreaCode
+      target:
+        table: item_codes
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: ["'5611'", "'5911'"]  # Import/Export Quantity
+          description: "Trade quantities"
+        - field: flag
+          values: ["'A'", "'X'", "'E'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - time_columns
+        - value_columns
+        - identifiers
+        - metadata
+        
+    - type: CONSUMES
+      source:
+        table: area_codes
+        node_label: AreaCode
+      target:
+        table: item_codes
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: ["'5142'", "'645'", "'664'", "'674'"]  # Food consumption
+          description: "Food consumption"
+        - field: flag
+          values: ["'A'", "'X'", "'E'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - time_columns
+        - value_columns
+        - identifiers
+        - metadata
+        
+  food_security_data:
+    - type: EXPERIENCES
+      source:
+        table: area_codes
+        node_label: AreaCode
+      target:
+        table: item_codes
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: ["'21010'", "'21011'", "'21012'", "'21013'", "'21014'", "'21015'", "'21016'", "'21017'"]
+          description: "Food insecurity experience scale"
+        - field: flag
+          values: ["'A'", "'X'", "'E'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - all  # Include all available columns
+        
+    - type: MEASURES
+      source:
+        table: area_codes
+        node_label: AreaCode
+      target:
+        table: item_codes
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: ["'210011'", "'210012'", "'210013'", "'210041'"]
+          description: "Prevalence indicators"
+        - field: flag
+          values: ["'A'", "'X'", "'E'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - time_columns
+        - value_columns
+        - identifiers
+        - metadata
+        - notes  # Special group for note columns
+        
+  prices:
+    - type: HAS_PRICE
+      source:
+        table: area_codes
+        node_label: AreaCode
+      target:
+        table: item_codes
+        node_label: ItemCode
+      filters:
+        - field: element_code
+          values: ["'5530'", "'5532'"]  # Producer prices
+          description: "Producer price LCU/USD"
+        - field: flag
+          values: ["'A'", "'X'"]
+          description: "official and estimated data"
+      include_property_groups:
+        - time_columns
+        - value_columns
+        - identifiers
+        - metadata
+        - months  # Special group for months/months_code
+
+# Global settings
+settings:
+  batch_size: 10000
+  create_indexes: true
+  verify_after_migration: true
+  
+# Property group definitions (for documentation)
+property_groups:
+  time_columns: "year, months, date, period - whatever exists"
+  value_columns: "value, quantity, amount, price - whatever exists"
+  identifiers: "Foreign key IDs like element_code_id"
+  metadata: "unit, flag, source - standard metadata"
+  notes: "note, notes, comment - text fields"
+  months: "months, months_code - monthly data"
+  all: "Include all columns from the table"

@@ -19,10 +19,13 @@ def generate_graph():
     # from generator.graph.graph_generator import GraphGenerator
     from generator.graph.graph_db_gen import GraphDBGen
 
+    static_files_dir = Path("_fao_graph_")
+
     graph_generator = GraphDBGen(
         output_dir=Path(GRAPH_OUTPUT_PATH),
         cache_path=json_cache_path,
-        config_path=Path("generator/graph/graph_db_config.yaml"),
+        config_path=Path(static_files_dir / "graph_db_config.yaml"),
+        static_files_dir=static_files_dir,
     )
     graph_generator.generate()
 

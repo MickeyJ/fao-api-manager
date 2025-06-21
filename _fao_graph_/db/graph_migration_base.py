@@ -28,11 +28,6 @@ class GraphMigrationBase(ABC):
         """
 
     @abstractmethod
-    def get_index_queries(self) -> str:
-        """Return SQL query to create indexes."""
-        pass
-
-    @abstractmethod
     def get_migration_query(self) -> str:
         """Return SQL query to fetch records for migration with LIMIT/OFFSET."""
         pass
@@ -41,6 +36,10 @@ class GraphMigrationBase(ABC):
     def get_verification_query(self) -> str:
         """Return AGE queries for verification. Should include 'total_count' key."""
         pass
+
+    def get_index_queries(self) -> str:
+        """Return SQL query to create indexes."""
+        return ""
 
     def create(self, records: Sequence[Row]) -> None:
         """Create nodes or relationships"""
@@ -59,64 +58,71 @@ class GraphMigrationBase(ABC):
         logger.info(f"Using batch size: {self.batch_size}")
 
         try:
-            # Count total records
-            count_query = text(self.get_count_query())
 
-            with get_session() as session:
-                total_records = session.execute(count_query).scalar() or 0
-                logger.info(f"Total records to process: {total_records:,}")
+            if self.migration_type == "node":
+                # For nodes: execute the cypher query directly (bulk creation)
 
-                if start_offset > 0:
-                    logger.info(
-                        f"Resuming from offset {start_offset:,} ({start_offset/total_records*100:.1f}% already done)"
-                    )
-        except Exception as e:
-            raise MigrationError(f"Failed to count total records: {e}") from e
+                with get_session() as session:
+                    cypher_query = self.get_migration_query()
+                    session.execute(text(cypher_query))
+                    session.commit()
+                    logger.success(f"Created all {self.table_name} nodes")
 
-        # Get migration query
-        query = text(self.get_migration_query())
-        offset = start_offset
+            else:
+                # For relationships: batch processing with LIMIT/OFFSET
+                # Count total records
+                count_query = text(self.get_count_query())
 
-        try:
-            while offset < total_records:
-                with get_session() as pg_session:
-                    # Fetch batch
-                    result = pg_session.execute(query, {"limit": self.batch_size, "offset": offset})
-                    records = result.fetchall()
+                with get_session() as session:
+                    total_records = session.execute(count_query).scalar() or 0
+                    logger.info(f"Total records to process: {total_records:,}")
 
-                    if not records:
-                        break
+                    if start_offset > 0:
+                        logger.info(
+                            f"Resuming from offset {start_offset:,} ({start_offset/total_records*100:.1f}% already done)"
+                        )
 
-                    # Process batch based on mode
-                    try:
-                        if mode == "create":
-                            self.create(records)
-                        elif mode == "update":
-                            self.update(records)
-                        else:
-                            raise ValueError(f"Unknown mode: {mode}")
-                    except Exception as e:
-                        logger.error(f"Failed to process batch at offset {offset}: {e}")
-                        logger.info(f"Resume with: --offset {offset}")
-                        raise MigrationError(f"Batch processing failed at offset {offset}") from e
+                # Get migration query
+                query = text(self.get_migration_query())
+                offset = start_offset
 
-                    offset += len(records)
+                while offset < total_records:
+                    with get_session() as pg_session:
+                        # Fetch batch
+                        result = pg_session.execute(query, {"limit": self.batch_size, "offset": offset})
+                        records = result.fetchall()
 
-                    # Progress logging
-                    pct_complete = offset / total_records * 100
-                    self.log_progress(offset, total_records, pct_complete)
+                        if not records:
+                            break
+
+                        # Process batch based on mode
+                        try:
+                            if mode == "create":
+                                self.create(records)
+                            elif mode == "update":
+                                self.update(records)
+                            else:
+                                raise ValueError(f"Unknown mode: {mode}")
+                        except Exception as e:
+                            logger.error(f"Failed to process batch at offset {offset}: {e}")
+                            logger.info(f"Resume with: --offset {offset}")
+                            raise MigrationError(f"Batch processing failed at offset {offset}") from e
+
+                        offset += len(records)
+
+                        # Progress logging
+                        pct_complete = offset / total_records * 100
+                        self.log_progress(offset, total_records, pct_complete)
 
         except KeyboardInterrupt:
-            logger.warning(f"\nMigration interrupted at offset {offset}")
-            logger.info(f"Resume with: --offset {offset}")
+            logger.error(f"\nMigration interrupted")
             raise
-        except MigrationError:
+        except MigrationError as e:
             # Already logged, just re-raise
-            raise
+            raise MigrationError(f"Migration failed {e}")
         except Exception as e:
-            logger.error(f"Unexpected error at offset {offset}: {e}")
-            logger.info(f"Resume with: --offset {offset}")
-            raise MigrationError(f"Migration failed at offset {offset}") from e
+            logger.error(f"Unexpected error: {e}")
+            raise MigrationError(f"Migration failed {e}")
 
     def create_indexes(self):
         """Create indexes"""

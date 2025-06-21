@@ -1,9 +1,11 @@
+-- yaml_node_migration.cypher.sql.jinja2
 -- Create {{ node_label }} nodes from {{ table }}
 SELECT * FROM cypher('{{ project_name }}', $$
     CREATE (n:{{ node_label }} {
         id: row.id,
         {% for prop in properties %}
-        {{ prop }}: row.{{ prop }}{{ ',' if not loop.last else '' }}
+        {{ prop }}: row.{{ prop }}{% if not loop.last %},
+        {% endif %}
         {% endfor %}
     })
     RETURN n
