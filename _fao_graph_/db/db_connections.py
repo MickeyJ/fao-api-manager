@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from utils import logger
+from _fao_graph_.logger import logger
 from _fao_graph_.core.settings import settings
 
 
