@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     graph_db_port: str = os.getenv("GRAPH_DB_PORT", "5433")
     graph_db_name: str = os.getenv("GRAPH_DB_NAME", "fao_graph")
 
+    # Database Configuration
+    db_user: str = os.getenv("DB_USER", "postgres")
+    db_password: str = os.getenv("DB_PASSWORD", "password")
+    db_host: str = os.getenv("DB_HOST", "localhost")
+    db_port: str = os.getenv("DB_PORT", "5432")
+    db_name: str = os.getenv("DB_NAME", "fao")
+
     # Cache Configuration
     cache_enabled: bool = os.getenv("CACHE_ENABLED", "true").lower() in ("true", "1", "yes")
     redis_host: str = os.getenv("REDIS_HOST") or "localhost"

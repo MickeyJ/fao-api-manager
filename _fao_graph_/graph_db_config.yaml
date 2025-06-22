@@ -25,11 +25,14 @@ relationships:
         node_label: PartnerCountryCode
       filters:
         - field: element_code
-          values: ["'5610'", "'5910'", "'5622'", "'5922'"]  # Import/Export Quantity/Value
-          description: "Trade flows"
+          values: ["'5910'", "'5922'", "'5610'", "'5622'"]  # Import/Export Quantity/Value
+          description: "Export Q, Export V, Import Q, Import V"
         - field: flag
-          values: ["'A'", "'X'", "'E'"]
+          values: ["'A'",]
           description: "official and estimated data"
+        - field: year
+          min_value: 2022
+          description: "only data since 2022"
       include_property_groups:
         - time_columns
         - value_columns
@@ -51,6 +54,9 @@ relationships:
         - field: flag
           values: ["'A'", "'X'", "'E'"]
           description: "official and estimated data"
+        - field: year
+          min_value: 2022
+          description: "only data since 2022"
       include_property_groups:
         - time_columns
         - value_columns
@@ -71,6 +77,9 @@ relationships:
         - field: flag
           values: ["'A'", "'X'", "'E'"]
           description: "official and estimated data"
+        - field: year
+          min_value: 2022
+          description: "only data since 2022"
       include_property_groups:
         - time_columns
         - value_columns
@@ -91,6 +100,9 @@ relationships:
         - field: flag
           values: ["'A'", "'X'", "'E'"]
           description: "official and estimated data"
+        - field: year
+          min_value: 2022
+          description: "only data since 2022"
       include_property_groups:
         - time_columns
         - value_columns
@@ -107,14 +119,14 @@ relationships:
         node_label: ItemCode
       filters:
         - field: element_code
-          values: ["'21010'", "'21011'", "'21012'", "'21013'", "'21014'", "'21015'", "'21016'", "'21017'"]
+          values: ["'61212'", "'61322'", "'61211'", "'61321'"]
           description: "Food insecurity experience scale"
         - field: flag
           values: ["'A'", "'X'", "'E'"]
           description: "official and estimated data"
       include_property_groups:
         - all  # Include all available columns
-        
+
     - type: MEASURES
       source:
         table: area_codes
@@ -124,7 +136,7 @@ relationships:
         node_label: ItemCode
       filters:
         - field: element_code
-          values: ["'210011'", "'210012'", "'210013'", "'210041'"]
+          values: ["'6123'", "'6128'","'6126'","'6125'","'6132'","'6121'","'6173'","'6124'"]
           description: "Prevalence indicators"
         - field: flag
           values: ["'A'", "'X'", "'E'"]
@@ -151,6 +163,9 @@ relationships:
         - field: flag
           values: ["'A'", "'X'"]
           description: "official and estimated data"
+        - field: year
+          min_value: 2022
+          description: "only data since 2022"
       include_property_groups:
         - time_columns
         - value_columns

@@ -1,11 +1,8 @@
 # yaml_migrator.py.jinja2
 # Generated migrator for {{ migration_type }} {{ pipeline_name }}
+import json
 from pathlib import Path
-{% if migration_type == 'relationship' %}
 from sqlalchemy import text
-
-from {{ project_name }}.db.database import get_session
-{% endif %}
 from {{ project_name }}.db.graph_migration_base import GraphMigrationBase
 from {{ project_name }}.utils import load_sql
 from {{ project_name }}.logger import logger
@@ -15,7 +12,7 @@ class {{ migration_class_name }}(GraphMigrationBase):
     """Migrator for {{ description }}"""
     
     def __init__(self):
-        super().__init__("{{ table_name }}", "{{ migration_type }}")
+        super().__init__("{{ table_name }}", "{{ migration_type }}", "{{ project_name }}", "{{ node_label }}")
         {% if migration_type == 'relationship' %}
         self.relationship_type = "{{ relationship_type }}"
         {% else %}
@@ -44,51 +41,129 @@ class {{ migration_class_name }}(GraphMigrationBase):
             {% endfor %}
             WHERE t.{{ relationship.source_fk }} IS NOT NULL
                 AND t.{{ relationship.target_fk }} IS NOT NULL
-                {% if 'value' in relationship.rel_props %}
+            {% if 'value' in relationship.properties %}
                 AND t.value > 0
+                AND t.value != 'NaN'
+                AND t.value IS NOT NULL
+            {% endif %}
+            {% for filter in relationship.filters %}
+                {% if filter['min_value'] %}
+                AND t.{{ filter['field'] }} >= {{ filter['min_value'] }}
                 {% endif %}
-                {% for column_name, column in relationship.identifiers.items() %}
+            {% endfor %}
+            {% for column_name, column in relationship.identifiers.items() %}
                 {% for filter in relationship.filters %}
-                {% if filter['field'] == column.sql_column_name %}
+                    {% if filter['field'] == column.sql_column_name %}
                 AND {{ column.table_name }}.{{ column.sql_column_name }} IN ({{ filter['values'] | join(', ') }})
-                {% endif %}
+                    {% endif %}
                 {% endfor %}
-                {% endfor %}
+            {% endfor %}
         """
     
-    def create(self, records):
+    def create(self, records, session):
         """Create relationships in AGE"""
-        with get_session() as session:
-            for record in records:
-                query = text("""
-                    SELECT * FROM cypher('{{ project_name }}', $$
-                        MATCH (source:{{ relationship.source_label }} {id: $source_id, source_dataset: "{{ table_name }}" })
-                        MATCH (target:{{ relationship.target_label }} {id: $target_id, source_dataset: "{{ table_name }}" })
-                        CREATE (source)-[r:{{ relationship_type }} $props]->(target)
-                        RETURN r
-                    $$, $params) AS (result agtype)
-                """)
-                
-                props = {
-                    {% for prop in relationship.rel_props %}
-                    "{{ prop }}": getattr(record, "{{ prop }}"),
-                    {% endfor %}
-                    {% for column_name, column in relationship.identifiers.items() %}
-                    "{{ column.sql_column_name }}": getattr(record, "{{ column.sql_column_name }}"),
-                    "{{ column.reference_description_column }}": getattr(record, "{{ column.reference_description_column }}"),
-                    {% endfor %}
-                    "source_dataset": "{{ table_name }}"
-                }
-                
-                params = {
-                    "source_id": getattr(record, "{{ relationship.source_fk }}"),
-                    "target_id": getattr(record, "{{ relationship.target_fk }}"),
-                    "props": props
-                }
-                
-                session.execute(query, {
-                    "params": params
-                })
-                self.created += 1
 
+        for record in records:
+            # Get source and target ids
+            source_id = getattr(record, "{{ relationship.source_fk }}")
+            target_id = getattr(record, "{{ relationship.target_fk }}")
+
+            # Log every 500 records
+            if self.created % 500 == 0:
+                logger.info(f"{{table_name}} - ({{ relationship.source_fk }}: {source_id})-[:{{ relationship_type }}]->({{ relationship.target_fk }}: {target_id})")
+            
+            # Build relationship properties string
+            props_parts = []
+            
+            {% for prop in relationship.properties %}
+            if hasattr(record, "{{ prop }}") and getattr(record, "{{ prop }}") is not None:
+                value = getattr(record, "{{ prop }}")
+                if isinstance(value, str):
+                    value = value.replace("'", "\\'")
+                    props_parts.append(f'{{ prop }}: "{value}"')
+                    # props_parts.append(f"{{ prop }}: '{value}'")
+                else:
+                    props_parts.append(f"{{ prop }}: {value}")
+            {% endfor %}
+            
+            {% for column_name, column in relationship.identifiers.items() %}
+            if hasattr(record, "{{ column.sql_column_name }}") and getattr(record, "{{ column.sql_column_name }}") is not None:
+                value = getattr(record, "{{ column.sql_column_name }}")
+                if isinstance(value, str):
+                    value = value.replace("'", "\\'")
+                    props_parts.append(f'{{ column.sql_column_name }}: "{value}"')
+                    # props_parts.append(f"{{ column.sql_column_name }}: '{value}'")
+                else:
+                    props_parts.append(f"{{ column.sql_column_name }}: {value}")
+                    
+            if hasattr(record, "{{ column.reference_description_column }}") and getattr(record, "{{ column.reference_description_column }}") is not None:
+                value = getattr(record, "{{ column.reference_description_column }}")
+                if isinstance(value, str):
+                    value = value.replace("'", "\\'")
+                    props_parts.append(f'{{ column.reference_description_column }}: "{value}"')
+                    # props_parts.append(f"{{ column.reference_description_column }}: '{value}'")
+                else:
+                    props_parts.append(f"{{ column.reference_description_column }}: {value}")
+            {% endfor %}
+            
+            props_parts.append("source_dataset: '{{ table_name }}'")
+            props_str = ", ".join(props_parts)
+            
+            # Build query without parameters
+            query = text(f"""
+                SELECT * FROM cypher('{{ project_name }}', $$
+                    MATCH (source:{{ relationship.source_label }} """ + "{" + f"id: {source_id}, source_dataset: '{{ table_name }}'" + "}" + f""")
+                    MATCH (target:{{ relationship.target_label }} """ + "{" + f"id: {target_id}, source_dataset: '{{ table_name }}'" + "}" + f""")
+                    CREATE (source)-[r:{{ relationship_type }} """ + "{" + props_str + "}" + f"""]->(target)
+                    RETURN r
+                $$) AS (result agtype)
+            """)
+            
+            session.execute(query)
+            self.created += 1
+    
+    {% else %}
+
+    def create(self, records, session):
+        """Create nodes in AGE"""
+
+        logger.info(f"Creating {{node_label}} nodes")
+
+        for record in records:
+            # Build properties string
+            props_parts = []
+
+            
+            # Always include id first
+            props_parts.append(f"id: {record.id}")
+            
+            {% for prop in properties %}
+            if hasattr(record, "{{ prop }}") and getattr(record, "{{ prop }}") is not None:
+                value = getattr(record, "{{ prop }}")
+                
+                if isinstance(value, str):
+                    # Escape single quotes for Cypher
+                    # value = value.replace("'", "\\'")
+                    props_parts.append(f'{{ prop }}: "{value}"')
+                else:
+                    props_parts.append(f"{{ prop }}: {value}")
+            {% endfor %}
+            
+            props_str = ", ".join(props_parts)
+            
+            # Build query without parameters - use string concatenation for braces
+            query = text(f"""
+                SELECT * FROM cypher('{{ project_name }}', $$
+                    CREATE (n:{{ node_label }} """ + "{" + props_str + "}" + f""")
+                    RETURN n
+                $$) AS (result agtype)
+            """)
+            
+            # Log every 500 records
+            if self.created % 500 == 0:
+                print("{" + props_str + "}")
+
+            session.execute(query)
+            self.created += 1
+        
     {% endif %}

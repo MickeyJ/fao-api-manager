@@ -45,6 +45,8 @@ class FileSystem:
                 if dest_file.exists():
                     current_content = dest_file.read_text(encoding="utf-8")
 
+                    logger.debug(source_file.name)
+
                     # If content is different, show diff and prompt
                     if current_content != source_content:
                         print(f"\n{'='*60}")

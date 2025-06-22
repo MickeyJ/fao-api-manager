@@ -96,6 +96,13 @@ generate-graph:
 process-and-generate:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --process_and_generate
+
+
+clear-graph-pipeline:
+	rm -rf cache/.generator_cache/fao_graph
+	rm -rf ../fao-graph-db/fao_graph/db/pipelines
+
+
 # =-=-=--=-=-=-=-=-=
 # FAO Dataset Management
 # =-=-=--=-=-=-=-=-=
@@ -246,6 +253,3 @@ all-table-row-count:
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/show_all_table_row_count.sql
 
 
-clear-graph-pipeline:
-	rm -rf cache/.generator_cache/fao_graph
-	rm -rf ../fao-graph-db/fao_graph/db/pipelines

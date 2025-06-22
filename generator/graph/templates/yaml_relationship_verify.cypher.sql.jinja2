@@ -1,4 +1,4 @@
-- yaml_relationship_verify.cypher.sql.jinja2
+-- yaml_relationship_verify.cypher.sql.jinja2
 -- Verification queries for {{ relationship.type }} relationships from {{ table_name }}
 SELECT count(*) FROM cypher('{{ project_name }}', $$
     MATCH ()-[r:{{ relationship.type }}]->()
@@ -7,19 +7,21 @@ SELECT count(*) FROM cypher('{{ project_name }}', $$
 $$) as (count agtype);
 
 -- Sample relationships with properties
+{% if relationship.properties | length %}
 SELECT * FROM cypher('{{ project_name }}', $$
     MATCH (s)-[r:{{ relationship.type }}]->(t)
     WHERE r.source_dataset = '{{ table_name }}'
     RETURN 
         s.{{ relationship.source_label | snake_case }} as source,
         t.{{ relationship.target_label | snake_case }} as target,
-        {% for prop in relationship.properties_from_row %}
+        {% for prop in relationship.properties %}
         r.{{ prop }} as {{ prop }}{{ ',' if not loop.last else '' }}
         {% endfor %}
     LIMIT 10
-$$) as (source agtype, target agtype{% for prop in relationship.properties_from_row %}, {{ prop }} agtype{% endfor %});
+$$) as (source agtype, target agtype{% for prop in relationship.properties %}, {{ prop }} agtype{% endfor %});
+{% endif %}
 
-{% if relationship.has_year %}
+{% if 'year' in relationship.properties %}
 -- Group by year (only if table has year column)
 SELECT * FROM cypher('{{ project_name }}', $$
     MATCH ()-[r:{{ relationship.type }}]->()

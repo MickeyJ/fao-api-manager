@@ -294,10 +294,9 @@ class GraphDBGen:
             "target_fk": target_fk,
             "target_label": config["target"]["node_label"],
             "filters": config.get("filters", []),
-            "properties_from_row": include_columns.get("properties", []),
             "has_year": has_year,
             "has_value": has_value,
-            "rel_props": include_columns.get("properties", []),
+            "properties": include_columns.get("properties", []),
             "identifiers": include_columns.get("identifiers", []),
         }
 
@@ -319,7 +318,7 @@ class GraphDBGen:
             "relationship": relationship_info,
             "filter_values": filter_values,
             "filter_description": filter_description,
-            "rel_props": include_columns.get("properties", []),
+            "properties": include_columns.get("properties", []),
             "identifiers": include_columns.get("identifiers", []),
             "migration_class_name": make_migration_class_name(table_name, config["type"]),
             "description": f"{config['type']} relationships from {table_name}",
@@ -429,34 +428,27 @@ class GraphDBGen:
 
     def _query_reference_data(self, table_name: str, dataset_table_name: str) -> List[Dict]:
         """Query reference data from database dynamically"""
-        from _fao_.src.db.database import get_db
         from sqlalchemy import text
-
-        db_gen = get_db()
-        db = next(db_gen)
+        from _fao_graph_.db.db_connections import db_connections
 
         try:
-            # Build dynamic query based on configuration
-            query = text(
-                f"""
-                SELECT DISTINCT 
-                    *
-                FROM {table_name} r
-                WHERE r.source_dataset = '{dataset_table_name}'
-            """
-            )
+            with db_connections.pg_session() as session:
+                # Build dynamic query based on configuration
+                query = text(
+                    f"""
+                    SELECT DISTINCT 
+                        *
+                    FROM {table_name} r
+                    WHERE r.source_dataset = '{dataset_table_name}'
+                    """
+                )
 
-            result = db.execute(query, {"table_name": table_name})
-            items = [dict(row) for row in result.mappings().all()]
+                result = session.execute(query)
+                items = [dict(row) for row in result.mappings().all()]
 
-            logger.debug(f"    Got {len(items)} {dataset_table_name} records from {table_name} table")
-            return items
+                logger.debug(f"    Got {len(items)} {dataset_table_name} records from {table_name} table")
+                return items
 
         except Exception as e:
             logger.error(f"Failed to query {table_name}: {e}")
             return []
-        finally:
-            try:
-                next(db_gen)
-            except StopIteration:
-                pass
