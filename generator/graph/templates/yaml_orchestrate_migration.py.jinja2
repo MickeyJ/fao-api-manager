@@ -164,6 +164,9 @@ def main():
 
     # Ensure AGE extension is created
     ensure_age_extension()
+
+    # Ensure progress table exists
+    db_connections.ensure_progress_table()
     
     # Create graph
     create_graph()
