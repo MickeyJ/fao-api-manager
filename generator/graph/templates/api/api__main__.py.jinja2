@@ -1,0 +1,224 @@
+from typing import cast, Any
+from scalar_fastapi import get_scalar_api_reference
+from scalar_fastapi.scalar_fastapi import Layout
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse  
+from sqlalchemy.exc import SQLAlchemyError
+import uvicorn
+from . import api_map
+from {{ project_name }}.src.core import settings
+from ..core.middleware import add_version_headers
+from fao.src.core.exceptions import FAOAPIError
+from fao.src.core.error_handlers import (
+    fao_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+    sqlalchemy_exception_handler,
+    health_check_exception_handler,
+    generic_exception_handler
+)
+
+# Import all the routers
+{% for group_name, router_group in routers.items() %}
+from .routers.{{group_name}} import {{group_name}}_api
+{% endfor %}
+
+
+# Create main app
+app = FastAPI(
+    title=settings.api_title,
+    description=settings.api_description,
+    version=settings.api_version,
+    docs_url=settings.docs_url,
+    redoc_url=settings.redoc_url,
+)
+
+# Register handlers (with type: ignore if needed)
+app.add_exception_handler(
+    FAOAPIError, 
+    cast(Any, fao_exception_handler)
+)
+app.add_exception_handler(
+    RequestValidationError, 
+    cast(Any, validation_exception_handler)
+)
+app.add_exception_handler(
+    HTTPException, 
+    cast(Any, http_exception_handler)
+)
+app.add_exception_handler(
+    SQLAlchemyError, 
+    cast(Any, sqlalchemy_exception_handler)
+)
+app.add_exception_handler(Exception, health_check_exception_handler) 
+app.add_exception_handler(Exception, generic_exception_handler) 
+
+
+# Custom middleware
+app.middleware("http")(add_version_headers)
+
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+{% for group_name, router_group in routers.items() %}
+app.include_router({{group_name}}_api)
+{% endfor %}
+
+
+# Import custom routers (this section preserved during regeneration)
+try:
+    from fao.src.api_custom.routers import custom_routers
+    for custom_router in custom_routers:
+        app.include_router(custom_router)
+    print(f"✅ Loaded {len(custom_routers)} custom routers")
+except ImportError as e:
+    print("ℹ️  No custom routers found")
+except Exception as e:
+    print(f"⚠️  Error loading custom routers: {e}")
+
+# Root endpoint with version info
+@app.get("/")
+def root():
+    return {
+        "version": settings.api_version,
+        "version_prefix": settings.api_version_prefix,
+        "versions": "/versions",
+        "headers": {
+            "X-API-Version": "Current API version",
+            "X-API-Version-Major": "Major version (v1, v2, etc)",
+        }
+    }
+
+# Version-specific root endpoint
+@app.get(f"/{settings.api_version_prefix}")
+def version_root():
+    return {
+        "version": settings.api_version,
+        "status": "active",
+        "endpoints": api_map["endpoints"]
+    }
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("static/favicon.svg")
+
+@app.get("/db-stats")
+async def db_stats():
+    return FileResponse("static/db-stats.txt")
+
+@app.get("/docs", include_in_schema=False)
+async def scalar_docs():
+    return get_scalar_api_reference(
+        openapi_url=str(app.openapi_url),
+        title="FAO API Documentation",
+        layout=Layout.MODERN,
+        scalar_theme="""
+        .dark-mode {
+            /* Main colors */
+            --scalar-color-1: #e2e8f0;
+            --scalar-color-2: #cbd5e1;
+            --scalar-color-3: #94a3b8;
+            --scalar-color-accent: #00d4aa;
+
+            /* Backgrounds - dark grey with subtle blue hints */
+            --scalar-background-1: #1a1a1f;
+            --scalar-background-2: #2a2a30;
+            --scalar-background-3: #3a3a42;
+            --scalar-background-accent: #064e3b;
+
+            /* Borders */
+            --scalar-border-color: rgba(100, 116, 139, 0.2);
+
+            /* Status colors */
+            --scalar-color-green: #10b981;
+            --scalar-color-red: #ef4444;
+            --scalar-color-yellow: #f59e0b;
+            --scalar-color-blue: #3b82f6;
+            --scalar-color-orange: #f97316;
+            --scalar-color-purple: #8b5cf6;
+
+            /* Buttons */
+            --scalar-button-1: #00d4aa;
+            --scalar-button-1-color: #1a1a1f;
+            --scalar-button-1-hover: #00b894;
+
+            /* Scrollbars */
+            --scalar-scrollbar-color: rgba(100, 116, 139, 0.3);
+            --scalar-scrollbar-color-active: rgba(100, 116, 139, 0.6);
+        }
+
+        /* Sidebar specific styling */
+        .dark-mode .t-doc__sidebar {
+            --sidebar-background-1: #1a1a1f;
+            --sidebar-item-hover-background: #2a2a30;
+            --sidebar-item-active-background: #064e3b;
+            --sidebar-color-active: #00d4aa;
+            --sidebar-border-color: rgba(100, 116, 139, 0.2);
+        }
+
+        /* Custom additions for extra coolness */
+        .dark-mode {
+            background: linear-gradient(135deg, #1a1a1f 0%, #2a2a30 100%);
+        }
+        """,
+        scalar_favicon_url="favicon.ico",
+        show_sidebar=True,
+        hide_download_button=False,
+        dark_mode=True,
+        default_open_all_tags=False,
+    )
+
+@app.get("/rapidoc", response_class=HTMLResponse, include_in_schema=False)
+async def rapidoc_docs():
+    return HTMLResponse(
+        """
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+    </head>
+    <body>
+        <rapi-doc 
+            spec-url="/openapi.json"
+            show-method-in-nav-bar="as-colored-text"
+            nav-bg-color="#24292e"
+            nav-text-color="#e1e4e8"
+            nav-hover-bg-color="#f6f8fa"
+            theme="dark"
+            render-style="read"
+            show-header="false"
+            allow-authentication="false"
+            allow-server-selection="false"
+            default-schema-tab="example">
+        </rapi-doc>
+    </body>
+    </html>
+    """
+    )
+
+if __name__ == "__main__":
+    import uvicorn
+    import signal
+    import sys
+
+    def signal_handler(sig, frame):
+        print("\nShutting down gracefully...")
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    uvicorn.run(
+        "{{ project_name }}.src.api.__main__:app", 
+        host=settings.api_host, 
+        port=settings.api_port, 
+        reload=True
+    )

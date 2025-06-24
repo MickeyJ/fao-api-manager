@@ -21,3 +21,5 @@ redis
 PyYAML
 
 psutil
+
+sqlfluff

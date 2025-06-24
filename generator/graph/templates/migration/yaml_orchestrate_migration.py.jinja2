@@ -2,12 +2,15 @@
 Orchestrate all graph migrations
 Generated from YAML configuration
 """
+import yaml
 from pathlib import Path
 from sqlalchemy import text
-from {{ project_name }}.utils import load_sql
+from {{ project_name }}.utils import load_sql, load_yaml_config
 from {{ project_name }}.logger import logger
 from {{ project_name }}.db.db_connections import db_connections  # Updated import
 from {{ project_name }}.core.exceptions import MigrationError
+
+from {{ project_name }}.db.rel_type_props import RELATIONSHIP_TYPE_PROPERTIES
 
 # Import all node migrators
 {% for pipeline in node_pipelines %}
@@ -102,13 +105,21 @@ def create_global_indexes():
     logger.info("=" * 50)
     
     try:
+        indexes_files_ran = 0
+
+        yaml_config = load_yaml_config("{{ yaml_config_path }}", Path(__file__).parent.parent)
+
         with db_connections.graph_session() as session:
             # Load and execute the global indexes SQL
-            index_queries = load_sql("create_global_indexes.sql", Path(__file__).parent)
-            
-            # Execute the index creation
-            session.execute(text(index_queries))
-            session.commit()
+            for rel_type, properties in RELATIONSHIP_TYPE_PROPERTIES.items():
+                for property in properties:
+                    if property in yaml_config["settings"]["indexes"]:
+                        indexes_files_ran += 1
+                        logger.info(f"Creating indexes for {rel_type} on {property} - no. {indexes_files_ran}")
+                        index_queries = load_sql(f"indexes/{rel_type}_{property}_indexes.sql", Path(__file__).parent)
+                        session.execute(text(index_queries))
+                logger.success(f"Created all {rel_type} property indexes")
+                session.commit()
             
         logger.success("Global indexes created successfully")
     except Exception as e:
@@ -131,9 +142,9 @@ def create_reference_links() -> None:
                     CREATE (a1)-[rel:SAME_AREA_CODE]->(a2)
                 $$) AS (result agtype);
             """
-            
-            result = session.execute(text(link_areas))
-            area_count = result.scalar()
+            areas_result = session.execute(text(link_areas))
+            area_count = areas_result.scalar()
+            session.commit()
             logger.info(f"Created {area_count} SAME_AREA_CODE relationships")
 
             # Link items
@@ -145,12 +156,38 @@ def create_reference_links() -> None:
                     CREATE (i1)-[rel:SAME_ITEM_CODE]->(i2)
                 $$) AS (result agtype);
             """
-            
-            result = session.execute(text(link_items))
-            item_count = result.scalar()
-            logger.info(f"Created {item_count} SAME_ITEM_CODE relationships")
-            
+            items_result = session.execute(text(link_items))
+            item_count = items_result.scalar()
             session.commit()
+            logger.info(f"Created {item_count} SAME_ITEM_CODE relationships")
+
+            # Link ReporterCountryCode
+            link_reporter = """
+                SELECT count(*) as count FROM cypher('{{ project_name }}', $$
+                    MATCH (i1:ReporterCountryCode), (i2:ReporterCountryCode)
+                    WHERE i1.reporter_country_code = i2.reporter_country_code 
+                    AND i1.id < i2.id
+                    CREATE (i1)-[rel:SAME_REPORTER_COUNTRY_CODE]->(i2)
+                $$) AS (result agtype);
+            """
+            reporter_result = session.execute(text(link_reporter))
+            reporter_count = reporter_result.scalar()
+            session.commit()
+            logger.info(f"Created {reporter_count} ReporterCountryCode SAME_REPORTER_COUNTRY_CODE relationships")
+
+            # Link PartnerCountryCode
+            link_partner = """
+                SELECT count(*) as count FROM cypher('{{ project_name }}', $$
+                    MATCH (i1:PartnerCountryCode), (i2:PartnerCountryCode)
+                    WHERE i1.partner_country_code = i2.partner_country_code 
+                    AND i1.id < i2.id
+                    CREATE (i1)-[rel:SAME_REPORTER_COUNTRY_CODE]->(i2)
+                $$) AS (result agtype);
+            """
+            partner_result = session.execute(text(link_partner))
+            partner_count = partner_result.scalar()
+            session.commit()
+            logger.info(f"Created {partner_count} PartnerCountryCode SAME_REPORTER_COUNTRY_CODE relationships")
             
         logger.success("Linked references successfully")
     except Exception as e:

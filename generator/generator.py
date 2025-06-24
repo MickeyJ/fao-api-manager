@@ -94,7 +94,7 @@ class Generator:
             self._generate_pipeline_and_models(pipeline_name, modules)
         self._generate_all_pipelines_main()
         self._generate_pipelines_init()
-        self._generate_base_modules_file()
+
         self.generate_all_model_imports_file()
         self._generate_api_routers()
 
@@ -153,12 +153,6 @@ class Generator:
 
         content = self.template_renderer.render_pipelines_init_template()
         self.file_system.write_file_cache(self.paths.db_pipelines / "__init__.py", content)
-
-    def _generate_base_modules_file(self):
-        """Generate db/models/__init__.py with all model imports"""
-
-        content = self.template_renderer.render_base_modules_template(base_chunk_size=40000)
-        self.file_system.write_file_cache(self.paths.db_pipelines / "base.py", content)
 
     def generate_all_model_imports_file(self):
         """Generate project file with all model imports for alembic migrations"""

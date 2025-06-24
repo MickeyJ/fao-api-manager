@@ -23,7 +23,6 @@ class DatabaseConnections:
         self._graph_session_factory: Optional[sessionmaker] = None
 
         self._progress_table_exists = False
-        self._progress_tracking_failed = False
 
     @property
     def pg_engine(self) -> Engine:
@@ -115,6 +114,7 @@ class DatabaseConnections:
     def ensure_progress_table(self):
         """Create progress table if it doesn't exist"""
         if self._progress_table_exists:
+            logger.info("Migration progress table already exists")
             return
 
         try:
@@ -133,7 +133,7 @@ class DatabaseConnections:
                 if not exists:
                     create_table_sql = load_sql("create_migration_progress_table.sql", Path(__file__).parent)
                     session.execute(text(create_table_sql))
-                    logger.info("Created migration progress table")
+                    logger.success("Created migration progress table")
                 else:
                     logger.info("Migration progress table already exists")
 
@@ -141,50 +141,7 @@ class DatabaseConnections:
 
         except Exception as e:
             logger.error(f"Failed to ensure progress table: {e}")
-
-    def _record_progress(self, session, table_name, relationship_type, **kwargs):
-        """Record migration progress - best effort, don't fail migration"""
-        if self._progress_tracking_failed:
-            logger.debug("Skipping progress tracking due to previous failure")
-            return
-
-        try:
-            memory_mb = psutil.Process().memory_info().rss / 1024 / 1024
-
-            progress_sql = text(
-                """
-                INSERT INTO migration_progress (
-                    migration_type, table_name, relationship_type,
-                    batch_number, batch_size, records_processed,
-                    select_duration_ms, insert_duration_ms, total_duration_ms,
-                    cumulative_records, memory_usage_mb, error_message
-                ) VALUES (
-                    :migration_type, :table_name, :relationship_type,
-                    :batch_number, :batch_size, :records_processed,
-                    :select_duration_ms, :insert_duration_ms, 
-                    COALESCE(:select_duration_ms, 0) + COALESCE(:insert_duration_ms, 0),
-                    :cumulative_records, :memory_usage_mb, :error_message
-                )
-                """
-            )
-
-            session.execute(
-                progress_sql,
-                {
-                    "migration_type": "relationship",
-                    "table_name": table_name,
-                    "relationship_type": relationship_type,
-                    "memory_usage_mb": int(memory_mb),
-                    **kwargs,
-                },
-            )
-            # Note: Don't commit here - let the context manager handle it
-
-        except Exception as e:
-            # Log but don't fail the migration over progress tracking
-            logger.debug(f"Could not record progress: {e}")
-            # Could set a flag to stop trying if you want
-            self._progress_tracking_failed = True
+            raise e
 
 
 db_connections = DatabaseConnections()

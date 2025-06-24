@@ -27,7 +27,7 @@ SELECT * FROM cypher('{{ project_name }}', $$
     MATCH ()-[r:{{ relationship.type }}]->()
     WHERE r.source_dataset = '{{ table_name }}'
     RETURN r.year as year, count(*) as count
-    ORDER BY year DESC
+    ORDER BY r.year DESC
     LIMIT 10
 $$) as (year agtype, count agtype);
 {% elif relationship.has_value %}

@@ -4,8 +4,10 @@ CREATE INDEX IF NOT EXISTS idx_{{ table }}_id
 ON {{ project_name }}."{{ node_label }}" (id);
 
 {% if primary_property %}
-CREATE INDEX IF NOT EXISTS idx_{{ table }}_{{ primary_property }}
-ON {{ project_name }}."{{ node_label }}" USING btree ((properties->>'{{ primary_property }}'));
+CREATE INDEX IF NOT EXISTS idx_{{ table }}_{{ primary_property }} 
+ON {{ project_name }}."{{ node_label }}" USING btree (
+    agtype_access_operator(VARIADIC ARRAY[properties, '"{{ primary_property }}"'::agtype])
+);
 {% endif %}
 
 -- Compound index for node lookups
