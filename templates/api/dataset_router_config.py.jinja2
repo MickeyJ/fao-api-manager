@@ -1,0 +1,88 @@
+# Template: templates/config.py.jinja2
+# Generated as: fao/src/api/routers/{{ router.name }}_config.py
+
+from dataclasses import dataclass, field
+from typing import List, Dict, Any
+from {{ project_name }}.src.db.pipelines.{{ router.name }}.{{ router.name }}_model import {{ router.model.model_name }}
+{% for fk in router.model.foreign_keys %}
+from {{ project_name }}.src.db.pipelines.{{ fk.pipeline_name }}.{{ fk.table_name }}_model import {{ fk.model_name }}
+{% endfor %}
+
+from {{ project_name }}.src.core.validation import (
+    {% for validation in router.imports.validations %}
+    {{ validation }},
+    {% endfor %}
+)
+from {{ project_name }}.src.core.exceptions import (
+    {% for exception in router.imports.exceptions %}
+    {{ exception }},
+    {% endfor %}
+)
+
+@dataclass
+class {{ router.model.model_name }}Config:
+    """Configuration for {{ router.name }} API"""
+    
+    # Basic info
+    name: str = "{{ router.name }}"
+    model_name: str = "{{ router.model.model_name }}"
+    table_name: str = "{{ router.model.table_name }}"
+    
+    # Columns
+    all_data_fields: List[str] = field(default_factory=lambda: [
+        {% for column in router.model.column_analysis %}
+        "{{ column.sql_column_name }}",
+        {% endfor %}
+    ])
+
+    all_parameter_fields: List[str] = field(default_factory=lambda: [
+        {% for param in router.param_configs.filters %}
+        "{{ param.name }}",
+        {% endfor %}
+    ])
+    
+    # Foreign keys
+    foreign_keys: List[Dict[str, Any]] = field(default_factory=lambda: [
+        {% for fk in router.model.foreign_keys %}
+        {
+            "table_name": "{{ fk.table_name }}",
+            "model_name": "{{ fk.model_name }}",
+            "join_column": "{{ fk.hash_fk_sql_column_name }}",
+            "columns": ["{{ fk.sql_column_name }}", "{{ fk.reference_description_column }}"],
+        },
+        {% endfor %}
+    ])
+
+    filter_configs: List[Dict[str, Any]] = field(default_factory=lambda: [
+        {% for param in router.param_configs.filters %}
+        {
+            "name": "{{ param.name }}",
+            "filter_type": "{{ param.filter_type.value }}",
+            "filter_model": {{ param.filter_model }},  # <-- Actual model class
+            "filter_column": "{{ param.filter_column }}",
+            {% if param.validation_func %}
+            "validation_func": {{ param.validation_func }},
+            "exception_func": {{ param.validation_func.replace('is_valid_', 'invalid_') }},
+            {% endif %}
+            {% if param.joins_table %}
+            "joins_table": "{{ param.joins_table }}",
+            "join_model": {{ param.filter_model }},  # <-- Actual model class
+            "join_condition": {{ router.model.model_name }}.{{ param.joins_table }},
+            {% endif %}
+        },
+        {% endfor %}
+    ])
+
+    range_configs: List[Dict[str, Any]] = field(default_factory=lambda: [
+        {% set processed_ranges = [] %}
+        {% for param in router.param_configs.filters %}
+        {% if param.filter_type.value == 'range_min' and param.range_group not in processed_ranges %}
+        {
+            "param_name": "{{ param.range_group }}",
+            "filter_model": {{ param.filter_model }},
+            "filter_column": "{{ param.filter_column }}",
+        },
+        {% set _ = processed_ranges.append(param.range_group) %}
+        {% endif %}
+        {% endfor %}
+    ])

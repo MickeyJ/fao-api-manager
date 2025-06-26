@@ -88,6 +88,28 @@ class GraphDBGen:
         if include_property not in self.relationship_type_properties[rel_type]:
             self.relationship_type_properties[rel_type][include_property] = include_property
 
+    def _get_node_source_datasets(self) -> Dict[str, list[str]]:
+        node_source_datasets = {}
+        for table_name, yml_relationship_configs in self.yml_config["relationships"].items():
+            # Find json_module in cache
+            if table_name not in self.cache_data.get("datasets", {}):
+                continue
+            # collect source_datasets per node
+            for yml_relationship_config in yml_relationship_configs:
+                source_node = yml_relationship_config["source"]["node_label"]
+                target_node = yml_relationship_config["target"]["node_label"]
+                if source_node not in node_source_datasets:
+                    node_source_datasets[source_node] = [table_name]
+                else:
+                    node_source_datasets[source_node].append(table_name)
+
+                if target_node not in node_source_datasets:
+                    node_source_datasets[target_node] = [table_name]
+                else:
+                    node_source_datasets[target_node].append(table_name)
+
+        return node_source_datasets
+
     def generate(self):
         """Main generation workflow"""
         logger.info("Starting yml_config-driven graph generation...")
@@ -157,6 +179,7 @@ class GraphDBGen:
 
     def _generate_nodes(self):
         """Generate node migrations from yml_config"""
+        node_source_datasets = self._get_node_source_datasets()
         for node_config in self.yml_config["nodes"]:
             table_name = node_config["table"]
 
@@ -171,9 +194,11 @@ class GraphDBGen:
                 logger.warning(f"Table {table_name} not found in cache, skipping")
                 continue
 
-            self._generate_node_migration(json_module, node_config)
+            self._generate_node_migration(json_module, node_config, node_source_datasets[node_config["label"]])
 
-    def _generate_node_migration(self, json_module: Dict, yml_node_config: Dict):
+    def _generate_node_migration(
+        self, json_module: Dict, yml_node_config: Dict, source_datasets: List[str] | None = None
+    ):
         """Generate migration files for a node"""
         table_name = yml_node_config["table"]
         node_name = singularize(table_name)
@@ -203,6 +228,7 @@ class GraphDBGen:
             "migration_type": "node",
             "migration_class_name": f"{yml_node_config['label']}Migrator",
             "description": f"{yml_node_config['label']} nodes from {table_name}",
+            "source_datasets": source_datasets,
         }
 
         # Generate files
@@ -227,10 +253,11 @@ class GraphDBGen:
 
     def _generate_relationships(self):
         """Generate relationship migrations from yml_config"""
+
         for table_name, yml_relationship_configs in self.yml_config["relationships"].items():
             # Find json_module in cache
             if table_name not in self.cache_data.get("datasets", {}):
-                logger.warning(f"Dataset {table_name} not found in cache, skipping")
+                logger.error(f"Dataset {table_name} not found in cache, skipping")
                 continue
 
             json_module = self.cache_data["datasets"][table_name]

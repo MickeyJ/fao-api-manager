@@ -1,0 +1,46 @@
+# templates/api_router.py.jinja2 (refactored main)
+from fastapi import APIRouter, Depends, Query, HTTPException, Response, Request
+from sqlalchemy.orm import Session
+from sqlalchemy import select, func, or_, and_, String
+from typing import Optional, List, Union
+from datetime import datetime
+
+from {{ project_name }}.logger import logger
+from {{ project_name }}.src.core.cache import cache_result
+from {{ project_name }}.src.core import settings
+from {{ project_name }}.src.db.database import get_db
+from {{ project_name }}.src.db.pipelines.{{ router.pipeline_name }}.{{ router.name }}_model import {{ router.model.model_name }}
+
+{# Import statements #}
+{% include 'api/partials/router_imports.py.jinja2' %}
+
+router = APIRouter(
+    prefix="/{{ router.name }}",
+    responses={404: {"description": "Not found"}},
+)
+
+{# Main data endpoint #}
+{% include 'api/partials/router_data_endpoint.py.jinja2' %}
+
+{% if router.model.foreign_keys %}
+{# Aggregation endpoints (datasets only) #}
+{% include 'api/partials/router_aggregation_endpoints.py.jinja2' %}
+
+{# Metadata endpoints (datasets only) #}
+{% include 'api/partials/router_metadata_endpoints.py.jinja2' %}
+{% endif %}
+
+{# Health check endpoint #}
+@router.get("/health", tags=["health"])
+async def health_check(db: Session = Depends(get_db)):
+    """Check if the {{ router.name }} endpoint is healthy."""
+    try:
+        # Try to execute a simple query
+        result = db.execute(select(func.count()).select_from({{ router.model.model_name }})).scalar()
+        return {
+            "status": "healthy",
+            "dataset": "{{ router.name }}",
+            "records": result
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Health check failed: {str(e)}")

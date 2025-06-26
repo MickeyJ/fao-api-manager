@@ -255,6 +255,7 @@ class GraphMigrationBase(ABC):
                             batch_number=1,
                             records_processed=len(records),
                             last_offset=len(records),
+                            status="completed",
                             indexes_created=True,
                             completed=progress["completed"],
                         )

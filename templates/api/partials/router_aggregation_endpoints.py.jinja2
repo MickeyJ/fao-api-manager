@@ -1,0 +1,132 @@
+
+# templates/partials/router_aggregation_endpoints.jinja2
+@router.get("/aggregate", summary="Get aggregated {{ router.name.replace('_', ' ') }} data")
+async def get_{{ router.name }}_aggregated(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+    # Grouping
+    group_by: str = Query(..., description="Comma-separated list of fields to group by"),
+    # Aggregations
+    aggregations: str = Query(..., description="Comma-separated aggregations (e.g., 'value:sum,value:avg:avg_value')"),
+    # Standard
+    {% for param in router.param_configs.standard %}
+    {{ param.name }}: {{ param.type }} = Query({{ param.default }}, {{ param.constraints }}, description="{{ param.description }}"),
+    {% endfor %}
+    # Filter parameters
+    {% for param in router.param_configs.filters %}
+    {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
+    {% endfor %}
+    # Option parameters  
+    {% for param in router.param_configs.options %}
+    {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
+    {% endfor %}
+):
+    """Get aggregated data with grouping and multiple aggregation functions.
+    
+    ## Examples
+    - Sum by year: `group_by=year&aggregations=value:sum`
+    - Average by area and year: `group_by=area_code,year&aggregations=value:avg`
+    - Multiple aggregations: `aggregations=value:sum:total_value,value:avg:average_value`
+    
+    ## Aggregation Functions
+    - sum, avg, min, max, count, count_distinct
+    """
+    
+    # ------------------------------------------------------------------------
+    # Needs same validation: 
+    # general values, sort and filter param values, 
+    # fk specific validation (checking against actual reference table data)
+    # ------------------------------------------------------------------------
+    
+    
+    agg_configs = [parse_aggregation_parameter(a.strip()) for a in aggregations.split(',')]
+    
+    # Build query
+    query_builder = QueryBuilder(select({{ router.model.model_name }}))
+    filter_count = 0
+    joined_tables = set()
+    
+    # ------------------------
+    # Apply same filtering here
+    # ------------------------
+    
+    # Add grouping
+    group_columns = [getattr({{ router.model.model_name }}, f) for f in group_fields]
+    query_builder.add_grouping(group_columns)
+    
+    # Add aggregations
+    for agg_config in agg_configs:
+        field = agg_config['field']
+        if not hasattr({{ router.model.model_name }}, field):
+            raise HTTPException(400, f"Invalid aggregation field: {field}")
+        
+        column = getattr({{ router.model.model_name }}, field)
+        agg_type = AggregationType(agg_config['function'])
+        query_builder.add_aggregation(column, agg_type, agg_config['alias'])
+    
+    # Apply aggregations
+    query_builder.apply_aggregations()
+    
+    # Get count before pagination
+    total_count = query_builder.get_count(db)
+    
+    # Apply sorting
+    if sort:
+        # Parse sort fields - can include aggregation aliases
+        sort_parts = []
+        for sort_field in sort.split(','):
+            field, direction = sort_field.strip().split(':')
+            
+            # Check if it's a group field or aggregation alias
+            if field in group_fields:
+                column = getattr({{ router.model.model_name }}, field)
+                sort_parts.append((column, direction))
+            else:
+                # It might be an aggregation alias - handled by the query
+                pass
+        
+        if sort_parts:
+            query_builder.add_ordering(sort_parts)
+    
+    # Apply pagination and execute
+    results = query_builder.paginate(limit, offset).execute(db)
+    results = query_builder.parse_results(results)
+    
+    # Format results
+    data = []
+    for row in results:
+        response_fields = {}
+        
+        # Add group by fields
+        for i, field in enumerate(group_fields):
+            response_fields[field] = row[i]
+        
+        # Add aggregation results
+        for j, agg_config in enumerate(agg_configs):
+            response_fields[agg_config['alias']] = row[len(group_fields) + j]
+        
+        data.append(response_fields)
+    
+    # Build response
+    pagination = PaginationBuilder.build_pagination_meta(total_count, limit, offset)
+
+    # Collect all parameters for links
+    all_params = {
+        {% for param in router.param_configs.all_params() %}
+        '{{ param.name }}': {{ param.name }},
+        {% endfor %}
+    }
+
+    links = PaginationBuilder.build_links(
+        str(request.url), 
+        total_count, 
+        limit, 
+        offset, 
+        all_params
+    )
+
+    # Set response headers
+    ResponseFormatter.set_pagination_headers(response, total_count, limit, offset, links)
+
+    return ResponseFormatter.format_data_response(data, pagination, links, filter_count)

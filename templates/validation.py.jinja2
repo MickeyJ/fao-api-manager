@@ -1,4 +1,4 @@
-from typing import Set, Optional, Dict, Any, Type, TYPE_CHECKING
+from typing import Set, Optional, Dict, Any, Type, TYPE_CHECKING, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select, distinct
 from datetime import datetime, timedelta
@@ -73,6 +73,44 @@ def is_valid_{{ function_name }}(code: str, db: Session) -> bool:
 {% endfor %}
 
 
-def is_valid_year_range(year_start: int, year_end: int):
-    """Shared validation function"""
-    return year_start < year_end
+def is_valid_range(min_value: Any, max_value: Any) -> bool:
+    """Validate that min is less than max for range queries."""
+    if min_value is None or max_value is None:
+        return True  # Partial ranges are valid
+    return min_value <= max_value
+
+
+def is_valid_sort_direction(direction: str) -> bool:
+    """Validate sort direction is asc or desc."""
+    return direction.lower() in ["asc", "desc"]
+
+
+def is_valid_aggregation_function(function: str) -> bool:
+    """Validate aggregation function is supported."""
+    valid_functions = ["sum", "avg", "min", "max", "count", "count_distinct"]
+    return function in valid_functions
+
+
+def validate_fields_exist(requested_fields: List[str], allowed_fields: set) -> List[str]:
+    """Validate all requested fields exist in allowed fields.
+    
+    Returns list of invalid fields, empty if all valid.
+    """
+    # 'id' is always allowed even if not in allowed_fields
+    invalid_fields = []
+    for field in requested_fields:
+        if field != 'id' and field not in allowed_fields:
+            invalid_fields.append(field)
+    return invalid_fields
+
+
+def validate_model_has_columns(model_class: Type, column_names: List[str]) -> List[str]:
+    """Validate model has all specified columns.
+    
+    Returns list of missing columns, empty if all exist.
+    """
+    missing_columns = []
+    for col_name in column_names:
+        if not hasattr(model_class, col_name):
+            missing_columns.append(col_name)
+    return missing_columns

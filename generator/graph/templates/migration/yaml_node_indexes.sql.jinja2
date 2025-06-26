@@ -10,6 +10,18 @@ ON {{ project_name }}."{{ node_label }}" USING btree (
 );
 {% endif %}
 
+{% if source_datasets %}
+    {% for source_dataset in source_datasets %}
+CREATE INDEX IF NOT EXISTS idx_{{ table }}_sd_{{ source_dataset }}
+ON {{ project_name }}."{{ node_label }}" USING btree (
+    agtype_access_operator(VARIADIC ARRAY[properties, '"source_dataset"'::agtype])
+)
+WHERE agtype_access_operator(VARIADIC ARRAY[properties, '"source_dataset"'::agtype]) = '"{{ source_dataset }}"'::agtype;
+
+
+    {% endfor %}
+{% endif %}
+
 -- Compound index for node lookups
 CREATE INDEX IF NOT EXISTS idx_{{ table }}_properties
 ON {{ project_name }}."{{ node_label}}" USING GIN (properties);

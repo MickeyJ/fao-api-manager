@@ -1,0 +1,41 @@
+
+{# Import foreign key models #}
+{% if router.imports.models %}
+{% for model_import in router.imports.models %}
+from {{ model_import.module_path }} import {{ model_import.import_name }}
+{% endfor %}
+{% endif %}
+
+# Import utilities
+from {{ project_name }}.src.api.utils.dataset_router import DatasetRouterHandler
+from .{{ router.name }}_config import {{ router.model.model_name }}Config
+from {{ project_name }}.src.api.utils.query_helpers import QueryBuilder, AggregationType
+from {{ project_name }}.src.api.utils.response_helpers import PaginationBuilder, ResponseFormatter
+from {{ project_name }}.src.api.utils.parameter_parsers import (
+    parse_sort_parameter, 
+    parse_fields_parameter,
+    parse_aggregation_parameter
+)
+
+{% if router.imports.validations %}
+from {{ project_name }}.src.core.validation import (
+    is_valid_sort_direction,
+    is_valid_aggregation_function,
+    validate_fields_exist,
+    validate_model_has_columns,
+    {% for validation_func in router.imports.validations %}
+    {{ validation_func }},
+    {% endfor %}
+)
+{% endif %}
+
+{% if router.imports.exceptions %}
+from {{ project_name }}.src.core.exceptions import (
+    invalid_parameter,
+    missing_parameter,
+    incompatible_parameters,
+    {% for exception_func in router.imports.exceptions %}
+    {{ exception_func }},
+    {% endfor %}
+)
+{% endif %}

@@ -19,10 +19,27 @@ class ErrorCode(str, Enum):
     # Validation Errors (400)
     INVALID_PARAMETER = "INVALID_PARAMETER"
 
-    {% for ref_key, ref_data in reference_modules.items() %}
-    {% set upper_name = ref_data.model.pk_sql_column_name.upper() %}
-    INVALID_{{ upper_name }} = "INVALID_{{ upper_name }}"
-    {% endfor %}
+    INVALID_AREA_CODE = "INVALID_AREA_CODE"
+    INVALID_REPORTER_COUNTRY_CODE = "INVALID_REPORTER_COUNTRY_CODE"
+    INVALID_PARTNER_COUNTRY_CODE = "INVALID_PARTNER_COUNTRY_CODE"
+    INVALID_RECIPIENT_COUNTRY_CODE = "INVALID_RECIPIENT_COUNTRY_CODE"
+    INVALID_ITEM_CODE = "INVALID_ITEM_CODE"
+    INVALID_ELEMENT_CODE = "INVALID_ELEMENT_CODE"
+    INVALID_FLAG = "INVALID_FLAG"
+    INVALID_ISO_CURRENCY_CODE = "INVALID_ISO_CURRENCY_CODE"
+    INVALID_SOURCE_CODE = "INVALID_SOURCE_CODE"
+    INVALID_RELEASE_CODE = "INVALID_RELEASE_CODE"
+    INVALID_SEX_CODE = "INVALID_SEX_CODE"
+    INVALID_INDICATOR_CODE = "INVALID_INDICATOR_CODE"
+    INVALID_POPULATION_AGE_GROUP_CODE = "INVALID_POPULATION_AGE_GROUP_CODE"
+    INVALID_SURVEY_CODE = "INVALID_SURVEY_CODE"
+    INVALID_PURPOSE_CODE = "INVALID_PURPOSE_CODE"
+    INVALID_DONOR_CODE = "INVALID_DONOR_CODE"
+    INVALID_FOOD_GROUP_CODE = "INVALID_FOOD_GROUP_CODE"
+    INVALID_GEOGRAPHIC_LEVEL_CODE = "INVALID_GEOGRAPHIC_LEVEL_CODE"
+    INVALID_FOOD_VALUE_CODE = "INVALID_FOOD_VALUE_CODE"
+    INVALID_INDUSTRY_CODE = "INVALID_INDUSTRY_CODE"
+    INVALID_FACTOR_CODE = "INVALID_FACTOR_CODE"
 
     INVALID_RANGE = "INVALID_RANGE"
     INVALID_DATE_FORMAT = "INVALID_DATE_FORMAT"
@@ -90,10 +107,27 @@ ERROR_MESSAGES: Dict[ErrorCode, str] = {
     # Validation errors
     ErrorCode.INVALID_PARAMETER: "Invalid value for parameter '{params}': {reason}",
     
-    {% for ref_key, ref_data in reference_modules.items() %}
-    {% set endpoint = "/" + ref_data.name %}
-    ErrorCode.INVALID_{{ ref_data.model.pk_sql_column_name.upper() }}: "Invalid {{ ref_data.model.pk_column.lower() }} '{value}'. Use {{ endpoint }} endpoint to see valid codes.",
-    {% endfor %}
+    ErrorCode.INVALID_AREA_CODE: "Invalid area code '{value}'. Use /area_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_REPORTER_COUNTRY_CODE: "Invalid reporter country code '{value}'. Use /reporter_country_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_PARTNER_COUNTRY_CODE: "Invalid partner country code '{value}'. Use /partner_country_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_RECIPIENT_COUNTRY_CODE: "Invalid recipient country code '{value}'. Use /recipient_country_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_ITEM_CODE: "Invalid item code '{value}'. Use /item_codes endpoint to see valid codes.",
+    ErrorCode.INVALID_ELEMENT_CODE: "Invalid element code '{value}'. Use /elements endpoint to see valid codes.",
+    ErrorCode.INVALID_FLAG: "Invalid flag '{value}'. Use /flags endpoint to see valid codes.",
+    ErrorCode.INVALID_ISO_CURRENCY_CODE: "Invalid iso currency code '{value}'. Use /currencies endpoint to see valid codes.",
+    ErrorCode.INVALID_SOURCE_CODE: "Invalid source code '{value}'. Use /sources endpoint to see valid codes.",
+    ErrorCode.INVALID_RELEASE_CODE: "Invalid release code '{value}'. Use /releases endpoint to see valid codes.",
+    ErrorCode.INVALID_SEX_CODE: "Invalid sex code '{value}'. Use /sexs endpoint to see valid codes.",
+    ErrorCode.INVALID_INDICATOR_CODE: "Invalid indicator code '{value}'. Use /indicators endpoint to see valid codes.",
+    ErrorCode.INVALID_POPULATION_AGE_GROUP_CODE: "Invalid population age group code '{value}'. Use /population_age_groups endpoint to see valid codes.",
+    ErrorCode.INVALID_SURVEY_CODE: "Invalid survey code '{value}'. Use /surveys endpoint to see valid codes.",
+    ErrorCode.INVALID_PURPOSE_CODE: "Invalid purpose code '{value}'. Use /purposes endpoint to see valid codes.",
+    ErrorCode.INVALID_DONOR_CODE: "Invalid donor code '{value}'. Use /donors endpoint to see valid codes.",
+    ErrorCode.INVALID_FOOD_GROUP_CODE: "Invalid food group code '{value}'. Use /food_groups endpoint to see valid codes.",
+    ErrorCode.INVALID_GEOGRAPHIC_LEVEL_CODE: "Invalid geographic level code '{value}'. Use /geographic_levels endpoint to see valid codes.",
+    ErrorCode.INVALID_FOOD_VALUE_CODE: "Invalid food value code '{value}'. Use /food_values endpoint to see valid codes.",
+    ErrorCode.INVALID_INDUSTRY_CODE: "Invalid industry code '{value}'. Use /industries endpoint to see valid codes.",
+    ErrorCode.INVALID_FACTOR_CODE: "Invalid factor code '{value}'. Use /factors endpoint to see valid codes.",
 
     ErrorCode.INVALID_RANGE: "{params} {value} is outside valid range",
     ErrorCode.INVALID_DATE_FORMAT: "Invalid date format. Expected: {expected_format}",

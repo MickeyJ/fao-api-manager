@@ -52,3 +52,7 @@ SELECT schemaname, indexname
 FROM pg_indexes
 WHERE schemaname = 'fao_graph'
  AND indexname LIKE 'idx_%'
+
+SELECT pg_get_indexdef(indexrelid)
+FROM pg_index
+WHERE indexrelid = 'fao_graph.idx_trades_source_target'::regclass;

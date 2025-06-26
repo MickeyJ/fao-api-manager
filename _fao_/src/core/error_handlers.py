@@ -14,8 +14,8 @@ import uuid
 import logging
 
 # Import custom exceptions and error codes
-from .exceptions import FAOAPIError, ExternalServiceError, ServerError
-from .error_codes import ErrorCode
+from _fao_.src.core.exceptions import FAOAPIError, ExternalServiceError, ServerError
+from _fao_.src.core.error_codes import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ async def fao_exception_handler(request: Request, exc: FAOAPIError) -> JSONRespo
             "error_code": exc.error_code,
             "status_code": exc.status_code,
             "error_type": exc.error_type,
-            "param": exc.param,
+            "params": exc.params,
             "client_host": request.client.host if request.client else None,
         },
     )
@@ -136,14 +136,14 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
         processed_errors.append(
             {
-                "param": param_path or "unknown",
+                "params": param_path or "unknown",
                 "message": error.get("msg", "validation failed"),
                 "type": error.get("type", "value_error"),
             }
         )
 
     # Get first error for main message
-    first_error = processed_errors[0] if processed_errors else {"param": "unknown", "message": "validation failed"}
+    first_error = processed_errors[0] if processed_errors else {"params": "unknown", "message": "validation failed"}
 
     # Log validation errors
     logger.info(
@@ -162,8 +162,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "error": {
                 "type": "validation_error",
                 "code": "VALIDATION_ERROR",
-                "message": f"Invalid value for parameter '{first_error['param']}': {first_error['message']}",
-                "param": first_error["param"],
+                "message": f"Invalid value for parameter '{first_error['params']}': {first_error['message']}",
+                "params": first_error["params"],
                 "detail": f"Validation failed for {len(errors)} field(s)",
                 "doc_url": "https://api.fao.org/docs/errors#VALIDATION_ERROR",
                 "validation_errors": processed_errors,

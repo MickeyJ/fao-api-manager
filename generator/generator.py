@@ -3,6 +3,7 @@ from typing import List, Dict, Literal
 from collections import defaultdict
 from pathlib import Path
 from dataclasses import dataclass
+from .api_configuration_helpers import generate_imports, generate_parameter_configs
 from .structure import Structure
 from .file_system import FileSystem
 from .template_renderer import TemplateRenderer
@@ -218,8 +219,14 @@ class Generator:
             self.file_system.write_file_cache(router_dir / "__init__.py", group_init_content)
 
             for router in router_group:
-                router_content = self.template_renderer.render_api_router_template(router=router)
+                router_content = self.template_renderer.render_api_router_template(
+                    router=router, reference_modules=self.enhanced_results["references"]
+                )
                 self.file_system.write_file_cache(router_dir / f"{router['name']}.py", router_content)
+                router_config_content = self.template_renderer.render_dataset_router_config_template(
+                    router=router, reference_modules=self.enhanced_results["references"]
+                )
+                self.file_system.write_file_cache(router_dir / f"{router['name']}_config.py", router_config_content)
 
         # # Generate __init__.py for routers
         # init_content = self.template_renderer.render_api_routers_init_template(routers=api_routers)
@@ -228,8 +235,7 @@ class Generator:
     def _format_api_routers(self) -> defaultdict:
         """Format API routers by generating __init__.py"""
 
-        # Count modules in each group to determine
-        # if they should be grouped together or in a miscellaneous group
+        # Count modules in each group
         module_group_counts = defaultdict(int)
         for module in self.all_modules:
             module_name = module["name"]
@@ -246,7 +252,13 @@ class Generator:
             if module_group_count < 2:
                 group_name = "other"
 
-            # logger.info(f" {module_group_count} modules in {group_name} group")
+            # Generate parameter configurations for this module
+            param_configs = generate_parameter_configs(module)
+
+            # Generate import requirements
+            imports = generate_imports(
+                self.project_name, module, param_configs, self.enhanced_results.get("references", {})
+            )
 
             router_specs = {
                 "name": module_name,
@@ -255,6 +267,8 @@ class Generator:
                 "pipeline_name": pipeline_name,
                 "router_dir": Path(f"{self.paths.api_routers}/{group_name}"),
                 "router_name": f"{module_name}_router",
+                "param_configs": param_configs,
+                "imports": imports,
             }
 
             router_groups[group_name].append(router_specs)

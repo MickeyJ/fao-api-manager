@@ -90,11 +90,21 @@ class TemplateRenderer:
             project_name=self.project_name,
         )
 
-    def render_api_router_template(self, router: dict) -> str:
+    def render_dataset_router_config_template(self, router: dict, reference_modules: dict) -> str:
         """Render SQLAlchemy model template"""
-        template = self.jinja_env.get_template("api_router.py.jinja2")
+        template = self.jinja_env.get_template("api/dataset_router_config.py.jinja2")
         return template.render(
             router=router,
+            reference_modules=reference_modules,
+            project_name=self.project_name,
+        )
+
+    def render_api_router_template(self, router: dict, reference_modules: dict) -> str:
+        """Render SQLAlchemy model template"""
+        template = self.jinja_env.get_template("api/api_router.py.jinja2")
+        return template.render(
+            router=router,
+            reference_modules=reference_modules,
             project_name=self.project_name,
         )
 

@@ -1,0 +1,627 @@
+
+
+
+# ----------------------------------------
+# ========== Metadata Endpoints ==========
+# ----------------------------------------
+{% for fk in router.model.foreign_keys %}
+    {% if fk.table_name == 'item_codes' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    limit: int = Query(1000, ge=1, le=10000),
+    offset: int = Query(0, ge=0),
+):
+    """Get all items available in this dataset with their codes and metadata."""
+    query = (
+        select(
+            ItemCodes.item_code,
+            ItemCodes.item,
+            ItemCodes.item_code_cpc,
+            ItemCodes.item_code_fbs,
+            ItemCodes.item_code_sdg,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from(ItemCodes)
+        .join({{ router.model.model_name }}, {{ router.model.model_name }}.item_code_id == ItemCodes.id)
+        .where(ItemCodes.source_dataset == '{{ router.name }}')
+        .group_by(
+            ItemCodes.item_code,
+            ItemCodes.item,
+            ItemCodes.item_code_cpc,
+            ItemCodes.item_code_fbs,
+            ItemCodes.item_code_sdg
+        )
+    )
+    
+    # Apply search filter
+    if search:
+        query = query.where(
+            or_(
+                ItemCodes.item.ilike(f"%{search}%"),
+                ItemCodes.item_code.cast(String).like(f"{search}%"),
+                ItemCodes.item_code_cpc.cast(String).like(f"{search}%"),
+                ItemCodes.item_code_fbs.cast(String).like(f"{search}%"),
+                ItemCodes.item_code_sdg.cast(String).like(f"{search}%"),
+            )
+        )
+    
+    # Get total count
+    count_query = select(func.count()).select_from(query.subquery())
+    total_count = db.execute(count_query).scalar() or 0
+    
+    # Apply ordering and pagination
+    query = query.order_by(ItemCodes.item_code).limit(limit).offset(offset)
+    results = db.execute(query).all()
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="items",
+        total=total_count,
+        items=[
+            {
+                "item_code": r.item_code,
+                "item": r.item,
+                "item_code_cpc": r.item_code_cpc,
+                "item_code_fbs": r.item_code_fbs,
+                "item_code_sdg": r.item_code_sdg,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+
+    {% endif %}
+    {# SPACER #}
+    {% if fk.table_name == 'area_codes' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    limit: int = Query(1000, ge=1, le=10000),
+    offset: int = Query(0, ge=0),
+):
+    """Get all areas (countries/regions) with data in this dataset."""
+    query = (
+        select(
+            AreaCodes.area_code,
+            AreaCodes.area,
+            AreaCodes.area_code_m49,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from(AreaCodes)
+        .join({{ router.model.model_name }}, {{ router.model.model_name }}.area_code_id == AreaCodes.id)
+        .where(AreaCodes.source_dataset == '{{ router.name }}')
+        .group_by(
+            AreaCodes.area_code,
+            AreaCodes.area,
+            AreaCodes.area_code_m49,
+        )
+    )
+    
+    # Apply filters
+    if search:
+        query = query.where(
+            or_(
+                AreaCodes.area.ilike(f"%{search}%"),
+                AreaCodes.area_code.cast(String).like(f"{search}%"),
+                AreaCodes.area_code_m49.cast(String).like(f"{search}%"),
+            )
+        )
+    
+    
+    # Get total count
+    count_query = select(func.count()).select_from(query.subquery())
+    total_count = db.execute(count_query).scalar() or 0
+    
+    # Apply ordering and pagination
+    query = query.order_by(AreaCodes.area_code).limit(limit).offset(offset)
+    results = db.execute(query).all()
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="areas",
+        total=total_count,
+        items=[
+            {
+                "area_code": r.area_code,
+                "area": r.area,
+                "area_code_m49": r.area_code_m49,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+
+    {% endif %}
+    {# SPACER #}
+    {% if fk.table_name == 'elements' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+):
+    """Get all elements (measures/indicators) available in this dataset."""
+    query = (
+        select(
+            Elements.element_code,
+            Elements.element,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from(Elements)
+        .join({{ router.model.model_name }}, {{ router.model.model_name }}.element_code_id == Elements.id)
+        .where(Elements.source_dataset == '{{ router.name }}')
+        .group_by(
+            Elements.element_code,
+            Elements.element,
+        )
+    )
+    
+    # Apply filters
+    if search:
+        query = query.where(
+            or_(
+                Elements.element.ilike(f"%{search}%"),
+                Elements.element_code.cast(String).like(f"{search}%")
+            )
+        )
+   
+    
+    # Execute
+    query = query.order_by(Elements.element_code)
+    results = db.execute(query).all()
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="elements",
+        total=len(results),
+        items=[
+            {
+                "element_code": r.element_code,
+                "element": r.element,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+
+    {% endif %}
+    {# SPACER #}
+    {% if fk.table_name == 'flags' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: bool = Query(False, description="Include distribution statistics"),
+):
+    """Get data quality flag information and optionally their distribution in the dataset."""
+    # Get all flags used in this dataset
+    query = (
+        select(
+            Flags.id,
+            Flags.flag,
+            Flags.description,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .join({{ router.model.model_name }}, Flags.id == {{ router.model.model_name }}.flag_id)
+        .group_by(Flags.flag, Flags.description)
+        .order_by(func.count({{ router.model.model_name }}.id).desc())
+    )
+
+    # Apply search filter
+    if search:
+        query = query.where(
+            or_(
+                Flags.description.ilike(f"%{search}%"),
+                Flags.flag.cast(String) == search,
+            )
+        )
+    
+    flags = db.execute(query).all()
+    
+    flag_info = []
+    for flag in flags:
+        info = {
+            "flag_id": flag.id,
+            "flag": flag.flag,
+            "flag_description": flag.flag_description,
+        }
+        
+        if include_distribution:
+            # Count records with this flag
+            count = db.execute(
+                select(func.count())
+                .select_from({{ router.model.model_name }})
+                .where({{ router.model.model_name }}.flag_id == flag.id)
+            ).scalar() or 0
+            
+            info["record_count"] = count
+        
+        flag_info.append(info)
+    
+    response = {
+        "dataset": "{{ router.name }}",
+        "total_flags": len(flag_info),
+        "flags": flag_info,
+    }
+    
+    if include_distribution:
+        # Get total records
+        total_records = db.execute(
+            select(func.count()).select_from({{ router.model.model_name }})
+        ).scalar() or 0
+        
+        response["total_records"] = total_records
+        response["flag_distribution"] = {
+            flag["flag"]: {
+                "count": flag["record_count"],
+                "percentage": round((flag["record_count"] / total_records) * 100, 2) if total_records > 0 else 0
+            }
+            for flag in flag_info
+        }
+    
+    return response
+
+    {% endif %}
+    {# SPACER #}
+    {% if fk.table_name == 'reporter_country_codes' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+):
+    """Get all reporter countries in this trade dataset."""
+    query = (
+        select(
+            ReporterCountryCodes.reporter_country_code,
+            ReporterCountryCodes.reporter_countries,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from(ReporterCountryCodes)
+        .join({{ router.model.model_name }}, 
+              {{ router.model.model_name }}.reporter_country_code == ReporterCountryCodes.reporter_country_code)
+        .where(ReporterCountryCodes.source_dataset == '{{ router.name }}')
+        .group_by(
+            ReporterCountryCodes.reporter_country_code,
+            ReporterCountryCodes.reporter_countries
+        )
+    )
+    
+    if search:
+        query = query.where(
+            or_(
+                ReporterCountryCodes.reporter_countries.ilike(f"%{search}%"),
+                ReporterCountryCodes.reporter_country_code.cast(String).like(f"{search}%")
+            )
+        )
+    
+    query = query.order_by(ReporterCountryCodes.reporter_country_code)
+    results = db.execute(query).all()
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="reporter_countries",
+        total=len(results),
+        items=[
+            {
+                "reporter_country_code": r.reporter_country_code,
+                "reporter_countries": r.reporter_countries,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+
+    {% endif %}
+    {# SPACER #}
+    {% if fk.table_name == 'partner_country_codes' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    reporter_country_code: Optional[int] = Query(None, description="Filter partners for specific reporter"),
+):
+    """Get all partner countries in this trade dataset."""
+
+    query = (
+        select(
+            PartnerCountryCodes.partner_country_code,
+            PartnerCountryCodes.partner_countries,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from(PartnerCountryCodes)
+        .join({{ router.model.model_name }}, 
+              {{ router.model.model_name }}.partner_country_code_id == PartnerCountryCodes.id)
+        .where(PartnerCountryCodes.source_dataset == '{{ router.name }}')
+    )
+    
+    # Filter by reporter if specified
+    if reporter_country_code:
+        query = query.join(
+            ReporterCountryCodes,
+            {{ router.model.model_name }}.reporter_country_code_id == ReporterCountryCodes.id
+        ).where(
+            ReporterCountryCodes.reporter_country_code == reporter_country_code
+        )
+    
+    query = query.group_by(
+        PartnerCountryCodes.partner_country_code,
+        PartnerCountryCodes.partner_countries
+    )
+    
+    if search:
+        query = query.where(
+            or_(
+                PartnerCountryCodes.partner_countries.ilike(f"%{search}%"),
+                PartnerCountryCodes.partner_country_code.cast(String).like(f"{search}%")
+            )
+        )
+    
+    query = query.order_by(PartnerCountryCodes.partner_country_code)
+    results = db.execute(query).all()
+    
+    response = ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="partner_countries",
+        total=len(results),
+        items=[
+            {
+                "partner_country_code": r.partner_country_code,
+                "partner_countries": r.partner_countries,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+    
+    if reporter_country_code:
+        response["filtered_by_reporter"] = reporter_country_code
+    
+    return response
+
+    {% endif %}
+    {# SPACER #}
+    {% if fk.table_name == 'recipient_country_codes' %}
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
+async def get_available_{{ fk.table_name }}(
+    db: Session = Depends(get_db),
+    search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+):
+    """Get all partner countries in this trade dataset."""
+
+    query = (
+        select(
+            PartnerCountryCodes.partner_country_code,
+            PartnerCountryCodes.partner_countries,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from(PartnerCountryCodes)
+        .join({{ router.model.model_name }}, 
+              {{ router.model.model_name }}.partner_country_code_id == PartnerCountryCodes.id)
+        .where(PartnerCountryCodes.source_dataset == '{{ router.name }}')
+    )
+    
+    
+    query = query.group_by(
+        PartnerCountryCodes.partner_country_code,
+        PartnerCountryCodes.partner_countries
+    )
+    
+    if search:
+        query = query.where(
+            or_(
+                PartnerCountryCodes.partner_countries.ilike(f"%{search}%"),
+                PartnerCountryCodes.partner_country_code.cast(String).like(f"{search}%")
+            )
+        )
+    
+    query = query.order_by(PartnerCountryCodes.partner_country_code)
+    results = db.execute(query).all()
+    
+    response = ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="partner_countries",
+        total=len(results),
+        items=[
+            {
+                "partner_country_code": r.partner_country_code,
+                "partner_countries": r.partner_countries,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+    
+    return response
+
+    {% endif %}
+{# end for fk in router.model.foreign_keys #}
+{% endfor %}
+{# SPACER #}
+{% if 'unit' in router.model.column_analysis|map(attribute='sql_column_name') %}
+@router.get("/units", summary="Get units of measurement in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:units", ttl=604800)
+async def get_available_units(db: Session = Depends(get_db)):
+    """Get all units of measurement used in this dataset."""
+    query = (
+        select(
+            {{ router.model.model_name }}.unit,
+            func.count({{ router.model.model_name }}.id).label('record_count')
+        )
+        .select_from({{ router.model.model_name }})
+        .group_by({{ router.model.model_name }}.unit)
+        .order_by({{ router.model.model_name }}.unit)
+    )
+    
+    results = db.execute(query).all()
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="units",
+        total=len(results),
+        items=[
+            {
+                "unit": r.unit,
+                "record_count": r.record_count,
+            }
+            for r in results
+        ]
+    )
+
+{% endif %}
+{# SPACER #}
+{% if 'year' in router.model.column_analysis|map(attribute='sql_column_name') %}
+@router.get("/years", summary="Get available years in {{ router.name }}")
+@cache_result(prefix="{{ router.name }}:years", ttl=604800)
+async def get_available_years(
+    db: Session = Depends(get_db),
+    include_counts: bool = Query(False, description="Include record counts per year"),
+):
+    """Get all years with data in this dataset."""
+    if include_counts:
+        query = (
+            select(
+                {{ router.model.model_name }}.year,
+                {{ router.model.model_name }}.year_code,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .group_by({{ router.model.model_name }}.year, {{ router.model.model_name }}.year_code)
+            .order_by({{ router.model.model_name }}.year_code)
+        )
+        results = db.execute(query).all()
+        
+        return {
+            "dataset": "{{ router.name }}",
+            "total_years": len(results),
+            "year_range": {
+                "start": results[0].year if results else None,
+                "end": results[-1].year if results else None,
+            },
+            "years": [
+                {
+                    "year": r.year,
+                    "year_code": r.year_code,
+                    "record_count": r.record_count
+                }
+                for r in results
+            ]
+        }
+    else:
+        query = (
+            select({{ router.model.model_name }}.year)
+            .distinct()
+            .order_by({{ router.model.model_name }}.year)
+        )
+        results = db.execute(query).all()
+        years = [r.year for r in results]
+        
+        return {
+            "dataset": "{{ router.name }}",
+            "total_years": len(years),
+            "year_range": {
+                "start": years[0] if years else None,
+                "end": years[-1] if years else None,
+            },
+            "years": years
+        }
+
+{% endif %}
+# -----------------------------------------------
+# ========== Dataset Overview Endpoint ==========
+# -----------------------------------------------
+@router.get("/overview", summary="Get complete overview of {{ router.name }} dataset")
+@cache_result(prefix="{{ router.name }}:overview", ttl=3600)
+async def get_dataset_overview(db: Session = Depends(get_db)):
+    """Get a complete overview of the dataset including all available dimensions and statistics."""
+    overview = {
+        "dataset": "{{ router.name }}",
+        "description": "{{ router.description if router.description else '' }}",
+        "last_updated": datetime.utcnow().isoformat(),
+        "dimensions": {},
+        "statistics": {}
+    }
+    
+    # Total records
+    total_records = db.execute(
+        select(func.count()).select_from({{ router.model.model_name }})
+    ).scalar() or 0
+    overview["statistics"]["total_records"] = total_records
+    
+    {% for fk in router.model.foreign_keys %}
+    {% set count_name = fk.hash_fk_sql_column_name + 's' %}
+
+    {{ count_name }} = db.execute(
+        select(func.count(func.distinct({{ router.model.model_name }}.{{ fk.hash_fk_sql_column_name }})))
+        .select_from({{ router.model.model_name }})
+    ).scalar() or 0
+
+    overview["dimensions"]["{{ fk.table_name }}"] = {
+        "count": {{ count_name }},
+        "endpoint": f"/{{ router.name }}/{{ fk.table_name }}"
+    }
+    {% endfor %}
+    
+    {% if 'year' in router.model.column_analysis|map(attribute='sql_column_name') %}
+    # Year range
+    year_stats = db.execute(
+        select(
+            func.min({{ router.model.model_name }}.year).label('min_year'),
+            func.max({{ router.model.model_name }}.year).label('max_year'),
+            func.count(func.distinct({{ router.model.model_name }}.year)).label('year_count')
+        )
+        .select_from({{ router.model.model_name }})
+    ).first()
+    
+    overview["dimensions"]["years"] = {
+        "range": {
+            "start": year_stats.min_year,
+            "end": year_stats.max_year
+        },
+        "count": year_stats.year_count,
+        "endpoint": f"/{{ router.name }}/years"
+    }
+    {% endif %}
+    
+    {% if 'value' in router.model.column_analysis|map(attribute='sql_column_name') %}
+    # Value statistics
+    value_stats = db.execute(
+        select(
+            func.min({{ router.model.model_name }}.value).label('min_value'),
+            func.max({{ router.model.model_name }}.value).label('max_value'),
+            func.avg({{ router.model.model_name }}.value).label('avg_value')
+        )
+        .select_from({{ router.model.model_name }})
+        .where(and_({{ router.model.model_name }}.value > 0, {{ router.model.model_name }}.value.is_not(None)))
+    ).first()
+    
+    overview["statistics"]["values"] = {
+        "min": float(value_stats.min_value) if value_stats.min_value else None,
+        "max": float(value_stats.max_value) if value_stats.max_value else None,
+        "average": round(float(value_stats.avg_value), 2) if value_stats.avg_value else None,
+    }
+    {% endif %}
+    
+    # Available endpoints
+    overview["endpoints"] = {
+        "data": f"/{{ router.name }}",
+        "aggregate": f"/{{ router.name }}/aggregate",
+        "summary": f"/{{ router.name }}/summary",
+        "overview": f"/{{ router.name }}/overview",
+        {% for fk in router.model.foreign_keys %}
+        {% if fk.table_name in ['item_codes', 'area_codes', 'elements', 'flags', 'reporter_country_code', 'partner_country_code', 'recipient_country_code'] %}
+        "{{ fk.table_name }}": f"/{{ router.name }}/{{ fk.table_name }}",
+        {% endif %}
+        {% endfor %}
+    }
+    
+    return overview
+
+ 
