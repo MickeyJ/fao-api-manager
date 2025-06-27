@@ -6,15 +6,17 @@
 # ----------------------------------------
 {% for fk in router.model.foreign_keys %}
     {% if fk.table_name == 'item_codes' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: Optional[bool] = Query(False, description="Set True to include distribution statistics"),
     limit: int = Query(1000, ge=1, le=10000),
     offset: int = Query(0, ge=0),
 ):
     """Get all items available in this dataset with their codes and metadata."""
+
     query = (
         select(
             ItemCodes.item_code,
@@ -22,10 +24,8 @@ async def get_available_{{ fk.table_name }}(
             ItemCodes.item_code_cpc,
             ItemCodes.item_code_fbs,
             ItemCodes.item_code_sdg,
-            func.count({{ router.model.model_name }}.id).label('record_count')
         )
         .select_from(ItemCodes)
-        .join({{ router.model.model_name }}, {{ router.model.model_name }}.item_code_id == ItemCodes.id)
         .where(ItemCodes.source_dataset == '{{ router.name }}')
         .group_by(
             ItemCodes.item_code,
@@ -35,6 +35,28 @@ async def get_available_{{ fk.table_name }}(
             ItemCodes.item_code_sdg
         )
     )
+
+    if include_distribution:
+        query = (
+            select(
+                ItemCodes.item_code,
+                ItemCodes.item,
+                ItemCodes.item_code_cpc,
+                ItemCodes.item_code_fbs,
+                ItemCodes.item_code_sdg,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .select_from(ItemCodes)
+            .join({{ router.model.model_name }}, {{ router.model.model_name }}.item_code_id == ItemCodes.id)
+            .where(ItemCodes.source_dataset == '{{ router.name }}')
+            .group_by(
+                ItemCodes.item_code,
+                ItemCodes.item,
+                ItemCodes.item_code_cpc,
+                ItemCodes.item_code_fbs,
+                ItemCodes.item_code_sdg
+            )
+        )
     
     # Apply search filter
     if search:
@@ -55,12 +77,20 @@ async def get_available_{{ fk.table_name }}(
     # Apply ordering and pagination
     query = query.order_by(ItemCodes.item_code).limit(limit).offset(offset)
     results = db.execute(query).all()
-    
-    return ResponseFormatter.format_metadata_response(
-        dataset="{{ router.name }}",
-        metadata_type="items",
-        total=total_count,
-        items=[
+
+    items = [
+        {
+            "item_code": r.item_code,
+            "item": r.item,
+            "item_code_cpc": r.item_code_cpc,
+            "item_code_fbs": r.item_code_fbs,
+            "item_code_sdg": r.item_code_sdg,
+        }
+        for r in results
+    ]
+
+    if include_distribution:
+        items = [
             {
                 "item_code": r.item_code,
                 "item": r.item,
@@ -71,29 +101,35 @@ async def get_available_{{ fk.table_name }}(
             }
             for r in results
         ]
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="items",
+        total=total_count,
+        items=items
     )
 
     {% endif %}
     {# SPACER #}
     {% if fk.table_name == 'area_codes' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: Optional[bool] = Query(False, description="Set True to include distribution statistics"),
     limit: int = Query(1000, ge=1, le=10000),
     offset: int = Query(0, ge=0),
 ):
     """Get all areas (countries/regions) with data in this dataset."""
+
     query = (
         select(
             AreaCodes.area_code,
             AreaCodes.area,
             AreaCodes.area_code_m49,
-            func.count({{ router.model.model_name }}.id).label('record_count')
         )
         .select_from(AreaCodes)
-        .join({{ router.model.model_name }}, {{ router.model.model_name }}.area_code_id == AreaCodes.id)
         .where(AreaCodes.source_dataset == '{{ router.name }}')
         .group_by(
             AreaCodes.area_code,
@@ -101,6 +137,24 @@ async def get_available_{{ fk.table_name }}(
             AreaCodes.area_code_m49,
         )
     )
+
+    if include_distribution:
+        query = (
+            select(
+                AreaCodes.area_code,
+                AreaCodes.area,
+                AreaCodes.area_code_m49,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .select_from(AreaCodes)
+            .join({{ router.model.model_name }}, {{ router.model.model_name }}.area_code_id == AreaCodes.id)
+            .where(AreaCodes.source_dataset == '{{ router.name }}')
+            .group_by(
+                AreaCodes.area_code,
+                AreaCodes.area,
+                AreaCodes.area_code_m49,
+            )
+        )
     
     # Apply filters
     if search:
@@ -120,11 +174,17 @@ async def get_available_{{ fk.table_name }}(
     # Apply ordering and pagination
     query = query.order_by(AreaCodes.area_code).limit(limit).offset(offset)
     results = db.execute(query).all()
-    
-    return ResponseFormatter.format_metadata_response(
-        dataset="{{ router.name }}",
-        metadata_type="areas",
-        total=total_count,
+
+    items=[
+        {
+            "area_code": r.area_code,
+            "area": r.area,
+            "area_code_m49": r.area_code_m49,
+        }
+        for r in results
+    ]
+
+    if include_distribution:
         items=[
             {
                 "area_code": r.area_code,
@@ -134,33 +194,53 @@ async def get_available_{{ fk.table_name }}(
             }
             for r in results
         ]
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="areas",
+        total=total_count,
+        items=items
     )
 
     {% endif %}
     {# SPACER #}
     {% if fk.table_name == 'elements' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: Optional[bool] = Query(False, description="Set True to include distribution statistics"),
 ):
     """Get all elements (measures/indicators) available in this dataset."""
     query = (
         select(
             Elements.element_code,
             Elements.element,
-            func.count({{ router.model.model_name }}.id).label('record_count')
         )
         .select_from(Elements)
-        .join({{ router.model.model_name }}, {{ router.model.model_name }}.element_code_id == Elements.id)
         .where(Elements.source_dataset == '{{ router.name }}')
         .group_by(
             Elements.element_code,
             Elements.element,
         )
     )
-    
+
+    if include_distribution:
+        query = (
+            select(
+                Elements.element_code,
+                Elements.element,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .select_from(Elements)
+            .join({{ router.model.model_name }}, Elements.id == {{ router.model.model_name }}.element_id)
+            .where(Elements.source_dataset == '{{ router.name }}')
+            .group_by(
+                Elements.element_code,
+                Elements.element,
+            )
+        )
     # Apply filters
     if search:
         query = query.where(
@@ -174,12 +254,17 @@ async def get_available_{{ fk.table_name }}(
     # Execute
     query = query.order_by(Elements.element_code)
     results = db.execute(query).all()
-    
-    return ResponseFormatter.format_metadata_response(
-        dataset="{{ router.name }}",
-        metadata_type="elements",
-        total=len(results),
-        items=[
+    items = [
+        {
+            "element_code": r.element_code,
+            "element": r.element,
+        }
+        for r in results
+    ]
+
+    if include_distribution:
+        # If distribution is requested, we need to count records for each element
+        items = [
             {
                 "element_code": r.element_code,
                 "element": r.element,
@@ -187,17 +272,23 @@ async def get_available_{{ fk.table_name }}(
             }
             for r in results
         ]
+        
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="elements",
+        total=len(results),
+        items=items
     )
 
     {% endif %}
     {# SPACER #}
     {% if fk.table_name == 'flags' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
-    include_distribution: bool = Query(False, description="Include distribution statistics"),
+    include_distribution: Optional[bool] = Query(False, description="Include distribution statistics"),
 ):
     """Get data quality flag information and optionally their distribution in the dataset."""
     # Get all flags used in this dataset
@@ -209,7 +300,7 @@ async def get_available_{{ fk.table_name }}(
             func.count({{ router.model.model_name }}.id).label('record_count')
         )
         .join({{ router.model.model_name }}, Flags.id == {{ router.model.model_name }}.flag_id)
-        .group_by(Flags.flag, Flags.description)
+        .group_by(Flags.id, Flags.flag, Flags.description)
         .order_by(func.count({{ router.model.model_name }}.id).desc())
     )
 
@@ -229,7 +320,7 @@ async def get_available_{{ fk.table_name }}(
         info = {
             "flag_id": flag.id,
             "flag": flag.flag,
-            "flag_description": flag.flag_description,
+            "description": flag.description,
         }
         
         if include_distribution:
@@ -270,28 +361,44 @@ async def get_available_{{ fk.table_name }}(
     {% endif %}
     {# SPACER #}
     {% if fk.table_name == 'reporter_country_codes' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: Optional[bool] = Query(False, description="Include distribution statistics"),
 ):
     """Get all reporter countries in this trade dataset."""
+
     query = (
         select(
             ReporterCountryCodes.reporter_country_code,
             ReporterCountryCodes.reporter_countries,
-            func.count({{ router.model.model_name }}.id).label('record_count')
         )
         .select_from(ReporterCountryCodes)
-        .join({{ router.model.model_name }}, 
-              {{ router.model.model_name }}.reporter_country_code == ReporterCountryCodes.reporter_country_code)
         .where(ReporterCountryCodes.source_dataset == '{{ router.name }}')
         .group_by(
             ReporterCountryCodes.reporter_country_code,
             ReporterCountryCodes.reporter_countries
         )
     )
+
+    if include_distribution:
+        query = (
+            select(
+                ReporterCountryCodes.reporter_country_code,
+                ReporterCountryCodes.reporter_countries,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .select_from(ReporterCountryCodes)
+            .join({{ router.model.model_name }}, 
+                {{ router.model.model_name }}.reporter_country_code == ReporterCountryCodes.reporter_country_code)
+            .where(ReporterCountryCodes.source_dataset == '{{ router.name }}')
+            .group_by(
+                ReporterCountryCodes.reporter_country_code,
+                ReporterCountryCodes.reporter_countries
+            )
+        )
     
     if search:
         query = query.where(
@@ -303,12 +410,17 @@ async def get_available_{{ fk.table_name }}(
     
     query = query.order_by(ReporterCountryCodes.reporter_country_code)
     results = db.execute(query).all()
-    
-    return ResponseFormatter.format_metadata_response(
-        dataset="{{ router.name }}",
-        metadata_type="reporter_countries",
-        total=len(results),
-        items=[
+
+    items = [
+        {
+            "reporter_country_code": r.reporter_country_code,
+            "reporter_countries": r.reporter_countries,
+        }
+        for r in results
+    ]
+
+    if include_distribution:
+        items = [
             {
                 "reporter_country_code": r.reporter_country_code,
                 "reporter_countries": r.reporter_countries,
@@ -316,16 +428,23 @@ async def get_available_{{ fk.table_name }}(
             }
             for r in results
         ]
+    
+    return ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="reporter_countries",
+        total=len(results),
+        items=items
     )
 
     {% endif %}
     {# SPACER #}
     {% if fk.table_name == 'partner_country_codes' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: Optional[bool] = Query(False, description="Include distribution statistics"),
     reporter_country_code: Optional[int] = Query(None, description="Filter partners for specific reporter"),
 ):
     """Get all partner countries in this trade dataset."""
@@ -334,13 +453,23 @@ async def get_available_{{ fk.table_name }}(
         select(
             PartnerCountryCodes.partner_country_code,
             PartnerCountryCodes.partner_countries,
-            func.count({{ router.model.model_name }}.id).label('record_count')
         )
         .select_from(PartnerCountryCodes)
-        .join({{ router.model.model_name }}, 
-              {{ router.model.model_name }}.partner_country_code_id == PartnerCountryCodes.id)
         .where(PartnerCountryCodes.source_dataset == '{{ router.name }}')
     )
+
+    if include_distribution:
+        query = (
+            select(
+                PartnerCountryCodes.partner_country_code,
+                PartnerCountryCodes.partner_countries,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .select_from(PartnerCountryCodes)
+            .join({{ router.model.model_name }}, 
+                {{ router.model.model_name }}.partner_country_code_id == PartnerCountryCodes.id)
+            .where(PartnerCountryCodes.source_dataset == '{{ router.name }}')
+        )
     
     # Filter by reporter if specified
     if reporter_country_code:
@@ -366,12 +495,17 @@ async def get_available_{{ fk.table_name }}(
     
     query = query.order_by(PartnerCountryCodes.partner_country_code)
     results = db.execute(query).all()
-    
-    response = ResponseFormatter.format_metadata_response(
-        dataset="{{ router.name }}",
-        metadata_type="partner_countries",
-        total=len(results),
-        items=[
+
+    items = [
+        {
+            "partner_country_code": r.partner_country_code,
+            "partner_countries": r.partner_countries,
+        }
+        for r in results
+    ]
+
+    if include_distribution:
+        items = [
             {
                 "partner_country_code": r.partner_country_code,
                 "partner_countries": r.partner_countries,
@@ -379,6 +513,12 @@ async def get_available_{{ fk.table_name }}(
             }
             for r in results
         ]
+    
+    response = ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="partner_countries",
+        total=len(results),
+        items=items
     )
     
     if reporter_country_code:
@@ -389,55 +529,77 @@ async def get_available_{{ fk.table_name }}(
     {% endif %}
     {# SPACER #}
     {% if fk.table_name == 'recipient_country_codes' %}
-@router.get("/{{ fk.table_name }}", summary="Get {{ fk.table_name }} in {{ router.name }}")
+@router.get("/{{ fk.table_name }}", summary="Get {{ fk.model_name }} in {{ router.name }}")
 @cache_result(prefix="{{ router.name }}:{{ fk.table_name }}", ttl=604800)
 async def get_available_{{ fk.table_name }}(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, description="Search {{ fk.reference_description_column }} by name or code"),
+    include_distribution: Optional[bool] = Query(False, description="Include distribution statistics"),
 ):
-    """Get all partner countries in this trade dataset."""
+    """Get all recipient country in this trade dataset."""
 
     query = (
         select(
-            PartnerCountryCodes.partner_country_code,
-            PartnerCountryCodes.partner_countries,
-            func.count({{ router.model.model_name }}.id).label('record_count')
+            RecipientCountryCodes.recipient_country_code,
+            RecipientCountryCodes.recipient_country,
         )
-        .select_from(PartnerCountryCodes)
-        .join({{ router.model.model_name }}, 
-              {{ router.model.model_name }}.partner_country_code_id == PartnerCountryCodes.id)
-        .where(PartnerCountryCodes.source_dataset == '{{ router.name }}')
+        .select_from(RecipientCountryCodes)
+        .where(RecipientCountryCodes.source_dataset == '{{ router.name }}')
     )
+
+    if include_distribution:
+        query = (
+            select(
+                RecipientCountryCodes.recipient_country_code,
+                RecipientCountryCodes.recipient_country,
+                func.count({{ router.model.model_name }}.id).label('record_count')
+            )
+            .select_from(RecipientCountryCodes)
+            .join({{ router.model.model_name }}, 
+                {{ router.model.model_name }}.recipient_country_code_id == RecipientCountryCodes.id)
+            .where(RecipientCountryCodes.source_dataset == '{{ router.name }}')
+        )
     
     
     query = query.group_by(
-        PartnerCountryCodes.partner_country_code,
-        PartnerCountryCodes.partner_countries
+        RecipientCountryCodes.recipient_country_code,
+        RecipientCountryCodes.recipient_country
     )
     
     if search:
         query = query.where(
             or_(
-                PartnerCountryCodes.partner_countries.ilike(f"%{search}%"),
-                PartnerCountryCodes.partner_country_code.cast(String).like(f"{search}%")
+                RecipientCountryCodes.recipient_country.ilike(f"%{search}%"),
+                RecipientCountryCodes.recipient_country_code.cast(String).like(f"{search}%")
             )
         )
     
-    query = query.order_by(PartnerCountryCodes.partner_country_code)
+    query = query.order_by(RecipientCountryCodes.recipient_country_code)
     results = db.execute(query).all()
-    
-    response = ResponseFormatter.format_metadata_response(
-        dataset="{{ router.name }}",
-        metadata_type="partner_countries",
-        total=len(results),
-        items=[
+
+    items = [
+        {
+            "recipient_country_code": r.recipient_country_code,
+            "recipient_country": r.recipient_country,
+        }
+        for r in results
+    ]
+
+    if include_distribution:
+        items = [
             {
-                "partner_country_code": r.partner_country_code,
-                "partner_countries": r.partner_countries,
+                "recipient_country_code": r.recipient_country_code,
+                "recipient_country": r.recipient_country,
                 "record_count": r.record_count,
             }
             for r in results
         ]
+    
+    response = ResponseFormatter.format_metadata_response(
+        dataset="{{ router.name }}",
+        metadata_type="recipient_country",
+        total=len(results),
+        items=items
     )
     
     return response

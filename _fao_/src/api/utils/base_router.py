@@ -1,5 +1,5 @@
 # fao/src/api/utils/base_router.py
-from typing import Dict, Any, List, Optional, Tuple, Type
+from typing import Dict, Any, List, Optional, Tuple, Type, Union
 from fastapi import Depends, Query, HTTPException, Response, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import Select
@@ -278,6 +278,143 @@ class BaseRouterHandler(ABC):
                 if not requested_fields or field in requested_fields:
                     if hasattr(result, field):
                         response_fields[field] = getattr(result, field)
+
+            sorted_fields = dict(sorted(response_fields.items()))
+            data.append(sorted_fields)
+
+        return data
+
+    def setup_aggregation(self, group_by: Union[str, List[str]], aggregations: Union[str, List[str]]):
+        """Setup handler for aggregation mode with validation"""
+        self.is_aggregation = True
+
+        # Parse group_by
+        if isinstance(group_by, list):
+            self.group_fields = group_by
+        else:
+            self.group_fields = [f.strip() for f in group_by.split(",")]
+
+        # Parse aggregations
+        if isinstance(aggregations, list):
+            agg_strings = aggregations
+        else:
+            agg_strings = [a.strip() for a in aggregations.split(",")]
+
+        self.agg_configs = []
+        for agg_str in agg_strings:
+            try:
+                agg_config = parse_aggregation_parameter(agg_str)
+
+                # Validate aggregation function
+                try:
+                    AggregationType(agg_config["function"])
+                except ValueError:
+                    raise invalid_parameter(
+                        "aggregations",
+                        agg_str,
+                        f"Invalid aggregation function '{agg_config['function']}'. Valid functions: {', '.join([e.value for e in AggregationType])}",
+                    )
+
+                # Validate field exists
+                if agg_config["field"] not in self.all_data_fields:
+                    raise invalid_parameter(
+                        "aggregations", agg_str, f"Cannot aggregate '{agg_config['field']}' - field does not exist"
+                    )
+
+                # Check if field is numeric (for most aggregations)
+                if self._is_numeric_function(agg_config["function"]) and not self._is_numeric_field(
+                    agg_config["field"]
+                ):
+                    raise invalid_parameter(
+                        "aggregations",
+                        agg_str,
+                        f"Cannot {agg_config['function']} non-numeric field '{agg_config['field']}'",
+                    )
+
+                # Check if field is nullable numeric (for some aggregations) TODO: filter out null values in query
+                if self._is_numeric_function(agg_config["function"]) and self._is_nullable_numeric_field(
+                    agg_config["field"]
+                ):
+                    raise invalid_parameter(
+                        "aggregations",
+                        agg_str,
+                        f"Cannot aggregate '{agg_config['function']}' on '{agg_config['field']}'. '{agg_config['field']}' can be null. Will be fixed in a future update",
+                    )
+
+                # Check if aggregating a grouped field
+                if agg_config["field"] in self.group_fields:
+                    raise invalid_parameter(
+                        "aggregations",
+                        agg_str,
+                        f"Cannot aggregate '{agg_config['field']}' - it's already in group_by. Remove from group_by or choose a different field",
+                    )
+
+                self.agg_configs.append(agg_config)
+
+            except (ValueError, KeyError, IndexError) as e:
+                # These are actual parsing errors
+                raise invalid_parameter(
+                    "aggregations",
+                    agg_str,
+                    f"Invalid aggregation format. Expected 'field:function' or 'field:function:alias'",
+                )
+        # Validate group fields exist
+        for field in self.group_fields:
+            if field not in self.all_data_fields:
+                raise invalid_parameter("group_by", field, f"Invalid group by field: {field}")
+
+    def _is_numeric_field(self, field: str) -> bool:
+        """Check if a field is numeric based on config"""
+        if hasattr(self.config, "field_metadata"):
+            field_info = self.config.field_metadata.get(field, {})
+            return field_info.get("is_numeric", False)
+
+        # Fallback for reference tables without metadata
+        return field in {"value", "year", "quantity", "price"} or field.endswith("_id")
+
+    def _is_nullable_numeric_field(self, field: str) -> bool:
+        """Check if a field is numeric based on config"""
+        if hasattr(self.config, "field_metadata"):
+            field_info = self.config.field_metadata.get(field, {})
+            return field_info.get("is_numeric", False) and field_info.get("nullable", False)
+
+        return False
+
+    def _is_numeric_function(self, function: str):
+        return function in [
+            AggregationType.SUM.value,
+            AggregationType.AVG.value,
+            AggregationType.MIN.value,
+            AggregationType.MAX.value,
+            AggregationType.STDDEV.value,
+            AggregationType.VARIANCE.value,
+            AggregationType.MEDIAN.value,
+        ]
+
+    def get_aggregation_response_fields(self) -> List[str]:
+        """Get available fields for aggregation response"""
+        fields = self.group_fields.copy()
+        fields.extend([agg["alias"] for agg in self.agg_configs])
+        return fields
+
+    def format_aggregation_results(self, results: List) -> List[Dict]:
+        """Format aggregation query results"""
+
+        print(f"Formatting with group_fields: {self.group_fields}")
+        print(f"Formatting with agg_configs: {self.agg_configs}")
+        print(f"First result row: {results[0] if results else 'No results'}")
+
+        data = []
+        for row in results:
+            response_fields = {}
+
+            # Add group by fields
+            for i, field in enumerate(self.group_fields):
+                response_fields[field] = row[i]
+
+            # Add aggregation results
+            for j, agg_config in enumerate(self.agg_configs):
+                response_fields[agg_config["alias"]] = row[len(self.group_fields) + j]
 
             sorted_fields = dict(sorted(response_fields.items()))
             data.append(sorted_fields)

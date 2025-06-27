@@ -265,6 +265,7 @@ class Generator:
                 "router_group": group_name,
                 "model": module["model"],
                 "pipeline_name": pipeline_name,
+                "is_reference_module": module["is_reference_module"],
                 "router_dir": Path(f"{self.paths.api_routers}/{group_name}"),
                 "router_name": f"{module_name}_router",
                 "param_configs": param_configs,

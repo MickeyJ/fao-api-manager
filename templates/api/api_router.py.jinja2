@@ -22,7 +22,7 @@ router = APIRouter(
 {# Main data endpoint #}
 {% include 'api/partials/router_data_endpoint.py.jinja2' %}
 
-{% if router.model.foreign_keys %}
+{% if not router.is_reference_module %}
 {# Aggregation endpoints (datasets only) #}
 {% include 'api/partials/router_aggregation_endpoints.py.jinja2' %}
 

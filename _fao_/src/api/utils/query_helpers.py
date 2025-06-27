@@ -1,6 +1,6 @@
 # fao/src/api/utils/query_helpers.py (expanded)
 from typing import Any, Set, List, Dict, Union, Tuple, Type
-from sqlalchemy import select, Select, func, or_, and_, Column
+from sqlalchemy import Numeric, select, Select, func, or_, and_, Column
 from sqlalchemy.orm import Query, DeclarativeBase
 from sqlalchemy.sql import ColumnElement
 from enum import Enum
@@ -15,6 +15,18 @@ class AggregationType(Enum):
     MAX = "max"
     COUNT = "count"
     COUNT_DISTINCT = "count_distinct"
+
+    # Statistical
+    STDDEV = "stddev"
+    VARIANCE = "variance"
+    MEDIAN = "median"  # Not all DBs support
+
+    # String aggregations
+    STRING_AGG = "string_agg"  # Concatenate strings
+
+    # Conditional
+    COUNT_IF = "count_if"  # Count with condition
+    SUM_IF = "sum_if"  # Sum with condition
 
 
 class QueryBuilder:
@@ -94,8 +106,11 @@ class QueryBuilder:
             self.query = self.query.where(column <= max_val)
         return self
 
-    def add_aggregation(self, column: Column, agg_type: AggregationType, alias: str | None = None) -> "QueryBuilder":
+    def add_aggregation(
+        self, column: ColumnElement, agg_type: AggregationType, alias: str | None = None, round_to: Union[str, int] = ""
+    ) -> "QueryBuilder":
         """Add aggregation to the query."""
+
         agg_funcs = {
             AggregationType.SUM: func.sum,
             AggregationType.AVG: func.avg,
@@ -103,9 +118,28 @@ class QueryBuilder:
             AggregationType.MAX: func.max,
             AggregationType.COUNT: func.count,
             AggregationType.COUNT_DISTINCT: lambda col: func.count(func.distinct(col)),
+            AggregationType.STRING_AGG: lambda col: func.string_agg(col, ", "),
+            AggregationType.STDDEV: func.stddev_pop,  # or stddev_samp
+            AggregationType.VARIANCE: func.var_pop,  # or var_samp
+            # MEDIAN is tricky - not standard SQL
+            AggregationType.MEDIAN: lambda col: func.percentile_cont(0.5).within_group(col),  # PostgreSQL only
         }
 
         agg_func = agg_funcs[agg_type](column)
+        round_to_n = int(round_to) if round_to else 2
+
+        # Apply rounding for numeric aggregations
+        if agg_type == AggregationType.AVG:
+            agg_func = func.round(func.cast(agg_func, Numeric), round_to_n)
+        elif agg_type == AggregationType.SUM:
+            agg_func = func.round(func.cast(agg_func, Numeric), round_to_n)
+        elif agg_type == AggregationType.STDDEV:
+            agg_func = func.round(func.cast(agg_func, Numeric), round_to_n)
+        elif agg_type == AggregationType.VARIANCE:
+            agg_func = func.round(func.cast(agg_func, Numeric), round_to_n)
+        elif agg_type == AggregationType.MEDIAN:
+            agg_func = func.round(func.cast(agg_func, Numeric), round_to_n)
+
         if alias:
             agg_func = agg_func.label(alias)
 
@@ -159,7 +193,14 @@ class QueryBuilder:
 
     def execute(self, db):
         """Execute the query and return results."""
-        return self.parse_results(db.execute(self.query).all())
+        rows = db.execute(self.query).all()
+
+        # For aggregated queries, return raw rows
+        if self._aggregations:
+            return rows
+
+        # For regular queries, parse to HybridResult objects
+        return self.parse_results(rows)
 
     def parse_results(self, rows):
         """Convert Row results to dictionaries with all columns."""

@@ -1,4 +1,5 @@
 # fao/src/api/utils/parameter_parsers.py
+import re
 from typing import List, Tuple, Optional, Dict, Any, Type
 from sqlalchemy import Column
 from fastapi import HTTPException
@@ -53,14 +54,23 @@ def parse_aggregation_parameter(agg: str) -> Dict[str, str]:
     Returns dict with 'field', 'function', and 'alias'.
     Validation should be done separately.
     """
+    round_to = ""
     parts = agg.split(":")
 
     if len(parts) < 2:
         # Invalid format, but let validation handle it
-        return {"field": agg, "function": "", "alias": ""}
+        return {"field": agg, "function": "", "alias": "", "round_to": round_to}
 
     field = parts[0].strip()
     function = parts[1].strip()
     alias = parts[2].strip() if len(parts) >= 3 else f"{field}_{function}"
 
-    return {"field": field, "function": function, "alias": alias}
+    round_match = re.search(r"\((\d+)\)", function)
+    if round_match:
+        print(f"\nround_match 0: {round_match.group(0)}\n")
+        print(f"\nround_match 1: {round_match.group(1)}\n")
+        round_to = round_match.group(1)
+        function = function.replace(round_match.group(0), "").strip()
+        alias = alias.replace(round_match.group(0), "").strip()
+
+    return {"field": field, "function": function, "alias": alias, "round_to": round_to}

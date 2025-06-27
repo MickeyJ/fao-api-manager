@@ -10,18 +10,14 @@ async def get_{{ router.name }}_data(
     {% for param in router.param_configs.standard %}
     {{ param.name }}: {{ param.type }} = Query({{ param.default }}, {{ param.constraints }}, description="{{ param.description }}"),
     {% endfor %}
-
     # Filter parameters
     {% for param in router.param_configs.filters %}
     {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
     {% endfor %}
-
     # Option parameters  
     {% for param in router.param_configs.options %}
     {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
     {% endfor %}
-    {% if router.model.foreign_keys %}
-    {% endif %}
 ):
     """Get {{ router.name.replace('_', ' ') }} data with advanced filtering and pagination.
 
@@ -39,7 +35,7 @@ async def get_{{ router.name }}_data(
     - Multiple sorts: 'year:desc,value:asc'
     """
 
-    router_handler = DatasetRouterHandler(
+    router_handler = RouterHandler(
         db=db, 
         model={{ router.model.model_name }}, 
         model_name="{{ router.model.model_name }}",

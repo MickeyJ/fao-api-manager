@@ -86,3 +86,13 @@ class {{ router.model.model_name }}Config:
         {% endif %}
         {% endfor %}
     ])
+
+    field_metadata: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {
+        {% for column in router.model.column_analysis %}
+        "{{ column.sql_column_name }}": {
+            "type": "{{ column.inferred_sql_type }}",
+            "is_numeric": {{ True if column.inferred_sql_type in ['Integer', 'SmallInteger', 'Float'] else False }},
+            "nullable": {{ True if column.nullable else False }},
+        },
+        {% endfor %}
+    })
