@@ -105,7 +105,6 @@ async def get_{{ router.name }}_aggregated(
                     value=f"{group_by}",
                     reason=f"Cannot aggregate '{agg_config['field']}' - field not available. Available fields: {router_handler.query_builder._field_to_column.keys()}",
                 )
-            raise HTTPException(400, f"Cannot aggregate '{agg_config['field']}' - field not available")
         
         agg_type = AggregationType(agg_config['function'])
         router_handler.query_builder.add_aggregation(column, agg_type, agg_config['alias'], agg_config['round_to'])
