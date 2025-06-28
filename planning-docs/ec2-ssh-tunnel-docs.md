@@ -4,17 +4,17 @@
 
 ### 1. Open SSH Tunnel (Keep this terminal open!)
 ```bash
-ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ubuntu@$(terraform output -raw bastion_public_ip) -N
+ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ec2-user@$(terraform output -raw bastion_public_ip) -N
 ```
 
 Or with specific IP:
 ```bash
-ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ubuntu@54.203.52.172 -N
+ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ec2-user@54.203.52.172 -N
 ```
 
 Keep alive
 ```bash
-ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ubuntu@54.203.52.172 -N -o ServerAliveInterval=60 -o ServerAliveCountMax=3
+ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ec2-user@54.203.52.172 -N -o ServerAliveInterval=60 -o ServerAliveCountMax=3
 ```
 
 
@@ -22,10 +22,10 @@ ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.a
 PGPASSWORD='your-password' psql -h localhost -p 5434 -U faoadmin -d fao -c "SELECT pg_size_pretty(pg_database_size('fao'));"
 
 # Upload dump to bastion
-scp -i terraform/bastion-key.pem fao_dump_20250617_123638.dump ubuntu@54.203.52.172:~/
+scp -i terraform/bastion-key.pem fao_dump_20250617_123638.dump ec2-user@54.203.52.172:~/
 
 # SSH into bastion
-ssh -i terraform/bastion-key.pem ubuntu@54.203.52.172
+ssh -i terraform/bastion-key.pem ec2-user@54.203.52.172
 
 # Install PostgreSQL client if needed
 sudo apt update && sudo apt install -y postgresql-client
@@ -115,7 +115,7 @@ chmod 600 terraform/bastion-key.pem
 ### If Port 5434 is Busy
 Use a different port (e.g., 5434):
 ```bash
-ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ubuntu@54.203.52.172 -N
+ssh -i terraform/bastion-key.pem -L 5434:fao-api-db.cloe4i4o0hs7.us-west-2.rds.amazonaws.com:5432 ec2-user@54.203.52.172 -N
 ```
 
 ### Get Bastion IP

@@ -13,5 +13,8 @@ from .{{ router.name }}_config import {{ router.model.model_name }}Config
 from {{ project_name }}.src.api.utils.query_helpers import QueryBuilder, AggregationType
 from {{ project_name }}.src.api.utils.response_helpers import PaginationBuilder, ResponseFormatter
 
-
+from {{ project_name }}.src.core.exceptions import (
+    invalid_parameter,
+    incompatible_parameters,
+)
 
