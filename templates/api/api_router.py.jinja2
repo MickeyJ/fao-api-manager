@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, Response, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, and_, String
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Union
 from datetime import datetime
 
@@ -10,6 +11,7 @@ from {{ project_name }}.src.core.cache import cache_result
 from {{ project_name }}.src.core import settings
 from {{ project_name }}.src.db.database import get_db
 from {{ project_name }}.src.db.pipelines.{{ router.pipeline_name }}.{{ router.name }}_model import {{ router.model.model_name }}
+from {{ project_name }}.src.api.utils.base_responses import BaseDataResponse
 
 {# Import statements #}
 {% include 'api/partials/router_imports.py.jinja2' %}
@@ -18,6 +20,36 @@ router = APIRouter(
     prefix="/{{ router.name }}",
     responses={404: {"description": "Not found"}},
 )
+
+class {{ router.model.model_name }}Response(BaseModel):
+    """Pydantic response model for {{ router.model.model_name }}"""
+
+    id: int
+    {% if not router.is_reference_module %}
+    {% for fk in router.model.foreign_keys %}
+    {{ fk.hash_fk_sql_column_name }}: int
+    {% endfor %}
+    {% endif %}
+    {% for column in router.model.column_analysis %}
+    {% if column.csv_column_name not in router.model.exclude_columns %}
+    {% if column.null_count > 0 or column.nullable %}
+    {{ column.sql_column_name }}: Optional[{{ column.inferred_sql_type.replace('String', 'str').replace('Integer', 'int').replace('Float', 'float').replace('Smallint', 'int') }}] = None
+    {% else %}
+    {{ column.sql_column_name }}: {{ column.inferred_sql_type.replace('String', 'str').replace('Integer', 'int').replace('Float', 'float').replace('Smallint', 'int') }}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Create specific response model for this endpoint
+class {{ router.model.model_name }}ListResponse(BaseDataResponse):
+    data: List[{{ router.model.model_name }}Response]  # SQLAlchemy model
+
+    model_config = ConfigDict(from_attributes=True)
 
 {# Main data endpoint #}
 {% include 'api/partials/router_data_endpoint.py.jinja2' %}

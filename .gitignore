@@ -209,6 +209,7 @@ Thumbs.db
 
 */.generator_cache/*
 cache/fao_module_cache.json
+/genlogs
 
 # Local configuration
 config.local.py

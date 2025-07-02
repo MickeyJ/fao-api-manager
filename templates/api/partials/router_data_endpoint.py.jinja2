@@ -1,7 +1,7 @@
 
 config = {{ router.model.model_name }}Config()
 
-@router.get("/", summary="Get {{ router.name.replace('_', ' ') }} data")
+@router.get("/", response_model={{ router.model.model_name }}ListResponse, summary="Get {{ router.name.replace('_', ' ') }} data")
 async def get_{{ router.name }}_data(
     request: Request,
     response: Response,
@@ -14,7 +14,7 @@ async def get_{{ router.name }}_data(
     {% for param in router.param_configs.filters %}
     {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
     {% endfor %}
-    # Option parameters  
+    # Option parameters
     {% for param in router.param_configs.options %}
     {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
     {% endfor %}
@@ -36,12 +36,12 @@ async def get_{{ router.name }}_data(
     """
 
     router_handler = RouterHandler(
-        db=db, 
-        model={{ router.model.model_name }}, 
+        db=db,
+        model={{ router.model.model_name }},
         model_name="{{ router.model.model_name }}",
         table_name="{{ router.model.table_name }}",
-        request=request, 
-        response=response, 
+        request=request,
+        response=response,
         config=config
     )
 

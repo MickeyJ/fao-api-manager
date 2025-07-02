@@ -1,6 +1,6 @@
 
 # templates/partials/router_aggregation_endpoints.jinja2
-@router.get("/aggregate", summary="Get aggregated {{ router.name.replace('_', ' ') }} data")
+@router.get("/aggregate", response_model={{ router.model.model_name }}ListResponse, summary="Get aggregated {{ router.name.replace('_', ' ') }} data")
 async def get_{{ router.name }}_aggregated(
     request: Request,
     response: Response,
@@ -17,7 +17,7 @@ async def get_{{ router.name }}_aggregated(
     {% for param in router.param_configs.filters %}
     {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
     {% endfor %}
-    # Option parameters  
+    # Option parameters
     {% for param in router.param_configs.options %}
     {% if param.name != 'fields' %}
     {{ param.name }}: {{ param.type }} = Query(None, description="{{ param.description }}"),
@@ -25,29 +25,29 @@ async def get_{{ router.name }}_aggregated(
     {% endfor %}
 ):
     """Get aggregated data with grouping and multiple aggregation functions.
-    
+
     ## Examples
     - Sum by year: `group_by=year&aggregations=value:sum`
     - Average by area and year: `group_by=area_code,year&aggregations=value:avg`
     - Multiple aggregations: `aggregations=value:sum:total_value,value:avg:average_value`
- 
+
 
     ## Aggregation Functions
     - sum, avg, min, max, count, count_distinct, stddev, variance, median, string_agg, count_if, sum_if
     """
-    
+
     # ------------------------------------------------------------------------
-    # Needs same validation: 
-    # general values, sort and filter param values, 
+    # Needs same validation:
+    # general values, sort and filter param values,
     # fk specific validation (checking against actual reference table data)
     # ------------------------------------------------------------------------
     router_handler = RouterHandler(
-        db=db, 
-        model={{ router.model.model_name }}, 
+        db=db,
+        model={{ router.model.model_name }},
         model_name="{{ router.model.model_name }}",
         table_name="{{ router.model.table_name }}",
-        request=request, 
-        response=response, 
+        request=request,
+        response=response,
         config=config
     )
 
@@ -71,7 +71,7 @@ async def get_{{ router.name }}_aggregated(
     if router_handler.is_aggregation:
         # For aggregations, available fields are group_by fields + aggregation aliases
         router_handler.all_data_fields = set(router_handler.get_aggregation_response_fields())
-    
+
     requested_fields, sort_columns = router_handler.validate_fields_and_sort_parameters(fields=[], sort=sort)
 
     # Validate filter parameters
@@ -79,7 +79,7 @@ async def get_{{ router.name }}_aggregated(
 
     # Apply filters
     filter_count = router_handler.apply_filters_from_config(param_configs)
-    
+
     # Add grouping to query
     {# group_columns = [getattr({{ router.model.model_name }}, f) for f in router_handler.group_fields] #}
     group_columns = []
@@ -94,7 +94,7 @@ async def get_{{ router.name }}_aggregated(
                 )
 
     router_handler.query_builder.add_grouping(group_columns)
-    
+
     # Add aggregations to query
     for agg_config in router_handler.agg_configs:
         if agg_config['field'] in router_handler.query_builder._field_to_column:
@@ -105,13 +105,13 @@ async def get_{{ router.name }}_aggregated(
                     value=f"{group_by}",
                     reason=f"Cannot aggregate '{agg_config['field']}' - field not available. Available fields: {router_handler.query_builder._field_to_column.keys()}",
                 )
-        
+
         agg_type = AggregationType(agg_config['function'])
         router_handler.query_builder.add_aggregation(column, agg_type, agg_config['alias'], agg_config['round_to'])
-    
+
     # Apply aggregations
     router_handler.query_builder.apply_aggregations()
-    
+
     # Get count
     total_count = router_handler.query_builder.get_count(db)
 

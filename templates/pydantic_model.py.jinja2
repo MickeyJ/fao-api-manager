@@ -1,0 +1,34 @@
+# Pydantic models for {{ module.model.model_name }}
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from datetime import datetime
+
+class {{ module.model.model_name }}Base(BaseModel):
+    """Base Pydantic model for {{ module.model.model_name }}"""
+
+    {% for column in module.model.column_analysis %}
+    {% if column.csv_column_name not in module.model.exclude_columns %}
+    {% if column.null_count > 0 %}
+    {{ column.sql_column_name }}: Optional[{{ column.inferred_sql_type.replace('String', 'str').replace('Integer', 'int').replace('Float', 'float') }}] = None
+    {% else %}
+    {{ column.sql_column_name }}: {{ column.inferred_sql_type.replace('String', 'str').replace('Integer', 'int').replace('Float', 'float') }}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+
+class {{ module.model.model_name }}Response({{ module.model.model_name }}Base):
+    """Response model for {{ module.model.model_name }}"""
+
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class {{ module.model.model_name }}ListResponse(BaseModel):
+    """List response model for {{ module.model.model_name }}"""
+
+    data: list[{{ module.model.model_name }}Response]
+    pagination: dict
+    links: dict
+    _meta: dict

@@ -8,7 +8,7 @@ from sqlalchemy import table, column, text, select, and_, or_, func, literal
 from _fao_.src.db.database import get_db
 from _fao_.src.core import settings
 from _fao_.src.core.utils import load_sql, calculate_price_correlation
-from _fao_.src.core.validation import is_valid_item_code, is_valid_element_code, is_valid_area_code, is_valid_year_range
+from _fao_.src.core.validation import is_valid_item_code, is_valid_element_code, is_valid_area_code, is_valid_range
 from _fao_.src.core.exceptions import (
     invalid_parameter,
     invalid_item_code,
@@ -72,7 +72,7 @@ def get_market_integration(
 
     if len(area_codes) > 5:
         raise invalid_parameter(
-            param="area_codes", value=f"{len(area_codes)} items", reason="maximum 5 area codes allowed"
+            params="area_codes", value=f"{len(area_codes)} items", reason="maximum 5 area codes allowed"
         )
 
     for area_code in area_codes:
@@ -245,7 +245,7 @@ def get_multi_line_price_trends(
 
     if len(area_codes) > 5:
         raise invalid_parameter(
-            param="area_codes", value=f"{len(area_codes)} items", reason="maximum 5 area codes allowed"
+            params="area_codes", value=f"{len(area_codes)} items", reason="maximum 5 area codes allowed"
         )
 
     for area_code in area_codes:
@@ -264,9 +264,9 @@ def get_multi_line_price_trends(
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # Year validation
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    if not is_valid_year_range(year_start, year_end):
+    if not is_valid_range(year_start, year_end):
         raise invalid_parameter(
-            param="year_range", value=f"{year_start}-{year_end}", reason="start year must be before end year"
+            params="year_range", value=f"{year_start}-{year_end}", reason="start year must be before end year"
         )
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -414,7 +414,7 @@ def get_all_items(
         view_name = "item_stats_lcu"
     else:
         raise invalid_parameter(
-            param="element_code", value=element_code, reason="Unsupported element code. Use 5530 or 5532."
+            params="element_code", value=element_code, reason="Unsupported element code. Use 5530 or 5532."
         )
 
     # Simple query from the view

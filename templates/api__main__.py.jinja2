@@ -4,7 +4,7 @@ from scalar_fastapi.scalar_fastapi import Layout
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse  
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from sqlalchemy.exc import SQLAlchemyError
 import uvicorn
 from . import api_map
@@ -35,25 +35,57 @@ app = FastAPI(
     redoc_url=settings.redoc_url,
 )
 
+# Custom OpenAPI schema generation to exclude exception classes
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    from fastapi.openapi.utils import get_openapi
+
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+    # Remove exception classes from components/schemas
+    if "components" in openapi_schema and "schemas" in openapi_schema["components"]:
+        schemas_to_remove = [
+            "FAOAPIError", "ValidationError", "DataNotFoundError",
+            "BusinessLogicError", "AuthenticationError", "AuthorizationError",
+            "RateLimitError", "ServerError", "ExternalServiceError",
+            "DataQualityError", "ConfigurationError", "CacheError",
+            "CacheConnectionError", "CacheOperationError", "CacheSerializationError"
+        ]
+
+        for schema_name in schemas_to_remove:
+            openapi_schema["components"]["schemas"].pop(schema_name, None)
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
 # Register handlers (with type: ignore if needed)
 app.add_exception_handler(
-    FAOAPIError, 
+    FAOAPIError,
     cast(Any, fao_exception_handler)
 )
 app.add_exception_handler(
-    RequestValidationError, 
+    RequestValidationError,
     cast(Any, validation_exception_handler)
 )
 app.add_exception_handler(
-    HTTPException, 
+    HTTPException,
     cast(Any, http_exception_handler)
 )
 app.add_exception_handler(
-    SQLAlchemyError, 
+    SQLAlchemyError,
     cast(Any, sqlalchemy_exception_handler)
 )
-app.add_exception_handler(Exception, health_check_exception_handler) 
-app.add_exception_handler(Exception, generic_exception_handler) 
+app.add_exception_handler(Exception, health_check_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
 
 # Custom middleware
@@ -82,9 +114,11 @@ try:
         app.include_router(custom_router)
     print(f"✅ Loaded {len(custom_routers)} custom routers")
 except ImportError as e:
-    print("ℹ️  No custom routers found")
+    print(f"ℹ️  No custom routers found: {e}")
+    raise e
 except Exception as e:
     print(f"⚠️  Error loading custom routers: {e}")
+    raise e
 
 # Root endpoint with version info
 @app.get("/")
@@ -189,7 +223,7 @@ async def rapidoc_docs():
         <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
     </head>
     <body>
-        <rapi-doc 
+        <rapi-doc
             spec-url="/openapi.json"
             show-method-in-nav-bar="as-colored-text"
             nav-bg-color="#24292e"
@@ -218,8 +252,8 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     uvicorn.run(
-        "{{ project_name }}.src.api.__main__:app", 
-        host=settings.api_host, 
-        port=settings.api_port, 
+        "{{ project_name }}.src.api.__main__:app",
+        host=settings.api_host,
+        port=settings.api_port,
         reload=True
     )
