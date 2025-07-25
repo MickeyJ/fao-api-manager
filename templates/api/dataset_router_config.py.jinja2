@@ -22,14 +22,15 @@ from {{ project_name }}.src.core.exceptions import (
 @dataclass
 class {{ router.model.model_name }}Config:
     """Configuration for {{ router.name }} API"""
-    
+
     # Basic info
     name: str = "{{ router.name }}"
     model_name: str = "{{ router.model.model_name }}"
     table_name: str = "{{ router.model.table_name }}"
-    
+
     # Columns
     all_data_fields: List[str] = field(default_factory=lambda: [
+        "id",
         {% for column in router.model.column_analysis %}
         "{{ column.sql_column_name }}",
         {% endfor %}
@@ -40,7 +41,7 @@ class {{ router.model.model_name }}Config:
         "{{ param.name }}",
         {% endfor %}
     ])
-    
+
     # Foreign keys
     foreign_keys: List[Dict[str, Any]] = field(default_factory=lambda: [
         {% for fk in router.model.foreign_keys %}

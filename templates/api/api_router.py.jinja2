@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, Response, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_, and_, String
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Any
 from datetime import datetime
 
 from {{ project_name }}.logger import logger
@@ -27,20 +27,18 @@ class {{ router.model.model_name }}Response(BaseModel):
     id: int
     {% if not router.is_reference_module %}
     {% for fk in router.model.foreign_keys %}
-    {{ fk.hash_fk_sql_column_name }}: int
+    {{ fk.sql_column_name }}: Any
     {% endfor %}
     {% endif %}
     {% for column in router.model.column_analysis %}
     {% if column.csv_column_name not in router.model.exclude_columns %}
-    {% if column.null_count > 0 or column.nullable %}
+    {% if column.null_count > 0 or column.nullable or column.inferred_sql_type == 'Float' %}
     {{ column.sql_column_name }}: Optional[{{ column.inferred_sql_type.replace('String', 'str').replace('Integer', 'int').replace('Float', 'float').replace('Smallint', 'int') }}] = None
     {% else %}
     {{ column.sql_column_name }}: {{ column.inferred_sql_type.replace('String', 'str').replace('Integer', 'int').replace('Float', 'float').replace('Smallint', 'int') }}
     {% endif %}
     {% endif %}
     {% endfor %}
-    created_at: datetime
-    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

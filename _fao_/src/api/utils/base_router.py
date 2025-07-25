@@ -1,8 +1,8 @@
 # fao/src/api/utils/base_router.py
+import math
 from typing import Dict, Any, List, Optional, Tuple, Type, Union
-from fastapi import Depends, Query, HTTPException, Response, Request
+from fastapi import Response, Request
 from sqlalchemy.orm import Session
-from sqlalchemy import Select
 from abc import ABC, abstractmethod
 
 # Import utilities
@@ -17,15 +17,12 @@ from _fao_.src.api.utils.parameter_parsers import (
 from _fao_.src.core.validation import (
     is_valid_sort_direction,
     is_valid_range,
-    is_valid_aggregation_function,
     validate_fields_exist,
-    validate_model_has_columns,
 )
 
 from _fao_.src.core.exceptions import (
     invalid_parameter,
     invalid_range,
-    missing_parameter,
     incompatible_parameters,
 )
 
@@ -268,16 +265,25 @@ class BaseRouterHandler(ABC):
         else:
             return [("id", "asc")]
 
+    def _sanitize_float_value(self, value: Any) -> Any:
+        """Sanitize float values to ensure JSON compliance"""
+        if isinstance(value, float):
+            if math.isnan(value) or math.isinf(value):
+                return None
+        return value
+
     def filter_response_data(self, results: List, requested_fields: Optional[List[str]] = None) -> List[Dict]:
         """Format query results based on requested fields"""
         data = []
         for result in results:
             response_fields = {}
 
-            for field in self.all_data_fields:  # <- Changed from self.allowed_fields
+            for field in self.all_data_fields:
                 if not requested_fields or field in requested_fields:
                     if hasattr(result, field):
-                        response_fields[field] = getattr(result, field)
+                        value = getattr(result, field)
+                        # Sanitize float values to prevent JSON serialization errors
+                        response_fields[field] = self._sanitize_float_value(value)
 
             sorted_fields = dict(sorted(response_fields.items()))
             data.append(sorted_fields)
@@ -351,12 +357,12 @@ class BaseRouterHandler(ABC):
 
                 self.agg_configs.append(agg_config)
 
-            except (ValueError, KeyError, IndexError) as e:
+            except (ValueError, KeyError, IndexError):
                 # These are actual parsing errors
                 raise invalid_parameter(
                     "aggregations",
                     agg_str,
-                    f"Invalid aggregation format. Expected 'field:function' or 'field:function:alias'",
+                    "Invalid aggregation format. Expected 'field:function' or 'field:function:alias'",
                 )
         # Validate group fields exist
         for field in self.group_fields:
