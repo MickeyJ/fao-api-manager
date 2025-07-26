@@ -11,7 +11,7 @@ ifdef VIRTUAL_ENV
     ACTIVATE = @echo "venv - $(VIRTUAL_ENV)" &&
     PYTHON = python
 else ifdef CONDA_DEFAULT_ENV
-    # Already in conda environment  
+    # Already in conda environment
     ACTIVATE = @echo "conda - $(CONDA_DEFAULT_ENV)" &&
     PYTHON = python
 else ifeq ($(wildcard venv/Scripts/activate),venv/Scripts/activate)
@@ -89,10 +89,6 @@ generate:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --all
 
-generate-graph:
-	@echo "Generating code..."
-	$(ACTIVATE) $(PYTHON) -m generator --graph
-
 process-and-generate:
 	@echo "Generating code..."
 	$(ACTIVATE) $(PYTHON) -m generator --process_and_generate
@@ -122,23 +118,10 @@ dataset-status:
 	@echo "Showing FAO dataset status..."
 	$(ACTIVATE) $(PYTHON) -m generator --dataset_status
 
-# =-=-=--=-=-=-=-=-
-#    		ML
-# =-=-=--=-=-=-=-=-
-ml-train:
-	$(MAKE) use-local-db
-	$(ACTIVATE) $(PYTHON) -m _ml_.train_model
-	$(MAKE) use-local-db
-
-ml-analyze:
-	$(MAKE) use-local-db
-	$(ACTIVATE) $(PYTHON) -m _ml_.analyze
-	$(MAKE) use-local-db
 
 # =-=-=--=-=-=-=-=-
 # Database commands
 # =-=-=--=-=-=-=-=-
-
 
 use-remote-db:
 	cp remote.env .env
@@ -215,11 +198,6 @@ clear-all-tables-local:
 	$(MAKE) NO-DIRECT-USE-clear-all-tables
 	make use-local-db
 
-enable-rls-db-remote:
-	make use-remote-db
-	$(MAKE) enable-rls
-	make use-local-db
-
 show-all-tables:
 	@echo "Showing all tables in the database..."
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/select_all_tables.sql
@@ -239,11 +217,6 @@ NO-DIRECT-USE-clear-all-tables:
 	@echo "Showing all tables in the database..."
 	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)" -f sql/clear_all_tables.sql
 
-
-
-NO-DIRECT-USE-enable-rls:
-	@echo "Enable RSL"
-	psql "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres" -f sql/enable_rls.sql
 all-table-row-count-local:
 	make use-local-db
 	$(MAKE) all-table-row-count
